@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name        Chasm redpill — 크랙 빨간약 v1.1
+// @name        Chasm redpill — 크랙 빨간약 v1.4
 // @namespace   https://github.com/chasm-js
-// @version     1.1
+// @version     1.4
 // @description 크랙의 빨간약을 들이켜보세요
 // @author      chasm-js
 // @match       https://crack.wrtn.ai/*
@@ -113,7 +113,7 @@ H(d,h,f,m,document.body.dataset.theme==="dark",r,v,z);g++;await new Promise(l=>s
 k.innerHTML=`
                 <span style="font-weight:800; letter-spacing: -1px;">\u2318 Chasm</span>
                 <span style="font-weight:600; margin-left: 5px; color: #ff0000;">redpill</span>
-                <span style="font-weight:500; font-size: 0.7em; color: ${a?"#777":"#999"}; margin-left: 8px;">${"v1.1"}</span>
+                <span style="font-weight:500; font-size: 0.7em; color: ${a?"#777":"#999"}; margin-left: 8px;">${"v1.4"}</span>
             `;const r=document.createElement("button");r.id="cr-close";r.innerHTML="\u2715";r.style.cssText=`
                 background: none;
                 border: none;
