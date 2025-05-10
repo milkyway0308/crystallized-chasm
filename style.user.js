@@ -5,7 +5,7 @@
 // @description  iOS 환경 자동 확대 / Firefox 환경 코드블록 폰트 강제 일반폰트화
 // @author       chasm-js
 // @updateURL    https://raw.githubusercontent.com/chasm-js/snack/refs/heads/main/style.user.js
-// @updateURL    https://raw.githubusercontent.com/chasm-js/snack/refs/heads/main/style.user.js
+// @downloadURL    https://raw.githubusercontent.com/chasm-js/snack/refs/heads/main/style.user.js
 // @match        https://crack.wrtn.ai/*
 // @grant        none
 // ==/UserScript==
