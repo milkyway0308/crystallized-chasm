@@ -2,7 +2,7 @@
 // @name        Chasm Copy (캐즘 카피) v1.2.2-fix#1
 // @namespace   https://github.com/milkyway0308/chasm-js-recent-fix/
 // @version     1.2.2-fix#1
-// @description 크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정
+// @description 크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정. 해당 유저 스크립트를 사용할 경우, **반드시** 원본 캐즘 카피를 지우고 사용하십시오. 해당 브랜치는 캐즘 픽스 1.2.2 전용 픽스입니다.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/chasm-js-recent-fix/raw/refs/heads/main/copy.user.js
