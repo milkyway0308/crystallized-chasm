@@ -7,11 +7,11 @@
 > *"A chasm opened in the ground after the earthquake."*  
 > *(지진 후 땅에 커다란 틈이 생겼다.)*
 
-> **crystallized** [ˈkristəˌlīzd]
+> **crystallized** [ˈkristəˌlīzd]<br>
 > *adjective* | *형용사*
 > 
-> 명확하게 하거나, 확실하게 하다.
-> *"Chasm crystallized, illuminating a bright future."*
+> 명확하게 하거나, 확실하게 하다.<br>
+> *"Chasm crystallized, illuminating a bright future."*<br>
 > *(열린 틈은 결정화되어 아름다운 미래를 비추었다.)*
 
 ## 소개
