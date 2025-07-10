@@ -55,3 +55,16 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 만일 원본 캐즘에서 한번이라도 코드가 변경되었다면, 결정화 캐즘 프로젝트의 고유한 버전이 새로 할당됩니다.
 
 결정화 캐즘은 수정된 [유의적 버전](https://semver.org/lang/ko/)을 사용하며, 다음과 같은 버전 규칙을 사용합니다 : `CRYS-FEATURE-vMAJOR.MINOR.FIX`
+
+# 설치하기
+
+결정화 캐즘은 유저스크립트 확장입니다. 
+
+사용하려면, 먼저 [TamperMonkey](https://www.tampermonkey.net/)을 설치해야 합니다.
+
+**반드시 원본 캐즘과 변형 캐즘을 삭제하고 사용하세요.**
+
+**목록에 없을 경우 결정화 캐즘 프로젝트에서 수정된 이력이 없는 스크립트입니다.**<br>
+**수정되지 않은 목록에서 원본에 버그가 있을 경우 [IGX 공식 지원 디스코드](https://discord.com/invite/hEb44bUFgu)에서 버그 제보를 해주세요.**
+
+## 결정화 캐즘 - 카피 (v1.0.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/copy.user.js) ]
