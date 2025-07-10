@@ -17,7 +17,7 @@
 
 ## 소개
 
-Chasm Crystallized(캐즘 결정화)은 유지보수되지 않고 있는 [원본 캐즘](https://github.com/chasm-js/guide)의 사후 지원을 진행하는 프로젝트입니다.
+Chasm Crystallized(결정화 캐즘)은 유지보수되지 않고 있는 [원본 캐즘](https://github.com/chasm-js/guide)의 사후 지원을 진행하는 프로젝트입니다.
 
 Chasm Snack을 기반으로 수정되었으며, 원본 캐즘 버전은 [6월 11일 업로드본(b7ac7ed)](https://github.com/chasm-js/snack/commit/b7ac7ed1b726a09794582e7e85c828f55808426d)입니다.
 
