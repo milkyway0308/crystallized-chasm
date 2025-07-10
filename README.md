@@ -10,7 +10,8 @@
 > **crystallized** [ˈkristəˌlīzd]<br>
 > *adjective* | *형용사*
 > 
-> 명확하게 하거나, 확실하게 하다.<br>
+> 1\. 결정으로 화하거나 결정의 형태를 가지다.<br>
+> 2\. 명확하게 하거나, 확실하게 하다.<br>
 > *"Chasm crystallized, illuminating a bright future."*<br>
 > *(열린 틈은 결정화되어 아름다운 미래를 비추었다.)*
 
