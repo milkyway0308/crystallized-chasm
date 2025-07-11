@@ -261,8 +261,6 @@
                     "기존 데이터에서 필수 요소 baseSetId가 반환되지 않았습니다."
                   );
                 }
-                console.log("Origin count: " + origin.data.startingSets.length);
-                console.log("NEw count: " + a.startingSets.length);
                 if (origin.data.startingSets.length !== a.startingSets.length) {
                   alert(
                     "원본 시작 설정 개수와 클립보드 데이터의 시작 설정 개수가 다릅니다.\n" +
@@ -351,9 +349,11 @@
                 // Overwriting visibility to origin
                 r.visibility = origin.data.visibility;
                 if (r.startingSets.length > 0) {
-                  for (let index = 0; i < r.startingSets.length; i++) {
-                    r.startingSets[index].baseSetId =
-                      origin.data.startingSets[index].baseSetId;
+                  for (let index = 0; index < r.startingSets.length; index++) {
+                    if (origin.data.startingSets[index].baseSetId) {
+                      r.startingSets[index].baseSetId =
+                        origin.data.startingSets[index].baseSetId;
+                    }
                   }
                 }
 
