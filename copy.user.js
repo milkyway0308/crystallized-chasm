@@ -194,7 +194,57 @@
                         );
                       }
                       (t = await i.getMycharacter(window.currentClickedId))
-                        ? (await t.set(t, e))
+                        ? (await t.set(t, e, false))
+                          ? (alert(
+                              "캐릭터 데이터가 성공적으로 덮어씌워졌습니다!"
+                            ),
+                            confirm(
+                              "Chasm Copy - 캐릭터 데이터 덮어씌우기 성공했습니다. 새로고침 하시겠습니까?"
+                            ) && location.reload())
+                          : alert(
+                              "캐릭터 데이터 덮어씌우기에 실패했습니다. 다시 시도해 주세요."
+                            )
+                        : alert("캐릭터 데이터를 가져올 수 없습니다.");
+                    } else alert("클립보드에서 데이터를 가져올 수 없습니다.");
+                  }
+                },
+                e
+              )
+            ),
+            t.appendChild(
+              a(
+                "⚠ JSON 강제 붙여넣기",
+                async () => {
+                  if (
+                    window.currentClickedId &&
+                    confirm(
+                      "Chasm Copy - 클립보드의 JSON 데이터로 캐릭터를 강제로 덮어씌우시겠습니까? 이 작업은 되돌릴 수 없습니다.\n **경고**: 강제 붙여넣기 기능은 기존 캐릭터를 망가뜨릴 수 있습니다.\n이 기능은 모든 다른 기능이 비활성화되어 작동하지 않을 때, 최후의 방법으로만 사용되어야 합니다."
+                    ) &&
+                    confirm(
+                      "Chasm Copy - 정말로 캐릭터 데이터를 덮어씌우시겠습니까? 기존 데이터는 모두 삭제됩니다."
+                    ) &&
+                    prompt(
+                      "Chasm Copy - 최종 확인입니다.\n**정말로** 캐릭터 데이터의 강제 덮어쓰기를 실행하시겠습니까?\n결정화 캐즘의 개발자와 관련자는 이 작업으로 이루어지는 손상 및 손해, 혹은 이익에 대해 어떠한 책임도 지지 않습니다.\n정말로 동의한다면, '동의한다'를 적고 확인을 누르세요."
+                    ) === "동의한다"
+                  ) {
+                    var t = await (async function () {
+                      try {
+                        return await navigator.clipboard.readText();
+                      } catch (t) {
+                        return null;
+                      }
+                    })();
+                    if (t) {
+                      try {
+                        var e = JSON.parse(t);
+                      } catch (t) {
+                        return void alert(
+                          "클립보드 데이터가 유효한 JSON 형식이 아닙니다."
+                        );
+                      }
+                      let clickedId = window.currentClickedId;
+                      (t = await i.getMycharacter(window.currentClickedId))
+                        ? (await i.setCharacter(clickedId, t, e, true, false))
                           ? (alert(
                               "캐릭터 데이터가 성공적으로 덮어씌워졌습니다!"
                             ),
@@ -230,6 +280,155 @@
             : `https://contents-api.wrtn.ai/character/characters/me?limit=${a}`
         );
       }
+
+      async setCharacter(id, origin, a, force, doubleCheck) {
+        let defaultBaseId = origin.data?.startingSets[0].baseSetId;
+        if (!defaultBaseId) {
+          alert("기존 데이터에서 필수 요소 baseSetId가 반환되지 않았습니다.");
+          throw Error(
+            "기존 데이터에서 필수 요소 baseSetId가 반환되지 않았습니다."
+          );
+        }
+        if (doubleCheck) {
+          if (origin.data.startingSets.length !== a.startingSets.length) {
+            alert(
+              "원본 시작 설정 개수와 클립보드 데이터의 시작 설정 개수가 다릅니다.\n" +
+                "결정화 캐즘의 현재 버전에서는 시작 설정 개수가 다를 경우 복사가 불가능합니다."
+            );
+            throw Error(
+              "원본 시작 설정 개수와 클립보드 데이터의 시작 설정 개수가 다릅니다."
+            );
+          }
+        }
+        for (var r of a.startingSets || []) delete r._id;
+        r = {
+          name: a.name,
+          description: a.description,
+          profileImageUrl: a.profileImage?.origin || a.profileImageUrl,
+          model: a.model.toLowerCase(),
+          //   initialMessages: a.initialMessages,
+          characterDetails: a.characterDetails,
+          //   replySuggestions: a.replySuggestions,
+          chatExamples: a.chatExamples,
+          //   situationImages: a.situationImages,
+          categoryIds: a.categories?.length
+            ? [a.categories[0]._id]
+            : a.categoryIds,
+          tags: a.tags,
+          promptTemplate: a.promptTemplate?.template || a.promptTemplate,
+          isCommentBlocked: a.isCommentBlocked,
+          defaultStartingSetName: a.defaultStartingSetName,
+          //   keywordBook: a.keywordBook,
+          customPrompt: a.customPrompt,
+          //   defaultStartingSetSituationPrompt:
+          //     a.defaultStartingSetSituationPrompt || "",
+          defaultSuperChatModel:
+            "object" == typeof a.defaultSuperChatModel &&
+            a.defaultSuperChatModel?.model
+              ? a.defaultSuperChatModel.model
+              : a.defaultSuperChatModel || "SONNET3.7",
+          genreId: a.genreId,
+          defaultCrackerModel: a.defaultCrackerModel,
+          target: a.target,
+          visibility: a.visibility ? a.visibility : "private",
+          isMovingImage: a.isMovingImage ? a.isMovingImage : false,
+          chatType: a.chatType ? a.chatType : "simulation",
+        };
+        if (a.initialMessages) {
+          if (a.initialMessages.length <= 0) {
+            delete r.initialMessages;
+          } else {
+            r.initialMessages = a.initialMessages;
+          }
+        }
+        if (a.replySuggestions) {
+          if (a.replySuggestions.length <= 0) {
+            delete r.replySuggestions;
+          } else {
+            r.replySuggestions = a.replySuggestions;
+          }
+        }
+        if (a.situationImages) {
+          if (a.situationImages.length <= 0) {
+            delete r.situationImages;
+          } else {
+            r.situationImages = a.situationImages;
+          }
+        }
+        if (a.keywordBook) {
+          if (a.keywordBook.length <= 0) {
+            delete r.keywordBook;
+          } else {
+            r.keywordBook = a.keywordBook;
+          }
+        }
+        if (a.defaultStartingSetSituationPrompt) {
+          if (a.defaultStartingSetSituationPrompt.length <= 0) {
+            delete r.defaultStartingSetSituationPrompt;
+          } else {
+            r.defaultStartingSetSituationPrompt =
+              a.defaultStartingSetSituationPrompt;
+          }
+        }
+        if (a.startingSets && a.startingSets.length > 0) {
+          r.startingSets = a.startingSets.map(
+            (t) => (delete (t = { ...t })._id, t)
+          );
+        }
+        // Overwriting visibility to origin
+        r.visibility = origin.data.visibility;
+        if (force) {
+          for (let index = 0; index < r.startingSets.length; index++) {
+            if (origin.data.startingSets[index] && origin.data.startingSets[index].baseSetId) {
+              delete origin.data.startingSets[index].baseSetId;
+            }
+            if (a.startingSets[index] && a.startingSets[index].baseSetId) {
+              delete a.startingSets[index].baseSetId;
+            }
+          }
+          origin.data.startingSets[0].baseSetId = defaultBaseId;
+          a.startingSets[0].baseSetId = defaultBaseId;
+          r.startingSets = [
+            {
+              baseSetId: defaultBaseId,
+              name: "강제 덮어씌우기 진행중",
+              initialMessages: [
+                "강제 덮어씌우기 작업이 진행중입니다. ",
+                "이 작업은 결정화 캐즘에 의해 진행되고 있습니다.",
+                "잠시만 기다려주세요.",
+              ],
+              situationPrompt:
+                "캐릭터 점검중 - 점검 안내 외에는 다른 응답을 하지 말 것",
+              replySuggestions: ["점검중"],
+              situationImages: [],
+              keywordBook: [],
+            },
+          ];
+          await e(
+            "PATCH",
+            `https://contents-api.wrtn.ai/character/characters/${id}`,
+            r
+          );
+          return await this.setCharacter(id, origin, a, false, false);
+        } else {
+          if (r.startingSets.length > 0) {
+            for (let index = 0; index < r.startingSets.length; index++) {
+              if (origin.data.startingSets[index] && origin.data.startingSets[index].baseSetId) {
+                r.startingSets[index].baseSetId =
+                  origin.data.startingSets[index].baseSetId;
+              }
+            }
+          }
+          return (
+            r,
+            await e(
+              "PATCH",
+              `https://contents-api.wrtn.ai/character/characters/${id}`,
+              r
+            )
+          );
+        }
+      }
       async getMycharacter(t) {
         if (!t) return null;
         const a = await e(
@@ -251,120 +450,8 @@
                     `https://contents-api.wrtn.ai/character/characters/me/${t}`
                   )
                 )?.data || null,
-              set: async (origin, a) => {
-                let defaultBaseId = origin.data?.startingSets[0].baseSetId;
-                if (!defaultBaseId) {
-                  alert(
-                    "기존 데이터에서 필수 요소 baseSetId가 반환되지 않았습니다."
-                  );
-                  throw Error(
-                    "기존 데이터에서 필수 요소 baseSetId가 반환되지 않았습니다."
-                  );
-                }
-                if (origin.data.startingSets.length !== a.startingSets.length) {
-                  alert(
-                    "원본 시작 설정 개수와 클립보드 데이터의 시작 설정 개수가 다릅니다.\n" +
-                      "결정화 캐즘의 현재 버전에서는 시작 설정 개수가 다를 경우 복사가 불가능합니다."
-                  );
-                  throw Error(
-                    "원본 시작 설정 개수와 클립보드 데이터의 시작 설정 개수가 다릅니다."
-                  );
-                }
-                for (var r of a.startingSets || []) delete r._id;
-                r = {
-                  name: a.name,
-                  description: a.description,
-                  profileImageUrl: a.profileImage?.origin || a.profileImageUrl,
-                  model: a.model.toLowerCase(),
-                  //   initialMessages: a.initialMessages,
-                  characterDetails: a.characterDetails,
-                  //   replySuggestions: a.replySuggestions,
-                  chatExamples: a.chatExamples,
-                  //   situationImages: a.situationImages,
-                  categoryIds: a.categories?.length
-                    ? [a.categories[0]._id]
-                    : a.categoryIds,
-                  tags: a.tags,
-                  promptTemplate:
-                    a.promptTemplate?.template || a.promptTemplate,
-                  isCommentBlocked: a.isCommentBlocked,
-                  defaultStartingSetName: a.defaultStartingSetName,
-                  //   keywordBook: a.keywordBook,
-                  customPrompt: a.customPrompt,
-                  //   defaultStartingSetSituationPrompt:
-                  //     a.defaultStartingSetSituationPrompt || "",
-                  defaultSuperChatModel:
-                    "object" == typeof a.defaultSuperChatModel &&
-                    a.defaultSuperChatModel?.model
-                      ? a.defaultSuperChatModel.model
-                      : a.defaultSuperChatModel || "SONNET3.7",
-                  genreId: a.genreId,
-                  defaultCrackerModel: a.defaultCrackerModel,
-                  target: a.target,
-                  visibility: a.visibility ? a.visibility : "private",
-                  isMovingImage: a.isMovingImage ? a.isMovingImage : false,
-                  chatType: a.chatType ? a.chatType : "simulation",
-                };
-                if (a.initialMessages) {
-                  if (a.initialMessages.length <= 0) {
-                    delete r.initialMessages;
-                  } else {
-                    r.initialMessages = a.initialMessages;
-                  }
-                }
-                if (a.replySuggestions) {
-                  if (a.replySuggestions.length <= 0) {
-                    delete r.replySuggestions;
-                  } else {
-                    r.replySuggestions = a.replySuggestions;
-                  }
-                }
-                if (a.situationImages) {
-                  if (a.situationImages.length <= 0) {
-                    delete r.situationImages;
-                  } else {
-                    r.situationImages = a.situationImages;
-                  }
-                }
-                if (a.keywordBook) {
-                  if (a.keywordBook.length <= 0) {
-                    delete r.keywordBook;
-                  } else {
-                    r.keywordBook = a.keywordBook;
-                  }
-                }
-                if (a.defaultStartingSetSituationPrompt) {
-                  if (a.defaultStartingSetSituationPrompt.length <= 0) {
-                    delete r.defaultStartingSetSituationPrompt;
-                  } else {
-                    r.defaultStartingSetSituationPrompt =
-                      a.defaultStartingSetSituationPrompt;
-                  }
-                }
-                if (a.startingSets && a.startingSets.length > 0) {
-                  r.startingSets = a.startingSets.map(
-                    (t) => (delete (t = { ...t })._id, t)
-                  );
-                }
-                // Overwriting visibility to origin
-                r.visibility = origin.data.visibility;
-                if (r.startingSets.length > 0) {
-                  for (let index = 0; index < r.startingSets.length; index++) {
-                    if (origin.data.startingSets[index].baseSetId) {
-                      r.startingSets[index].baseSetId =
-                        origin.data.startingSets[index].baseSetId;
-                    }
-                  }
-                }
-
-                return (
-                  r,
-                  await e(
-                    "PATCH",
-                    `https://contents-api.wrtn.ai/character/characters/${t}`,
-                    r
-                  )
-                );
+              set: async (origin, a, force) => {
+                return await this.setCharacter(t, origin, a, force, true);
               },
               remove: async () =>
                 "SUCCESS" ===
