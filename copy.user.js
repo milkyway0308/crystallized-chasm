@@ -120,7 +120,7 @@
                 ) {
                   var t = await i.getMycharacter(window.currentClickedId);
                   t
-                    ? "SUCCESS" === (await t.publish("public"))?.result
+                    ? "SUCCESS" === (await t.publish(0))?.result
                       ? confirm(
                           "Chasm Copy - 공개 로 게시 성공했습니다. 새로고침 하시겠습니까?"
                         ) && location.reload()
@@ -143,7 +143,7 @@
                   ) {
                     var t = await i.getMycharacter(window.currentClickedId);
                     t
-                      ? "SUCCESS" === (await t.publish("private"))?.result
+                      ? "SUCCESS" === (await t.publish(1))?.result
                         ? confirm(
                             "Chasm Copy - 비공개 로 게시 성공했습니다. 새로고침 하시겠습니까?"
                           ) && location.reload()
@@ -166,7 +166,7 @@
                   ) {
                     var t = await i.getMycharacter(window.currentClickedId);
                     t
-                      ? "SUCCESS" === (await t.publish("linkonly"))?.result
+                      ? "SUCCESS" === (await t.publish(2))?.result
                         ? confirm(
                             "Chasm Copy - 링크 공개 로 게시 성공했습니다. 새로고침 하시겠습니까?"
                           ) && location.reload()
@@ -309,6 +309,115 @@
         );
       }
 
+      /**
+       * 캐릭터를 새로 배포합니다.
+       * @param {*} origin 원본 작품의 JSON 데이터입니다.
+       * @param {number} state 작품의 상태를 뜻합니다. [0 = 공개 / 1 = 비공개 / 2 = 일부 공개]
+       */
+      async publishCharacter(originId, state) {
+        const origin = (
+          await e(
+            "GET",
+            `https://contents-api.wrtn.ai/character/characters/me/${originId}`
+          )
+        )?.data;
+        if (origin) {
+          for (const t of origin.startingSets || []) delete t._id;
+          let cloned = {
+            name: origin.name,
+            description: origin.description,
+            profileImageUrl: origin.profileImage.origin,
+            model: origin.model,
+            initialMessages: origin.initialMessages,
+            characterDetails: origin.characterDetails,
+            replySuggestions: origin.replySuggestions,
+            chatExamples: origin.chatExamples,
+            situationImages: origin.situationImages,
+            categoryIds: [origin.categories[0]._id],
+            tags: origin.tags,
+            visibility:
+              origin === 0 ? "public" : origin === 1 ? "private" : "linkonly",
+            promptTemplate:
+              origin.promptTemplate?.template || origin.promptTemplate,
+            isCommentBlocked: origin.isCommentBlocked,
+            defaultStartingSetName: origin.defaultStartingSetName,
+            keywordBook: origin.keywordBook,
+            customPrompt: origin.customPrompt,
+            defaultStartingSetSituationPrompt:
+              origin.defaultStartingSetSituationPrompt || " ",
+            isAdult: origin.isAdult,
+            defaultSuperChatModel:
+              "object" == typeof origin.defaultSuperChatModel &&
+              origin.defaultSuperChatModel?.model
+                ? origin.defaultSuperChatModel.model
+                : origin.defaultSuperChatModel || "SONNET3.7",
+            defaultCrackerModel: origin.defaultCrackerModel,
+            target: origin.target,
+            isMovingImage: origin.isMovingImage ? origin.isMovingImage : false,
+            chatType: origin.chatType ? origin.chatType : "simulation",
+          };
+          if (origin.startingSets && origin.startingSets.length > 0) {
+            cloned.startingSets = origin.startingSets.map(
+              (t) => (delete (t = { ...t })._id, t)
+            );
+          }
+          if (origin.initialMessages) {
+            if (origin.initialMessages.length <= 0) {
+              delete cloned.initialMessages;
+            } else {
+              cloned.initialMessages = origin.initialMessages;
+            }
+          }
+          if (origin.replySuggestions) {
+            if (origin.replySuggestions.length <= 0) {
+              delete cloned.replySuggestions;
+            } else {
+              cloned.replySuggestions = origin.replySuggestions;
+            }
+          }
+          if (origin.situationImages) {
+            if (origin.situationImages.length <= 0) {
+              delete cloned.situationImages;
+            } else {
+              cloned.situationImages = origin.situationImages;
+            }
+          }
+          if (origin.keywordBook) {
+            if (origin.keywordBook.length <= 0) {
+              delete cloned.keywordBook;
+            } else {
+              cloned.keywordBook = origin.keywordBook;
+            }
+          }
+          if (origin.defaultStartingSetSituationPrompt) {
+            if (origin.defaultStartingSetSituationPrompt.length <= 0) {
+              delete cloned.defaultStartingSetSituationPrompt;
+            } else {
+              cloned.defaultStartingSetSituationPrompt =
+                origin.defaultStartingSetSituationPrompt;
+            }
+          }
+          if (cloned.startingSets.length > 0) {
+            for (let index = 0; index < cloned.startingSets.length; index++) {
+              if (
+                cloned.startingSets[index] &&
+                cloned.startingSets[index].baseSetId
+              ) {
+                delete cloned.startingSets[index].baseSetId;
+              }
+            }
+          }
+          return await e(
+            "POST",
+            "https://contents-api.wrtn.ai/character/characters",
+            cloned
+          );
+        } else {
+          alert(
+            "오류가 발생하였습니다:\n대상 작품이 서버에 존재하지 않거나 서버에서 잘못된 응답을 반환하였습니다."
+          );
+        }
+      }
       async setCharacter(id, origin, a, force, doubleCheck) {
         let defaultBaseId = origin.data?.startingSets[0].baseSetId;
         if (!defaultBaseId) {
@@ -495,56 +604,8 @@
                     `https://contents-api.wrtn.ai/character/characters/me/${t}`
                   )
                 )?.result,
-              publish: async (a) => {
-                const r = (
-                  await e(
-                    "GET",
-                    `https://contents-api.wrtn.ai/character/characters/me/${t}`
-                  )
-                )?.data;
-                if (r) {
-                  for (const t of r.startingSets || []) delete t._id;
-                  return (
-                    (a = {
-                      name: r.name,
-                      description: r.description,
-                      profileImageUrl: r.profileImage.origin,
-                      model: r.model,
-                      initialMessages: r.initialMessages,
-                      characterDetails: r.characterDetails,
-                      replySuggestions: r.replySuggestions,
-                      chatExamples: r.chatExamples,
-                      situationImages: r.situationImages,
-                      categoryIds: [r.categories[0]._id],
-                      tags: r.tags,
-                      visibility: a,
-                      promptTemplate:
-                        r.promptTemplate?.template || r.promptTemplate,
-                      isCommentBlocked: r.isCommentBlocked,
-                      defaultStartingSetName: r.defaultStartingSetName,
-                      keywordBook: r.keywordBook,
-                      customPrompt: r.customPrompt,
-                      defaultStartingSetSituationPrompt:
-                        r.defaultStartingSetSituationPrompt || " ",
-                      isAdult: r.isAdult,
-                      defaultSuperChatModel:
-                        "object" == typeof r.defaultSuperChatModel &&
-                        r.defaultSuperChatModel?.model
-                          ? r.defaultSuperChatModel.model
-                          : r.defaultSuperChatModel || "SONNET3.7",
-                    }),
-                    r.startingSets &&
-                      r.startingSets.length > 0 &&
-                      (a.startingSets = r.startingSets.map(
-                        (t) => (delete (t = { ...t })._id, t)
-                      )),
-                    await e(
-                      "POST",
-                      "https://contents-api.wrtn.ai/character/characters",
-                      a
-                    )
-                  );
-                }
+              publish: async (state) => {
+                return await this.publishCharacter(t, state);
               },
             }
           : null;
