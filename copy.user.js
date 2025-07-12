@@ -10,7 +10,7 @@
 // @grant       none
 // ==/UserScript==
 !(function () {
-  function t(t) {
+  function decodeParameter(t) {
     return (t = document.cookie.match(
       new RegExp(
         "(?:^|; )" +
@@ -26,7 +26,7 @@
       (e = {
         method: e,
         headers: {
-          Authorization: `Bearer ${t("access_token")}`,
+          Authorization: `Bearer ${decodeParameter("access_token")}`,
           "Content-Type": "application/json",
         },
       }),
@@ -77,9 +77,9 @@
     return null;
   }
 
-  async function r() {
+  async function setup() {
     /^\/my(\/.*)?$/.test(location.pathname) &&
-      t("access_token") &&
+      decodeParameter("access_token") &&
       o(document.body, () => {
         acquireMenuElements().forEach((t) => {
           t.onclick = () => {
@@ -104,13 +104,13 @@
             e && (window.currentClickedId = e);
           };
         });
-        const t = acquireMenu();
-        if (t === null) {
-            return;
+        const menu = acquireMenu();
+        if (menu === null) {
+          return;
         }
-        if (t && t.childNodes.length < 6) {
-          const e = t.childNodes[0].cloneNode(!0);
-          t.appendChild(
+        if (menu && menu.childNodes.length < 6) {
+          const element = menu.childNodes[0].cloneNode(!0);
+          menu.appendChild(
             a(
               "✦ 공개",
               async () => {
@@ -128,10 +128,10 @@
                     : alert("캐릭터 데이터를 가져올 수 없습니다.");
                 }
               },
-              e
+              element
             )
           ),
-            t.appendChild(
+            menu.appendChild(
               a(
                 "✦ 비공개",
                 async () => {
@@ -151,10 +151,10 @@
                       : alert("캐릭터 데이터를 가져올 수 없습니다.");
                   }
                 },
-                e
+                element
               )
             ),
-            t.appendChild(
+            menu.appendChild(
               a(
                 "✦ 링크 공개",
                 async () => {
@@ -174,10 +174,10 @@
                       : alert("캐릭터 데이터를 가져올 수 없습니다.");
                   }
                 },
-                e
+                element
               )
             ),
-            t.appendChild(
+            menu.appendChild(
               a(
                 "↙ JSON 복사",
                 async () => {
@@ -190,10 +190,10 @@
                       : alert("캐릭터 데이터를 가져올 수 없습니다.");
                   }
                 },
-                e
+                element
               )
             ),
-            t.appendChild(
+            menu.appendChild(
               a(
                 "↗ JSON 붙여넣기",
                 async () => {
@@ -236,10 +236,10 @@
                     } else alert("클립보드에서 데이터를 가져올 수 없습니다.");
                   }
                 },
-                e
+                element
               )
             ),
-            t.appendChild(
+            menu.appendChild(
               a(
                 "⚠ JSON 강제 붙여넣기",
                 async () => {
@@ -286,17 +286,17 @@
                     } else alert("클립보드에서 데이터를 가져올 수 없습니다.");
                   }
                 },
-                e
+                element
               )
             );
         }
       });
   }
-  function n() {
-    r();
+  function prepare() {
+    setup();
     let t = location.href;
     o(document, () => {
-      location.href !== t && ((t = location.href), r());
+      location.href !== t && ((t = location.href), setup());
     });
   }
   const i = new (class {
@@ -565,7 +565,7 @@
       };
     })();
   "loading" === document.readyState
-    ? document.addEventListener("DOMContentLoaded", n)
-    : n(),
-    window.addEventListener("load", n);
+    ? document.addEventListener("DOMContentLoaded", prepare)
+    : prepare(),
+    window.addEventListener("load", prepare);
 })();
