@@ -52,11 +52,36 @@
       n
     );
   }
+
+  function acquireMenuElements() {
+    // Dark mode
+    let data = document.querySelectorAll(".css-1phiq9z");
+    if (data && data.length > 0) {
+      return data;
+    }
+    // Light mode
+    return document.querySelectorAll(".css-ywqzoc");
+  }
+
+  function acquireMenu() {
+    // Dark mode
+    let data = document.querySelectorAll(".css-bf6s57");
+    if (data && data.length > 0) {
+      return data[0];
+    }
+    data = document.querySelectorAll(".css-10lwp0d");
+    // Light mode
+    if (data && data.length > 0) {
+      return data[0];
+    }
+    return null;
+  }
+
   async function r() {
     /^\/my(\/.*)?$/.test(location.pathname) &&
       t("access_token") &&
       o(document.body, () => {
-        document.querySelectorAll(".css-1phiq9z").forEach((t) => {
+        acquireMenuElements().forEach((t) => {
           t.onclick = () => {
             const e = (function (t) {
               try {
@@ -79,7 +104,10 @@
             e && (window.currentClickedId = e);
           };
         });
-        const t = document.querySelector(".css-bf6s57");
+        const t = acquireMenu();
+        if (t === null) {
+            return;
+        }
         if (t && t.childNodes.length < 6) {
           const e = t.childNodes[0].cloneNode(!0);
           t.appendChild(
@@ -379,7 +407,10 @@
         r.visibility = origin.data.visibility;
         if (force) {
           for (let index = 0; index < r.startingSets.length; index++) {
-            if (origin.data.startingSets[index] && origin.data.startingSets[index].baseSetId) {
+            if (
+              origin.data.startingSets[index] &&
+              origin.data.startingSets[index].baseSetId
+            ) {
               delete origin.data.startingSets[index].baseSetId;
             }
             if (a.startingSets[index] && a.startingSets[index].baseSetId) {
@@ -413,7 +444,10 @@
         } else {
           if (r.startingSets.length > 0) {
             for (let index = 0; index < r.startingSets.length; index++) {
-              if (origin.data.startingSets[index] && origin.data.startingSets[index].baseSetId) {
+              if (
+                origin.data.startingSets[index] &&
+                origin.data.startingSets[index].baseSetId
+              ) {
                 r.startingSets[index].baseSetId =
                   origin.data.startingSets[index].baseSetId;
               }
