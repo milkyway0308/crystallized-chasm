@@ -112,19 +112,17 @@
           const element = menu.childNodes[0].cloneNode(!0);
           menu.appendChild(
             a(
-              "✦ 공개로 복사",
+              "✦ 공개로 재게시",
               async () => {
                 if (
                   window.currentClickedId &&
-                  confirm(
-                    "Chasm Copy\n선택한 캐릭터를 공개 캐릭터로 복사하여 게시할까요?"
-                  )
+                  confirm("선택한 캐릭터를 공개 캐릭터로 복사하여 게시할까요?")
                 ) {
                   var t = await i.getMycharacter(window.currentClickedId);
                   t
                     ? "SUCCESS" === (await t.publish(0))?.result
                       ? confirm(
-                          "Chasm Copy\n캐릭터 '" +
+                          "캐릭터 '" +
                             t.name +
                             "'을 공개 캐릭터로 새로 복사하여 게시하였습니다.\n페이지를 새로 고칠까요?"
                         ) && location.reload()
@@ -139,21 +137,19 @@
           ),
             menu.appendChild(
               a(
-                "✦ 비공개로 복사",
+                "✦ 비공개로 재게시",
                 async () => {
                   if (
                     window.currentClickedId &&
                     confirm(
-                      confirm(
-                        "Chasm Copy\n선택한 캐릭터를 비공개 캐릭터로 복사하여 게시할까요?"
-                      )
+                      "선택한 캐릭터를 비공개 캐릭터로 복사하여 게시할까요?"
                     )
                   ) {
                     var t = await i.getMycharacter(window.currentClickedId);
                     t
                       ? "SUCCESS" === (await t.publish(1))?.result
                         ? confirm(
-                            "Chasm Copy\n캐릭터 '" +
+                            "캐릭터 '" +
                               t.name +
                               "'을 비공개 캐릭터로 새로 복사하여 게시하였습니다.\n페이지를 새로 고칠까요?"
                           ) && location.reload()
@@ -168,19 +164,19 @@
             ),
             menu.appendChild(
               a(
-                "✦ 링크 공개로 복사",
+                "✦ 링크 공개로 재게시",
                 async () => {
                   if (
                     window.currentClickedId &&
                     confirm(
-                      "Chasm Copy\n선택한 캐릭터를 링크 공개 캐릭터로 복사하여 게시할까요?"
+                      "선택한 캐릭터를 링크 공개 캐릭터로 복사하여 게시할까요?"
                     )
                   ) {
                     var t = await i.getMycharacter(window.currentClickedId);
                     t
                       ? "SUCCESS" === (await t.publish(2))?.result
                         ? confirm(
-                            "Chasm Copy\n캐릭터 '" +
+                            "캐릭터 '" +
                               t.name +
                               "'을 링크 공개 캐릭터로 새로 복사하여 게시하였습니다.\n페이지를 새로 고칠까요?"
                           ) && location.reload()
@@ -203,7 +199,9 @@
                       ? ((t = JSON.stringify(t, null, 2)),
                         navigator.clipboard.writeText(t),
                         alert("캐릭터 데이터가 클립보드로 복사되었습니다."))
-                      : alert("캐릭터 데이터를 가져오던 중 오류가 발생하였습니다.");
+                      : alert(
+                          "캐릭터 데이터를 가져오던 중 오류가 발생하였습니다."
+                        );
                   }
                 },
                 element
@@ -216,10 +214,10 @@
                   if (
                     window.currentClickedId &&
                     confirm(
-                      "Chasm Copy\n선택한 캐릭터의 데이터를 클립보드에 복사된 데이터로 덮어씌울까요?"
+                      "Chasm Copy\n\n선택한 캐릭터의 데이터를 클립보드에 복사된 데이터로 덮어씌울까요?"
                     ) &&
                     confirm(
-                      "Chasm Copy\n최종 확인입니다.\n선택한 캐릭터의 데이터를 클립보드에 복사된 데이터로 덮어씌울까요? 이 작업은 되돌릴 수 없습니다. \n선택한 캐릭터의 데이터는 영구적으로 클립보드의 데이터로 덮어씌워집니다."
+                      "Chasm Copy\n\n최종 확인입니다.\n선택한 캐릭터의 데이터를 클립보드에 복사된 데이터로 덮어씌울까요? 이 작업은 되돌릴 수 없습니다. \n선택한 캐릭터의 데이터는 영구적으로 클립보드의 데이터로 덮어씌워집니다."
                     )
                   ) {
                     var t = await (async function () {
@@ -239,14 +237,15 @@
                       }
                       (t = await i.getMycharacter(window.currentClickedId))
                         ? (await t.set(t, e, false))
-                          ? (
-                            confirm(
-                              "Chasm Copy\n캐릭터 데이터의 덮어씌우기에 성공하였습니다.\n페이지를 새로 고칠까요?"
-                            ) && location.reload())
+                          ? confirm(
+                              "캐릭터 데이터의 덮어씌우기에 성공하였습니다.\n페이지를 새로 고칠까요?"
+                            ) && location.reload()
                           : alert(
                               "오류로 인해 캐릭터 데이터 덮어쓰기에 실패하였습니다."
                             )
-                        : alert("캐릭터 데이터를 가져오던 중 오류가 발생하였습니다.");
+                        : alert(
+                            "캐릭터 데이터를 가져오던 중 오류가 발생하였습니다."
+                          );
                     } else alert("클립보드에서 데이터를 가져올 수 없습니다.");
                   }
                 },
@@ -260,13 +259,13 @@
                   if (
                     window.currentClickedId &&
                     confirm(
-                      "Chasm Copy - 클립보드의 JSON 데이터로 캐릭터를 강제로 덮어씌우시겠습니까? 이 작업은 되돌릴 수 없습니다.\n **경고**: 강제 붙여넣기 기능은 기존 캐릭터를 망가뜨릴 수 있습니다.\n이 기능은 모든 다른 기능이 비활성화되어 작동하지 않을 때, 최후의 방법으로만 사용되어야 합니다."
+                      "클립보드의 JSON 데이터로 캐릭터를 강제로 덮어씌우시겠습니까? 이 작업은 되돌릴 수 없습니다.\n **경고**: 강제 붙여넣기 기능은 기존 캐릭터를 망가뜨릴 수 있습니다.\n이 기능은 모든 다른 기능이 비활성화되어 작동하지 않을 때, 최후의 방법으로만 사용되어야 합니다."
                     ) &&
                     confirm(
-                      "Chasm Copy - 정말로 캐릭터 데이터를 덮어씌우시겠습니까? 기존 데이터는 모두 삭제됩니다."
+                      "정말로 캐릭터 데이터를 덮어씌우시겠습니까? 기존 데이터는 모두 삭제됩니다."
                     ) &&
                     prompt(
-                      "Chasm Copy - 최종 확인입니다.\n**정말로** 캐릭터 데이터의 강제 덮어쓰기를 실행하시겠습니까?\n결정화 캐즘의 개발자와 관련자는 이 작업으로 이루어지는 손상 및 손해, 혹은 이익에 대해 어떠한 책임도 지지 않습니다.\n정말로 동의한다면, '동의한다'를 적고 확인을 누르세요."
+                      "최종 확인입니다.\n**정말로** 캐릭터 데이터의 강제 덮어쓰기를 실행하시겠습니까?\n결정화 캐즘의 개발자와 관련자는 이 작업으로 이루어지는 손상 및 손해, 혹은 이익에 대해 어떠한 책임도 지지 않습니다.\n정말로 동의한다면, '동의한다'를 적고 확인을 누르세요."
                     ) === "동의한다"
                   ) {
                     var t = await (async function () {
@@ -291,12 +290,12 @@
                               "캐릭터 데이터가 성공적으로 덮어씌워졌습니다!"
                             ),
                             confirm(
-                              "Chasm Copy - 캐릭터 데이터 덮어씌우기 성공했습니다. 새로고침 하시겠습니까?"
+                              "캐릭터 데이터의 덮어씌우기에 성공하였습니다.\n페이지를 새로 고칠까요?"
                             ) && location.reload())
                           : alert(
-                              "캐릭터 데이터 덮어씌우기에 실패했습니다. 다시 시도해 주세요."
+                              "오류로 인해 캐릭터 데이터 덮어쓰기에 실패하였습니다."
                             )
-                        : alert("캐릭터 데이터를 가져올 수 없습니다.");
+                        : alert("캐릭터 데이터를 가져오던 중 오류가 발생하였습니다.");
                     } else alert("클립보드에서 데이터를 가져올 수 없습니다.");
                   }
                 },
@@ -350,7 +349,7 @@
             categoryIds: [origin.categories[0]._id],
             tags: origin.tags,
             visibility:
-              origin === 0 ? "public" : origin === 1 ? "private" : "linkonly",
+              state === 0 ? "public" : state === 1 ? "private" : "linkonly",
             promptTemplate:
               origin.promptTemplate?.template || origin.promptTemplate,
             isCommentBlocked: origin.isCommentBlocked,
