@@ -295,7 +295,9 @@
                           : alert(
                               "오류로 인해 캐릭터 데이터 덮어쓰기에 실패하였습니다."
                             )
-                        : alert("캐릭터 데이터를 가져오던 중 오류가 발생하였습니다.");
+                        : alert(
+                            "캐릭터 데이터를 가져오던 중 오류가 발생하였습니다."
+                          );
                     } else alert("클립보드에서 데이터를 가져올 수 없습니다.");
                   }
                 },
@@ -335,6 +337,12 @@
           )
         )?.data;
         if (origin) {
+          let categoryForceUpdated = false;
+          let categoryId = origin.categories[0]?._id;
+          if (!categoryId) {
+            categoryForceUpdated = false;
+            categoryId = "65e808c01a9eea7b2f66092c";
+          }
           for (const t of origin.startingSets || []) delete t._id;
           let cloned = {
             name: origin.name,
@@ -346,7 +354,7 @@
             replySuggestions: origin.replySuggestions,
             chatExamples: origin.chatExamples,
             situationImages: origin.situationImages,
-            categoryIds: [origin.categories[0]._id],
+            categoryIds: [categoryId],
             tags: origin.tags,
             visibility:
               state === 0 ? "public" : state === 1 ? "private" : "linkonly",
@@ -420,11 +428,17 @@
               }
             }
           }
-          return await e(
+          let dataToReturn = await e(
             "POST",
             "https://contents-api.wrtn.ai/character/characters",
             cloned
           );
+          if (!categoryId) {
+            alert(
+              "서버에서 카테고리 ID를 반환하지 않아 하드코딩된 ID로 지정되었습니다.\n이는 추후 문제를 발생시킬 수 있습니다.\n기본 값: 65e808c01a9eea7b2f66092c, 엔터테인먼트"
+            );
+          }
+          return dataToReturn;
         } else {
           alert(
             "오류가 발생하였습니다:\n대상 작품이 서버에 존재하지 않거나 서버에서 잘못된 응답을 반환하였습니다."
