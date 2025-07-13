@@ -68,3 +68,4 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 **수정되지 않은 목록에서 원본에 버그가 있을 경우 [IGX 공식 지원 디스코드](https://discord.com/invite/hEb44bUFgu)에서 버그 제보를 해주세요.**
 
 ## 결정화 캐즘 - 카피 (v1.1.3) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/copy.user.js) ]
+## 결정화 캐즘 - 붉은 약 (v1.1.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js) ]
