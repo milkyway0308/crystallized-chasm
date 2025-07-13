@@ -930,9 +930,6 @@
         const origin = c[0].childNodes[0];
         const originButton = origin.childNodes[0];
         const originText = originButton.childNodes[0];
-        console.log("Origin:");
-        console.log(origin);
-        console.log(originText);
         d.className = "red-pill-button " + origin.className;
         d.setAttribute("display", "flex");
         d.innerHTML =
