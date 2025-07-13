@@ -549,9 +549,6 @@
         (u.style.display = "none");
   }
   async function X(c) {
-    c &&
-      (c.innerHTML =
-        '<div display="flex" class="css-1h7hvl7 edj5hvk0">\ud83d\udc8a \ube68\uac04\uc57d</div>');
     const d = document.querySelector(".red-pill-modal");
     d && d.remove();
     let h = new AbortController(),
@@ -886,7 +883,7 @@
     } catch (a) {
       c &&
         (c.innerHTML =
-          '<div display="flex" class="css-1h7hvl7 edj5hvk0">\ud83d\udc8a \ube68\uac04\uc57d</div>'),
+          '<div display="flex" class="css-sv3fmv edj5hvk0">\ud83d\udc8a \ube68\uac04\uc57d</div>'),
         x(
           document.createElement("textarea"),
           `\ubaa8\ub2ec \uc0dd\uc131 \uc624\ub958: ${a.message}`
@@ -895,24 +892,44 @@
   }
   function Z(c) {
     c = c.currentTarget;
-    c.innerHTML =
-      '<div display="flex" class="css-1h7hvl7 edj5hvk0">\u23f3</div>';
+    // c.innerHTML =
+    //   '<div display="flex" class="css-1h7hvl7 edj5hvk0">\u23f3</div>';
     X(c);
   }
   function N() {
     if (/^\/cracker(\/.*)?$/.test(location.pathname)) {
-      var c = Array.from(
-        document.querySelectorAll('a[href="/cracker/history"]')
-      ).find((d) => d.textContent.includes("\uc804\uccb4 \ub0b4\uc5ed"));
-      if (c && !c.parentNode.querySelector(".red-pill-button")) {
-        const d = document.createElement("button");
-        d.color = "text_primary";
-        d.className = "red-pill-button css-noipum edj5hvk1";
-        d.style.cssText = "background: red;";
-        d.innerHTML =
-          '<div display="flex" class="css-1h7hvl7 edj5hvk0">\ud83d\udc8a \ube68\uac04\uc57d</div>';
+      //   var c = Array.from(
+      //     document.querySelectorAll('a[href="/cracker/history"]')
+      //   ).find((d) => d.textContent.includes("\uc804\uccb4 \ub0b4\uc5ed"));
+      var existCheck = document.querySelectorAll(".red-pill-button");
+      if (existCheck && existCheck.length > 0) {
+        return;
+      }
+      var c = document.querySelectorAll(".css-w5f5cr");
+      if (c && c.length > 0) {
+        c[0].style.cssText = "max-width: 800px;";
+        const d = document.createElement("div");
+        // To follow theme color and prevent bugs
+        const origin = c[0].childNodes[0];
+        const originButton = origin.childNodes[0];
+        const originText = originButton.childNodes[0];
+        d.className = "red-pill-button " + origin.className;
+        d.setAttribute("display", "flex");
+        d.innerHTML = '<button height="100%" display="flex" class="' + originButton.className + '"><p color="text_secondary" class="' + originText.className + '">\ud83d\udc8a \ube68\uac04\uc57d</p></button>';
+        // d.color = "text_primary";
+        // d.className = "red-pill-button css-noipum edj5hvk1";
+        // d.style.cssText =
+        //   'background: red; border-radius: 5px; border-color: #0f0f0f;color: white; padding: 4px; font-size: 15px; font-weight: bolder; font-family: "Pretendard", "Apple SD Gothic Neo", -apple-system, ' +
+        //   'BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell","Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif,"IBMPlexMono-Regular" !important; ' +
+        //   "-webkit-font-smoothing: antialiased;-moz-osx-font-smoothing: grayscale;} ";
+        // d.innerHTML =
+        //   '<div display="flex">\ud83d\udc8a \ube68\uac04\uc57d</div>';
         d.addEventListener("click", Z);
-        c.parentNode.insertBefore(d, c.nextSibling);
+        c[0].append(d);
+        console.log("Replacing " + c[0].childNodes.length);
+        for (let component of c[0].childNodes) {
+            component.style.cssText = "flex-basis: 50px;";
+        }
       }
     }
   }
