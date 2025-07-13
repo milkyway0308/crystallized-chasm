@@ -10,18 +10,27 @@
 // @grant       none
 // ==/UserScript==
 (function () {
-  function P() {
-    const c = document.cookie.split(";");
-    for (let d of c) {
-      const [h, f] = d.trim().split("=");
-      if (h === "access_token") return f;
+  /**
+   * 쿠키에서 액세스 토큰을 추출해 반환합니다.
+   * @returns 액세스 토큰
+   */
+  function extractAccessToken() {
+    const cookies = document.cookie.split(";");
+    for (let cookie of cookies) {
+      const [key, value] = cookie.trim().split("=");
+      if (key === "access_token") return value;
     }
     return null;
   }
-  function x(c, d) {
-    const h = new Date().toLocaleString();
-    c.value = `[${h}]\n${d}\n\n${c.value}`;
-    c.scrollTop = 0;
+  /**
+   * 지정된 로그 요소의 맨 윗 부분에 로그를 덧붙이고, 맨 위로 스크롤합니다.
+   * @param {Node} logElement 로그 요소. TextArea, 혹은 span을 사용합니다.
+   * @param {string} message 덧붙일 로그 메시지 
+   */
+  function appendLog(logElement, message) {
+    const time = new Date().toLocaleString();
+    logElement.value = `[${time}]\n${message}\n\n${logElement.value}`;
+    logElement.scrollTop = 0;
   }
   function R(c, d) {
     const h = c.value.split("\n"),
@@ -31,7 +40,10 @@
           a.match(/\ud398\uc774\uc9c0 \ub85c\ub4dc\ub428$/)
       );
     f >= 0 && (h.splice(f - 1, 3), (c.value = h.join("\n")));
-    x(c, `\uc0ac\uc6a9\ub0b4\uc5ed ${d} \ud398\uc774\uc9c0 \ub85c\ub4dc\ub428`);
+    appendLog(
+      c,
+      `\uc0ac\uc6a9\ub0b4\uc5ed ${d} \ud398\uc774\uc9c0 \ub85c\ub4dc\ub428`
+    );
   }
   function Q(c, d) {
     c = d - c;
@@ -353,7 +365,7 @@
       } catch (p) {
         if (p.name === "AbortError")
           return (
-            x(
+            appendLog(
               d,
               "\ubcf4\uc720\ub7c9 API \ud638\ucd9c\uc774 \uc0ac\uc6a9\uc790\uc5d0 \uc758\ud574 \uc911\ub2e8\ub418\uc5c8\uc2b5\ub2c8\ub2e4."
             ),
@@ -362,13 +374,16 @@
         f--;
         if (f === 0)
           return (
-            x(
+            appendLog(
               d,
               `\ubcf4\uc720\ub7c9 Error: ${p.message} (\uc7ac\uc2dc\ub3c4 \ud69f\uc218 \ucd08\uacfc)`
             ),
             0
           );
-        x(d, `\ubcf4\uc720\ub7c9 \uc7ac\uc2dc\ub3c4 \uc911... (${5 - f}/5)`);
+        appendLog(
+          d,
+          `\ubcf4\uc720\ub7c9 \uc7ac\uc2dc\ub3c4 \uc911... (${5 - f}/5)`
+        );
       }
     return u && u.result === "SUCCESS" && u.data ? u.data.quantity : 0;
   }
@@ -377,7 +392,7 @@
       a = [];
     for (;;) {
       const u = `${"https://contents-api.wrtn.ai/superchat/character-super-mode/payment-history?type=unlimited"}&page=${f}`;
-      x(
+      appendLog(
         d,
         `\ubb34\uc81c\ud55c \uacb0\uc81c \ub0b4\uc5ed ${f} \ud398\uc774\uc9c0 \ub85c\ub4dc \uc911...`
       );
@@ -400,7 +415,7 @@
         } catch (r) {
           if (r.name === "AbortError")
             return (
-              x(
+              appendLog(
                 d,
                 "\uacb0\uc81c \ub0b4\uc5ed API \ud638\ucd9c\uc774 \uc0ac\uc6a9\uc790\uc5d0 \uc758\ud574 \uc911\ub2e8\ub418\uc5c8\uc2b5\ub2c8\ub2e4."
               ),
@@ -409,13 +424,13 @@
           p--;
           if (p === 0)
             return (
-              x(
+              appendLog(
                 d,
                 `\uacb0\uc81c \ub0b4\uc5ed Error: ${r.message} (\uc7ac\uc2dc\ub3c4 \ud69f\uc218 \ucd08\uacfc)`
               ),
               a
             );
-          x(
+          appendLog(
             d,
             `\uacb0\uc81c \ub0b4\uc5ed \uc7ac\uc2dc\ub3c4 \uc911... (${
               5 - p
@@ -429,7 +444,7 @@
         !k.data.histories ||
         k.data.histories.length === 0
       ) {
-        x(
+        appendLog(
           d,
           "\ubb34\uc81c\ud55c \uacb0\uc81c \ub0b4\uc5ed \ud638\ucd9c \uc644\ub8cc."
         );
@@ -441,9 +456,9 @@
     return a;
   }
   async function W(c, d, h, f, a, u, p, y, k, r, v, z) {
-    const D = P();
+    const D = extractAccessToken();
     if (D) {
-      x(c, "\ube68\uac04\uc57d \uacc4\uc0b0 \uc2dc\uc791...");
+      appendLog(c, "\ube68\uac04\uc57d \uacc4\uc0b0 \uc2dc\uc791...");
       var e = new Date(),
         g = 1,
         m = [],
@@ -480,7 +495,7 @@
             t = !0;
           } catch (l) {
             if (l.name === "AbortError") {
-              x(
+              appendLog(
                 c,
                 "API \ud638\ucd9c\uc774 \uc0ac\uc6a9\uc790\uc5d0 \uc758\ud574 \uc911\ub2e8\ub418\uc5c8\uc2b5\ub2c8\ub2e4."
               );
@@ -492,7 +507,7 @@
             }
             b--;
             if (b === 0) {
-              x(
+              appendLog(
                 c,
                 `Error: ${l.message} (\uc7ac\uc2dc\ub3c4 \ud69f\uc218 \ucd08\uacfc)`
               );
@@ -502,11 +517,11 @@
               u.style.display = m.length > 0 ? "inline-block" : "none";
               return;
             }
-            x(c, `\uc7ac\uc2dc\ub3c4 \uc911... (${5 - b}/5)`);
+            appendLog(c, `\uc7ac\uc2dc\ub3c4 \uc911... (${5 - b}/5)`);
             await new Promise((B) => setTimeout(B, 500));
           }
         if (!q || q.result !== "SUCCESS" || !q.data || q.data.length === 0) {
-          x(
+          appendLog(
             c,
             `\uc804\uccb4 \uae30\ub85d \ud638\ucd9c \uc644\ub8cc! (\uc18c\uc694 \uc2dc\uac04: ${Q(
               e,
@@ -521,7 +536,7 @@
           break;
         }
         if (n && q.data.some((l) => l.date === n.date && l.title === n.title)) {
-          x(
+          appendLog(
             c,
             `\uce90\uc2dc\ub41c \ub9c8\uc9c0\ub9c9 \uae30\ub85d\uc5d0 \ub3c4\ub2ec. \ud638\ucd9c \uc911\ub2e8. (\uc18c\uc694 \uc2dc\uac04: ${Q(
               e,
@@ -542,27 +557,27 @@
         await new Promise((l) => setTimeout(l, 500));
       }
     } else
-      x(c, "Error: access_token not found in cookies."),
+      appendLog(c, "Error: access_token not found in cookies."),
         (k.disabled = !1),
         (k.textContent = "\uacc4\uc0b0"),
         (a.style.display = "none"),
         (u.style.display = "none");
   }
-  async function X(c) {
-    const d = document.querySelector(".red-pill-modal");
-    d && d.remove();
+  async function performRedPillClick(c) {
+    const prevModal = document.querySelector(".red-pill-modal");
+    prevModal && prevModal.remove();
     let h = new AbortController(),
       f = !1;
     try {
-      const a = document.body.dataset.theme === "dark",
-        u = document.createElement("div");
-      u.className = "red-pill-modal";
-      u.style.cssText =
+      const darkTheme = document.body.dataset.theme === "dark",
+        modal = document.createElement("div");
+      modal.className = "red-pill-modal";
+      modal.style.cssText =
         "\n                position: fixed;\n                top: 0;\n                left: 0;\n                width: 100%;\n                height: 100%;\n                background: rgba(0, 0, 0, 0.5);\n                z-index: 9999;\n                display: flex;\n                justify-content: center;\n                align-items: center;\n            ";
       const p = document.createElement("div");
       p.style.cssText = `
-                background: ${a ? "#1e1e1e" : "white"};
-                color: ${a ? "#ffffff" : "black"};
+                background: ${darkTheme ? "#1e1e1e" : "white"};
+                color: ${darkTheme ? "#ffffff" : "black"};
                 padding: 20px;
                 border-radius: 5px;
                 width: 80%;
@@ -584,7 +599,7 @@
                 <span style="font-weight:800; letter-spacing: -1px;">\u2318 Chasm Crystallized</span>
                 <span style="font-weight:600; margin-left: 5px; color: #ff0000;">redpill</span>
                 <span style="font-weight:500; font-size: 0.7em; color: ${
-                  a ? "#777" : "#999"
+                  darkTheme ? "#777" : "#999"
                 }; margin-left: 8px;">${"v1.0.0"}</span>
             `;
       const r = document.createElement("button");
@@ -593,14 +608,14 @@
       r.style.cssText = `
                 background: none;
                 border: none;
-                color: ${a ? "#777" : "#e0e0e0"};
+                color: ${darkTheme ? "#777" : "#e0e0e0"};
                 font-size: 1.2em;
                 cursor: pointer;
                 padding: 0;
             `;
       r.addEventListener("click", () => {
         h.abort();
-        u.remove();
+        modal.remove();
       });
       y.appendChild(k);
       y.appendChild(r);
@@ -615,10 +630,10 @@
                 resize: none;
                 padding: 10px;
                 font-family: monospace;
-                border: 1px solid ${a ? "#444" : "#ccc"};
+                border: 1px solid ${darkTheme ? "#444" : "#ccc"};
                 border-radius: 3px;
-                background: ${a ? "#2a2a2a" : "#fff"};
-                color: ${a ? "#ddd" : "#333"};
+                background: ${darkTheme ? "#2a2a2a" : "#fff"};
+                color: ${darkTheme ? "#ddd" : "#333"};
             `;
       const z = document.createElement("div");
       z.id = "cr-cache";
@@ -631,12 +646,12 @@
       e.htmlFor = "cache-checkbox";
       e.textContent =
         "\ube68\uac04\uc57d \ub0b4\uc5ed \ube0c\ub77c\uc6b0\uc800 \uce90\uc2dc\uc5d0 \uc800\uc7a5 (\uc784\uc2dc \uc800\uc7a5)";
-      e.style.cssText = `color: ${a ? "#ddd" : "#333"};`;
+      e.style.cssText = `color: ${darkTheme ? "#ddd" : "#333"};`;
       const g = document.createElement("button");
       g.textContent = "\uc800\uc7a5 \ub0b4\uc5ed \uc0ad\uc81c";
       g.style.cssText = `
                 padding: 5px 10px;
-                background: ${a ? "#ff6666" : "#ff4444"};
+                background: ${darkTheme ? "#ff6666" : "#ff4444"};
                 color: white;
                 border: none;
                 border-radius: 3px;
@@ -644,11 +659,11 @@
             `;
       g.addEventListener("click", () => {
         localStorage.removeItem("chasmRedpillHistory");
-        x(
+        appendLog(
           v,
           "\uce90\uc2dc\ub41c \ub0b4\uc5ed\uc774 \uc0ad\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4."
         );
-        H(l, B, I, [], a, J, [], F);
+        H(l, B, I, [], darkTheme, J, [], F);
         b.style.display = "none";
         q.style.display = "none";
       });
@@ -662,7 +677,7 @@
       w.textContent = "\uacc4\uc0b0";
       w.style.cssText = `
                 padding: 10px 20px;
-                background: ${a ? "#cc0000" : "#ff0000"};
+                background: ${darkTheme ? "#cc0000" : "#ff0000"};
                 color: white;
                 border: none;
                 border-radius: 3px;
@@ -699,7 +714,7 @@
       b.textContent = "\ub0b4\uc5ed \ub2e4\uc6b4";
       b.style.cssText = `
                 padding: 10px 20px;
-                background: ${a ? "#005588" : "#007bff"};
+                background: ${darkTheme ? "#005588" : "#007bff"};
                 color: white;
                 border: none;
                 border-radius: 3px;
@@ -720,7 +735,7 @@
       n.textContent = "\ubd88\ub7ec\uc624\uae30";
       n.style.cssText = `
                 padding: 10px 20px;
-                background: ${a ? "#005588" : "#007bff"};
+                background: ${darkTheme ? "#005588" : "#007bff"};
                 color: white;
                 border: none;
                 border-radius: 3px;
@@ -779,10 +794,10 @@
                       C = C.date.slice(0, 7);
                       F[C] = !0;
                     }),
-                    H(l, B, I, E, a, J, L, F),
+                    H(l, B, I, E, darkTheme, J, L, F),
                     (b.style.display = "inline-block"),
                     (q.style.display = "inline-block"),
-                    x(
+                    appendLog(
                       v,
                       "\ub0b4\uc5ed \uc6d0\ubcf8 CSV \ud30c\uc77c\uc774 \uc131\uacf5\uc801\uc73c\ub85c \ubd88\ub7ec\uc640\uc84c\uc2b5\ub2c8\ub2e4."
                     )));
@@ -796,7 +811,7 @@
       q.textContent = "\ud1b5\uacc4 \ub2e4\uc6b4";
       q.style.cssText = `
                 padding: 10px 20px;
-                background: ${a ? "#005588" : "#007bff"};
+                background: ${darkTheme ? "#005588" : "#007bff"};
                 color: white;
                 border: none;
                 border-radius: 3px;
@@ -823,53 +838,53 @@
       l.style.cssText = `
                 margin: 10px 0;
                 padding: 10px;
-                border: 1px solid ${a ? "#444" : "#ccc"};
+                border: 1px solid ${darkTheme ? "#444" : "#ccc"};
                 border-radius: 3px;
-                background: ${a ? "#2a2a2a" : "#fff"};
+                background: ${darkTheme ? "#2a2a2a" : "#fff"};
             `;
       const B = document.createElement("div");
       B.id = "cr-calendar";
       B.style.cssText = `
                 margin: 10px 0;
-                color: ${a ? "#ddd" : "#333"};
+                color: ${darkTheme ? "#ddd" : "#333"};
             `;
       const I = document.createElement("div");
       I.id = "cr-ranking";
       I.style.cssText = `
                 margin: 10px 0;
-                color: ${a ? "#ddd" : "#333"};
+                color: ${darkTheme ? "#ddd" : "#333"};
             `;
       let E = [],
         J = 0,
         L = [],
         F = {};
-      const M = P();
+      const M = extractAccessToken();
       if (M)
         try {
           (J = await U(M, v, h)),
-            x(v, `\ud604\uc7ac \ubcf4\uc720\ub7c9: ${J}`),
+            appendLog(v, `\ud604\uc7ac \ubcf4\uc720\ub7c9: ${J}`),
             (L = await V(M, v, h));
         } catch (A) {
-          x(
+          appendLog(
             v,
             `\ucd08\uae30 \ub370\uc774\ud130 \ub85c\ub4dc \uc624\ub958: ${A.message}`
           );
         }
-      else x(v, "Error: access_token not found in cookies.");
+      else appendLog(v, "Error: access_token not found in cookies.");
       localStorage.getItem("chasmRedpillHistory")
         ? ((E = JSON.parse(localStorage.getItem("chasmRedpillHistory"))),
           E.forEach((A) => {
             A = A.date.slice(0, 7);
             F[A] = !0;
           }),
-          H(l, B, I, E, a, J, L, F),
-          x(
+          H(l, B, I, E, darkTheme, J, L, F),
+          appendLog(
             v,
             "\uce90\uc2dc\ub41c \ub370\uc774\ud130 \ub85c\ub4dc \uc644\ub8cc."
           ),
           (b.style.display = "inline-block"),
           (q.style.display = "inline-block"))
-        : H(l, B, I, E, a, J, L, F);
+        : H(l, B, I, E, darkTheme, J, L, F);
       p.appendChild(y);
       p.appendChild(v);
       p.appendChild(z);
@@ -877,62 +892,64 @@
       p.appendChild(l);
       p.appendChild(B);
       p.appendChild(I);
-      u.appendChild(p);
-      u.style.display = "flex";
-      document.body.appendChild(u);
+      modal.appendChild(p);
+      modal.style.display = "flex";
+      document.body.appendChild(modal);
     } catch (a) {
       c &&
         (c.innerHTML =
           '<div display="flex" class="css-sv3fmv edj5hvk0">\ud83d\udc8a \ube68\uac04\uc57d</div>'),
-        x(
+        appendLog(
           document.createElement("textarea"),
           `\ubaa8\ub2ec \uc0dd\uc131 \uc624\ub958: ${a.message}`
         );
     }
   }
-  function Z(c) {
+  function onClickRedPill(c) {
     c = c.currentTarget;
     // c.innerHTML =
     //   '<div display="flex" class="css-1h7hvl7 edj5hvk0">\u23f3</div>';
-    X(c);
+    performRedPillClick(c);
   }
-  function N() {
+  function insertButton() {
     if (/^\/cracker(\/.*)?$/.test(location.pathname)) {
       //   var c = Array.from(
       //     document.querySelectorAll('a[href="/cracker/history"]')
       //   ).find((d) => d.textContent.includes("\uc804\uccb4 \ub0b4\uc5ed"));
-      var existCheck = document.querySelectorAll(".red-pill-button");
-      if (existCheck && existCheck.length > 0) {
+      var redPillButtons = document.querySelectorAll(".red-pill-button");
+      if (redPillButtons && redPillButtons.length > 0) {
         // Check color state
-        let nodes = existCheck[0].parentElement.childNodes;
+        let nodes = redPillButtons[0].parentElement.childNodes;
         let unselected = undefined;
         for (let node of nodes) {
-            let textNode = node.childNodes[0].childNodes[0];
-            if (textNode.getAttribute("color") === "text_secondary") {
-                unselected = textNode;
-                break;
-            }
+          let textNode = node.childNodes[0].childNodes[0];
+          if (textNode.getAttribute("color") === "text_secondary") {
+            unselected = textNode;
+            break;
+          }
         }
         if (!unselected) {
-            console.log("Chasm Crystallized RedPill: Warning: No alternative text found");
+          console.log(
+            "Chasm Crystallized RedPill: Warning: No alternative text found"
+          );
         }
-        let convertedText = existCheck[0].childNodes[0].childNodes[0];
-        if (convertedText.className != unselected.className) {
-            convertedText.className = unselected.className;
+        let redPillText = redPillButtons[0].childNodes[0].childNodes[0];
+        if (redPillText.className != unselected.className) {
+          redPillText.className = unselected.className;
         }
         return;
       }
-      var c = document.querySelectorAll(".css-w5f5cr");
-      if (c && c.length > 0) {
-        c[0].style.cssText = "max-width: 800px;";
-        const d = document.createElement("div");
+      var menuBar = document.querySelectorAll(".css-w5f5cr");
+      if (menuBar && menuBar.length > 0) {
+        menuBar[0].style.cssText = "max-width: 800px;";
+        const newButtonElement = document.createElement("div");
         // To follow theme color and prevent bugs
-        const origin = c[0].childNodes[0];
+        const origin = menuBar[0].childNodes[0];
         const originButton = origin.childNodes[0];
         const originText = originButton.childNodes[0];
-        d.className = "red-pill-button " + origin.className;
-        d.setAttribute("display", "flex");
-        d.innerHTML =
+        newButtonElement.className = "red-pill-button " + origin.className;
+        newButtonElement.setAttribute("display", "flex");
+        newButtonElement.innerHTML =
           '<button height="100%" display="flex" class="' +
           originButton.className +
           '"><p color="text_secondary" class="' +
@@ -946,39 +963,42 @@
         //   "-webkit-font-smoothing: antialiased;-moz-osx-font-smoothing: grayscale;} ";
         // d.innerHTML =
         //   '<div display="flex">\ud83d\udc8a \ube68\uac04\uc57d</div>';
-        d.addEventListener("click", Z);
-        c[0].append(d);
-        for (let component of c[0].childNodes) {
+        newButtonElement.addEventListener("click", onClickRedPill);
+        menuBar[0].append(newButtonElement);
+        for (let component of menuBar[0].childNodes) {
           component.style.cssText = "flex-basis: 50px;";
         }
       }
     }
   }
-  function O() {
-    N();
-    let c = location.href;
+  /**
+   * 페이지의 상태 옵저버를 추가하고, 처음 실행되거나 URL이 변경될 때마다 업데이트를 수행합니다.
+   */
+  function setup() {
+    insertButton();
+    let oldHref = location.href;
     new MutationObserver(() => {
-      const d = location.href;
-      d !== c && ((c = d), N());
+      const newHref = location.href;
+      newHref !== oldHref && ((oldHref = newHref), insertButton());
     }).observe(document, { subtree: !0, childList: !0 });
-    aa(document.body, () => {
-      N();
+    observerCreator(document.body, () => {
+      insertButton();
     });
   }
-  const aa = (function () {
-    const c = window.MutationObserver || window.WebKitMutationObserver;
-    return function (d, h) {
-      if (d && c) {
-        var f = new c((a) => {
-          h(a);
+  const observerCreator = (function () {
+    const observerFactory = window.MutationObserver || window.WebKitMutationObserver;
+    return function (body, lambda) {
+      if (body && observerFactory) {
+        var observer = new observerFactory((a) => {
+          lambda(a);
         });
-        f.observe(d, { childList: !0, subtree: !0, attributes: !0 });
-        return f;
+        observer.observe(body, { childList: !0, subtree: !0, attributes: !0 });
+        return observer;
       }
     };
   })();
   document.readyState === "loading"
-    ? document.addEventListener("DOMContentLoaded", O)
-    : O();
-  window.addEventListener("load", O);
+    ? document.addEventListener("DOMContentLoaded", setup)
+    : setup();
+  window.addEventListener("load", setup);
 })();
