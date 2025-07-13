@@ -903,6 +903,23 @@
       //   ).find((d) => d.textContent.includes("\uc804\uccb4 \ub0b4\uc5ed"));
       var existCheck = document.querySelectorAll(".red-pill-button");
       if (existCheck && existCheck.length > 0) {
+        // Check color state
+        let nodes = existCheck[0].parentElement.childNodes;
+        let unselected = undefined;
+        for (let node of nodes) {
+            let textNode = node.childNodes[0].childNodes[0];
+            if (textNode.getAttribute("color") === "text_secondary") {
+                unselected = textNode;
+                break;
+            }
+        }
+        if (!unselected) {
+            console.log("Chasm Crystallized RedPill: Warning: No alternative text found");
+        }
+        let convertedText = existCheck[0].childNodes[0].childNodes[0];
+        if (convertedText.className != unselected.className) {
+            convertedText.className = unselected.className;
+        }
         return;
       }
       var c = document.querySelectorAll(".css-w5f5cr");
@@ -913,9 +930,17 @@
         const origin = c[0].childNodes[0];
         const originButton = origin.childNodes[0];
         const originText = originButton.childNodes[0];
+        console.log("Origin:");
+        console.log(origin);
+        console.log(originText);
         d.className = "red-pill-button " + origin.className;
         d.setAttribute("display", "flex");
-        d.innerHTML = '<button height="100%" display="flex" class="' + originButton.className + '"><p color="text_secondary" class="' + originText.className + '">\ud83d\udc8a \ube68\uac04\uc57d</p></button>';
+        d.innerHTML =
+          '<button height="100%" display="flex" class="' +
+          originButton.className +
+          '"><p color="text_secondary" class="' +
+          originText.className +
+          '">\ud83d\udc8a \ubd89\uc740\uc57d</p></button>';
         // d.color = "text_primary";
         // d.className = "red-pill-button css-noipum edj5hvk1";
         // d.style.cssText =
@@ -926,9 +951,8 @@
         //   '<div display="flex">\ud83d\udc8a \ube68\uac04\uc57d</div>';
         d.addEventListener("click", Z);
         c[0].append(d);
-        console.log("Replacing " + c[0].childNodes.length);
         for (let component of c[0].childNodes) {
-            component.style.cssText = "flex-basis: 50px;";
+          component.style.cssText = "flex-basis: 50px;";
         }
       }
     }
