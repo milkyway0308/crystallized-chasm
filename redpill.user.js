@@ -1267,9 +1267,9 @@
     let retry = 0;
     while (!requireStop) {
       if (count++ >= 20) {
-        await new Promise((r) => setTimeout(r, 500));
-      } else if (count % 4 == 0) {
         await new Promise((r) => setTimeout(r, 100));
+      } else if (count % 4 == 0) {
+        await new Promise((r) => setTimeout(r, 20));
       }
       let result = undefined;
       while (result === undefined) {
