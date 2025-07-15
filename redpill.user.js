@@ -1057,6 +1057,7 @@
         div.style.cssText = "";
         button.innerHTML =
           '<div display="flex" width="100%" class="css-1gs21jv efhw7t80">통계 새로고침</div>';
+
         injectAllCrackerUsage(cachedResult);
       });
     });
@@ -1223,9 +1224,11 @@
     try {
       await loadAll();
     } catch (error) {
-      logError("Failed to load history due to error. Injecting to UI with last fetched data.");
+      logError(
+        "Failed to load history due to error. Injecting to UI with last fetched data."
+      );
       console.log(error);
-    //   cachedResult = oldCache;
+      //   cachedResult = oldCache;
       injectAllCrackerUsage(cachedResult);
     }
   }
@@ -1257,7 +1260,13 @@
     let menuMap = createMenuMapFor();
     let newestParse = undefined;
     let requireStop = false;
+    let count = 0;
     while (!requireStop) {
+      if (count >= 20) {
+        await new Promise((r) => setTimeout(r, 500));
+      } else if (count++ % 4 == 0) {
+        await new Promise((r) => setTimeout(r, 100));
+      }
       let result = await fetch(
         "https://contents-api.wrtn.ai/superchat/crackers/history?limit=20&type=consumed&page=" +
           page++,
