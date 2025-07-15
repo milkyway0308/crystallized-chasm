@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized RedPill (결정화 캐즘 붉은약)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-PILL-v1.2.2
+// @version     CRYS-PILL-v1.2.3-DEV#1
 // @description 크랙의 통계 수정 및 데이터 표시 개선. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -33,7 +33,7 @@
     logElement.value = `[${time}]\n${message}\n\n${logElement.value}`;
     logElement.scrollTop = 0;
   }
-  function R(c, d) {
+  function appendPageLog(c, d) {
     const h = c.value.split("\n"),
       f = h.findIndex(
         (a) =>
@@ -519,7 +519,7 @@
       // Crawling entrypoint (History / Payment)
       for (H(d, h, f, m, document.body.dataset.theme === "dark", r, v, z); ; ) {
         w = `${"https://contents-api.wrtn.ai/superchat/crackers/history?limit=20&type=all"}&page=${g}`;
-        R(c, g);
+        appendPageLog(c, g);
         b = 5;
         let t = !1,
           jsonData;
