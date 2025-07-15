@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized RedPill (결정화 캐즘 붉은약)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-PILL-v1.2.0
+// @version     CRYS-PILL-v1.2.1
 // @description 크랙의 통계 수정 및 데이터 표시 개선. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -1045,9 +1045,13 @@
     div.append(button);
     panel.childNodes[0].insertBefore(div, panel.childNodes[0].childNodes[2]);
     div.addEventListener("click", () => {
-      console.log("Processing?" + processing);
       if (processing) {
         return;
+      }
+      if (!localStorage.getItem("rp-lastParse")) {
+        if (!confirm("이전에 통계를 불러온 전적이 존재하지 않습니다.\n이 작업은 매우 오래 걸리고, 완전히 불러오기 전까지는 이 페이지를 벗어나면 안됩니다.\n또한, 다른 탭으로 통계를 불러오는 행위는 캐시의 오염을 불러올 수 있습니다.\n또한, 이 기능은 모든 사용 내역을 불러와 분석하기에, 과다한 호출이 발생할 경우 부정 이용으로 간주될 수 있습니다.\n정말로 통계를 새로 고치시겠습니까?")) {
+            return;
+        }
       }
       processing = true;
       div.style.cssText = 'style = "background-color: #9c9c9c87;"';
@@ -1058,6 +1062,7 @@
         div.style.cssText = "";
         button.innerHTML =
           '<div display="flex" width="100%" class="css-1gs21jv efhw7t80">통계 새로고침</div>';
+
         injectAllCrackerUsage(cachedResult);
       });
     });
@@ -1081,7 +1086,7 @@
       logWarning("No href found from chatting node element");
       return;
     }
-    let existings = node.getElementsByClassName("red-pill-realtime-usage");
+    let existings = node.querySelectorAll(".red-pill-realtime-usage");
     if (existings && existings.length > 0) {
       // To prevent duplicated injection
       return;
@@ -1114,7 +1119,7 @@
       "red-pill-realtime-usage"
     );
     if (!crackerContainerNodes || crackerContainerNodes.length <= 0) {
-      injectCrackerUsageContainer(node, index);
+      injectCrackerUsageContainer(node, index, superChat, cracker);
     }
     crackerContainerNodes = node.getElementsByClassName(
       "red-pill-realtime-usage"
@@ -1224,9 +1229,14 @@
     try {
       await loadAll();
     } catch (error) {
-      logError("Failed to load history due to error. Injecting to UI with last fetched data.");
+      logError(
+        "Failed to load history due to error. Injecting to UI with last fetched data."
+      );
+      if (error.message && error.message.startsWith("CRYS: ")) {
+        alert(error.message.substring(6));
+      }
       console.log(error);
-    //   cachedResult = oldCache;
+      //   cachedResult = oldCache;
       injectAllCrackerUsage(cachedResult);
     }
   }
@@ -1258,18 +1268,58 @@
     let menuMap = createMenuMapFor();
     let newestParse = undefined;
     let requireStop = false;
+    let count = 0;
+    let retry = 0;
     while (!requireStop) {
-      let result = await fetch(
-        "https://contents-api.wrtn.ai/superchat/crackers/history?limit=20&type=consumed&page=" +
-          page++,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+      if (count++ >= 20) {
+        await new Promise((r) => setTimeout(r, 50));
+      } else if (count % 4 == 0) {
+        await new Promise((r) => setTimeout(r, 10));
+      }
+      let result = undefined;
+      while (result === undefined) {
+        try {
+          let fetched = await fetch(
+            "https://contents-api.wrtn.ai/superchat/crackers/history?limit=20&type=consumed&page=" +
+              page++,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          if (!fetched.ok) {
+            if (retry++ >= 5) {
+              throw new Error(
+                "CRYS: 최대 재시도 횟수 이상으로 요청에서 오류가 발생하였습니다.\n나중에 다시 시도하세요."
+              );
+            } else {
+              logError(
+                "Server returned HTTP code " +
+                  fetched.status +
+                  ", retrying after 100ms"
+              );
+              await new Promise((r) => setTimeout(r, 100));
+            }
+            continue;
+          } else {
+            result = fetched;
+          }
+        } catch (error) {
+          if (retry++ >= 5) {
+            throw new Error(
+              "CRYS: 최대 재시도 횟수 이상으로 요청에서 오류가 발생하였습니다.\n나중에 다시 시도하세요."
+            );
+          } else {
+            logError("Unexpected error occured, retry after 100ms");
+            await new Promise((r) => setTimeout(r, 100));
+          }
         }
-      );
+      }
+
+      retry = 0;
       let json = await result.json();
       if (!json.data || json.data.length <= 0) {
         log("STOPPING! No data returned, or end of the page?");
@@ -1391,13 +1441,19 @@
   }
 
   function eraseCache() {
+    processing = true;
     localStorage.removeItem("rp-lastParse");
     localStorage.removeItem("rp-parseHistory");
     cachedResult = {};
     injectAllCrackerUsage();
+    processing = false;
   }
 
   function performInitialization() {
+    // No initialization will perform while processing
+    if (processing) {
+      return;
+    }
     insertButton();
     const panel = findSidePanel();
     if (panel) {
