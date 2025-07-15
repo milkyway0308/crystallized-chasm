@@ -1090,7 +1090,7 @@
     url = url.substring(2);
     // Force increase height of root container
     const container = node.childNodes[0];
-    container.style.cssText = "height: 84px; padding-bottom: 10px;";
+    container.style.cssText = "height: 84px; padding-top: 5px; ";
     const description = container.childNodes[1];
     // Creating text node container (Theme controller)
     const crackerContainerNode = document.createElement("div");
@@ -1099,7 +1099,7 @@
     crackerContainerNode.className =
       "red-pill-realtime-usage css-mz5j7e efhw7t80";
     crackerContainerNode.style.cssText =
-      "display: flex; flex-direction: row; align-items: center; position: absolute; margin-top: 42px;";
+      "display: flex; flex-direction: row; align-items: center; margin-top: -5px;";
     crackerContainerNode.setAttribute("last-cracker", "0");
     crackerContainerNode.setAttribute("last-superchat", "0");
     description.append(crackerContainerNode);
