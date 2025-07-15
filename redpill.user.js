@@ -1048,6 +1048,11 @@
       if (processing) {
         return;
       }
+      if (!localStorage.getItem("rp-lastParse")) {
+        if (!confirm("이전에 통계를 불러온 전적이 존재하지 않습니다.\n이 작업은 매우 오래 걸리고, 완전히 불러오기 전까지는 이 페이지를 벗어나면 안됩니다.\n또한, 다른 탭으로 통계를 불러오는 행위는 캐시의 오염을 불러올 수 있습니다.\n또한, 이 기능은 모든 사용 내역을 불러와 분석하기에, 과다한 호출이 발생할 경우 부정 이용으로 간주될 수 있습니다.\n정말로 통계를 새로 고치시겠습니까?")) {
+            return;
+        }
+      }
       processing = true;
       div.style.cssText = 'style = "background-color: #9c9c9c87;"';
       button.innerHTML =
