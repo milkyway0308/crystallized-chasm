@@ -1045,7 +1045,6 @@
     div.append(button);
     panel.childNodes[0].insertBefore(div, panel.childNodes[0].childNodes[2]);
     div.addEventListener("click", () => {
-      console.log("Processing?" + processing);
       if (processing) {
         return;
       }
