@@ -33,6 +33,22 @@
     logElement.value = `[${time}]\n${message}\n\n${logElement.value}`;
     logElement.scrollTop = 0;
   }
+  function extractUsageQuantity(json) {
+    // If [json.quantity] exists, it is legacy format - keep it for compatibility
+    if (json.quantity) {
+      return json.quantity;
+    }
+    // If product is cracker, just return value
+    if (json.product === "cracker") {
+      return json.balance.total;
+    }
+    // If product is superchat, it's legacy log - multiply 35
+    if (json.product === "superchat") {
+      return json.balance.total * 35;
+    }
+    // If none matched, it's unknown at this moment - just return value
+    return json.balance.total;
+  }
   function appendPageLog(c, d) {
     const h = c.value.split("\n"),
       f = h.findIndex(
@@ -64,40 +80,13 @@
       }).length;
     const v = k
         .filter((b) => b.isConsumed)
-        .reduce(
-          (b, n) =>
-            b +
-            (n.quantity
-              ? n.quantity
-              : n.product === "cracker"
-              ? n.balance.total
-              : n.balance.total * 35),
-          0
-        ),
+        .reduce((b, n) => b + extractUsageQuantity(n), 0),
       z = k
         .filter((b) => !b.isConsumed)
-        .reduce(
-          (b, n) =>
-            b +
-            (n.quantity
-              ? n.quantity
-              : n.product === "cracker"
-              ? n.balance.total
-              : n.balance.total * 35),
-          0
-        ),
+        .reduce((b, n) => b + extractUsageQuantity(n), 0),
       D = k
         .filter((b) => b.isConsumed && b.consumedType === "unlimited")
-        .reduce(
-          (b, n) =>
-            b +
-            (n.quantity
-              ? n.quantity
-              : n.product === "cracker"
-              ? n.balance.total
-              : n.balance.total * 35),
-          0
-        ),
+        .reduce((b, n) => b + extractUsageQuantity(n), 0),
       e =
         k.length > 0
           ? k
@@ -136,14 +125,13 @@
           totalAcquisition: 0,
         });
       const q = b.isConsumed ? "consumption" : "acquisition";
-      let quantity = (b.quantity
-              ? b.quantity
-              : b.product === "cracker"
-              ? b.balance.total
-              : b.balance.total * 35);
+      let quantity = b.quantity
+        ? b.quantity
+        : b.product === "cracker"
+        ? b.balance.total
+        : b.balance.total * 35;
       g[t][q][n] = (g[t][q][n] || 0) + quantity;
-      g[t][b.isConsumed ? "totalConsumption" : "totalAcquisition"] +=
-        quantity;
+      g[t][b.isConsumed ? "totalConsumption" : "totalAcquisition"] += quantity;
     });
     r = `
             <style>
@@ -257,12 +245,7 @@
     });
     const m = {};
     k.filter((b) => b.isConsumed).forEach((b) => {
-      let quantity = (b.quantity
-              ? b.quantity
-              : b.product === "cracker"
-              ? b.balance.total
-              : b.balance.total * 35);
-      m[b.title] = (m[b.title] || 0) + quantity;
+      m[b.title] = (m[b.title] || 0) + extractUsageQuantity(b);
     });
     k = Object.entries(m).sort(([, b], [, n]) => n - b);
     let w = `
@@ -318,11 +301,15 @@
       return f[e] !== !1;
     }).length;
     let a = "";
-    const u = c.filter((e) => e.isConsumed).reduce((e, g) => e + g.quantity, 0),
-      p = c.filter((e) => !e.isConsumed).reduce((e, g) => e + g.quantity, 0),
+    const u = c
+        .filter((e) => e.isConsumed)
+        .reduce((e, g) => e + extractUsageQuantity(g), 0),
+      p = c
+        .filter((e) => !e.isConsumed)
+        .reduce((e, g) => e + extractUsageQuantity(g), 0),
       y = c
         .filter((e) => e.isConsumed && e.consumedType === "unlimited")
-        .reduce((e, g) => e + g.quantity, 0),
+        .reduce((e, g) => e + extractUsageQuantity(g), 0),
       k = h > 0 ? Math.round(y / h) : 0;
     a += '"\uc804\uccb4 \ud1b5\uacc4"\n';
     a += '"\ud56d\ubaa9","\uac12"\n';
@@ -338,7 +325,7 @@
       var g = new Date(e.date);
       g = `${g.getFullYear()}-${String(g.getMonth() + 1).padStart(2, "0")}`;
       const m = e.isConsumed ? r : v;
-      m[g] = (m[g] || 0) + e.quantity;
+      m[g] = (m[g] || 0) + extractUsageQuantity(e);
     });
     a += '\n"\uc6d4\ubcc4 \ud1b5\uacc4"\n';
     a += '"\uc6d4","\uc0ac\uc6a9\ub7c9","\ud68d\ub4dd\ub7c9"\n';
@@ -358,7 +345,7 @@
       g = String(g.getDate()).padStart(2, "0");
       z[m] || (z[m] = { consumption: {}, acquisition: {} });
       const w = e.isConsumed ? "consumption" : "acquisition";
-      z[m][w][g] = (z[m][w][g] || 0) + e.quantity;
+      z[m][w][g] = (z[m][w][g] || 0) + extractUsageQuantity(e);
     });
     for (const [e, g] of Object.entries(z).sort().reverse())
       for (
@@ -374,7 +361,7 @@
           }"\n`);
     const D = {};
     c.filter((e) => e.isConsumed).forEach((e) => {
-      D[e.title] = (D[e.title] || 0) + e.quantity;
+      D[e.title] = (D[e.title] || 0) + extractUsageQuantity(e);
     });
     c = Object.entries(D).sort(([, e], [, g]) => g - e);
     a += '\n"\uc791\ud488\ubcc4 \ub7ad\ud0b9"\n';
