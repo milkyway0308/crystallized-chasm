@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized RedPill (결정화 캐즘 붉은약)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-PILL-v1.1.1
+// @version     CRYS-PILL-v1.2.0-DEV
 // @description 크랙의 통계 수정 및 데이터 표시 개선. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -10,6 +10,7 @@
 // @grant       none
 // ==/UserScript==
 (function () {
+  function processConsumeCount() {}
   /**
    * 쿠키에서 액세스 토큰을 추출해 반환합니다.
    * @returns 액세스 토큰
@@ -25,7 +26,7 @@
   /**
    * 지정된 로그 요소의 맨 윗 부분에 로그를 덧붙이고, 맨 위로 스크롤합니다.
    * @param {Node} logElement 로그 요소. TextArea, 혹은 span을 사용합니다.
-   * @param {string} message 덧붙일 로그 메시지 
+   * @param {string} message 덧붙일 로그 메시지
    */
   function appendLog(logElement, message) {
     const time = new Date().toLocaleString();
@@ -659,6 +660,7 @@
             `;
       g.addEventListener("click", () => {
         localStorage.removeItem("chasmRedpillHistory");
+        eraseCache();
         appendLog(
           v,
           "\uce90\uc2dc\ub41c \ub0b4\uc5ed\uc774 \uc0ad\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4."
@@ -979,14 +981,15 @@
     let oldHref = location.href;
     new MutationObserver(() => {
       const newHref = location.href;
-      newHref !== oldHref && ((oldHref = newHref), insertButton());
+      newHref !== oldHref && ((oldHref = newHref), performInitialization());
     }).observe(document, { subtree: !0, childList: !0 });
     observerCreator(document.body, () => {
-      insertButton();
+      performInitialization();
     });
   }
   const observerCreator = (function () {
-    const observerFactory = window.MutationObserver || window.WebKitMutationObserver;
+    const observerFactory =
+      window.MutationObserver || window.WebKitMutationObserver;
     return function (body, lambda) {
       if (body && observerFactory) {
         var observer = new observerFactory((a) => {
@@ -997,6 +1000,416 @@
       }
     };
   })();
+  // ==========================================
+  //             C2 오리지널 컨텐츠
+  // ==========================================
+  // ###########################
+  //          C2 변수
+  // ###########################
+  let cachedResult = undefined;
+  let processing = false;
+
+  function findSidePanel() {
+    const element = document.getElementsByClassName("css-3vigoi");
+    if (element === undefined || element.length <= 0) {
+      logError("No side panel class found");
+      return undefined;
+    }
+    return element[0];
+  }
+
+  function injectRefreshButton(panel) {
+    // To follow theme change
+    const expectedClass = isDarkMode()
+      ? "css-sv3fmv efhw7t80"
+      : "css-xohevx efhw7t80";
+    // Pre-condition check - Prevent duplicated button
+    const existing = document.getElementsByClassName("red-pill-refresh-button");
+    if (existing && existing.length > 0) {
+      const button = existing[0].childNodes[0];
+      if (button.className !== expectedClass) {
+        button.className = expectedClass;
+      }
+      return;
+    }
+    const div = document.createElement("div");
+    div.className = "css-8v90jo efhw7t80 red-pill-refresh-button";
+    div.display = "flex";
+    const button = document.createElement("button");
+    button.className = expectedClass;
+    button.display = "flex";
+    button.setAttribute("color", "text_primary");
+    button.style.cssText = "margin-right: 5px";
+    button.innerHTML =
+      '<div display="flex" width="100%" class="css-1gs21jv efhw7t80">통계 새로고침</div>';
+    div.append(button);
+    panel.childNodes[0].insertBefore(div, panel.childNodes[0].childNodes[2]);
+    div.addEventListener("click", () => {
+      console.log("Processing?" + processing);
+      if (processing) {
+        return;
+      }
+      processing = true;
+      div.style.cssText = 'style = "background-color: #9c9c9c87;"';
+      button.innerHTML =
+        '<div display="flex" width="100%" class="css-1gs21jv efhw7t80">불러오는 중..</div>';
+      safeLoadAll().then(() => {
+        processing = false;
+        div.style.cssText = "";
+        button.innerHTML =
+          '<div display="flex" width="100%" class="css-1gs21jv efhw7t80">통계 새로고침</div>';
+        injectAllCrackerUsage(cachedResult);
+      });
+    });
+  }
+
+  function isDarkMode() {
+    return document.body.getAttribute("data-theme") === "dark";
+  }
+
+  function isLightMode() {
+    return document.body.getAttribute("data-theme") === "light";
+  }
+
+  function injectCrackerUsageContainer(node, index, superChat, cracker) {
+    if (superChat <= 0 && cracker <= 0) {
+      deleteCrackerUsage(node, index);
+      return;
+    }
+    let url = node.getAttribute("href");
+    if (!url) {
+      logWarning("No href found from chatting node element");
+      return;
+    }
+    let existings = node.getElementsByClassName("red-pill-realtime-usage");
+    if (existings && existings.length > 0) {
+      // To prevent duplicated injection
+      return;
+    }
+    log("Inserting realtime usage to index " + index + " (ID " + url + ")");
+    url = url.substring(2);
+    // Force increase height of root container
+    const container = node.childNodes[0];
+    container.style.cssText = "height: 84px; padding-bottom: 10px;";
+    const description = container.childNodes[1];
+    // Creating text node container (Theme controller)
+    const crackerContainerNode = document.createElement("div");
+    crackerContainerNode.setAttribute("display", "flex");
+    crackerContainerNode.setAttribute("width", "100%");
+    crackerContainerNode.className =
+      "red-pill-realtime-usage css-mz5j7e efhw7t80";
+    crackerContainerNode.style.cssText =
+      "display: flex; flex-direction: row; align-items: center; position: absolute; margin-top: 42px;";
+    crackerContainerNode.setAttribute("last-cracker", "0");
+    crackerContainerNode.setAttribute("last-superchat", "0");
+    description.append(crackerContainerNode);
+  }
+
+  function updateUsage(node, index, superChat, cracker) {
+    if (superChat <= 0 && cracker <= 0) {
+      deleteCrackerUsage(node, index);
+      return;
+    }
+    let crackerContainerNodes = node.getElementsByClassName(
+      "red-pill-realtime-usage"
+    );
+    if (!crackerContainerNodes || crackerContainerNodes.length <= 0) {
+      injectCrackerUsageContainer(node, index);
+    }
+    crackerContainerNodes = node.getElementsByClassName(
+      "red-pill-realtime-usage"
+    );
+    if (!crackerContainerNodes || crackerContainerNodes.length <= 0) {
+      logError("Failed to inject cracker content; Element not injected");
+      return;
+    }
+    const crackerContainerNode = crackerContainerNodes[0];
+    if (
+      crackerContainerNode.getAttribute("last-cracker") ===
+        cracker.toString() &&
+      crackerContainerNode.getAttribute("last-superchat") ===
+        superChat.toString()
+    ) {
+      return;
+    }
+    crackerContainerNode.setAttribute("last-cracker", cracker.toString());
+    crackerContainerNode.setAttribute("last-superchat", superChat.toString());
+    if (crackerContainerNode) crackerContainerNode.innerHTML = "";
+    if (cracker > 0) {
+      // Creating text node (Cracker usages)
+      const textContent = document.createElement("p");
+      textContent.className = isDarkMode()
+        ? "chat-list-item-topic css-1a0pj6v efhw7t80"
+        : "chat-list-item-character-name css-qwz0be efhw7t80";
+      textContent.innerText = cracker.toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+      });
+      const svg = createCrackerSvg();
+      svg.style.marginRight = "4px";
+      // Assemble cracker contents
+      crackerContainerNode.append(textContent);
+      crackerContainerNode.append(svg);
+    }
+    if (superChat > 0) {
+      // Creating text node (Cracker usages)
+      const textContent = document.createElement("p");
+      textContent.className = isDarkMode()
+        ? "chat-list-item-topic css-1a0pj6v efhw7t80"
+        : "chat-list-item-character-name css-qwz0be efhw7t80";
+      textContent.innerText = superChat.toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+      });
+      // Assemble cracker contents
+      crackerContainerNode.append(textContent);
+      crackerContainerNode.append(createSuperChatSvg());
+    }
+  }
+
+  function deleteCrackerUsage(node, index) {
+    let existings = node.getElementsByClassName("red-pill-realtime-usage");
+    if (!existings || existings.length <= 0) {
+      // To prevent duplicated injection
+      return;
+    }
+    const container = node.childNodes[0];
+    container.style.cssText = "";
+    const crackerContainerNodes = container.getElementsByClassName(
+      "red-pill-realtime-usage"
+    );
+    if (crackerContainerNodes && crackerContainerNodes.length > 0) {
+      crackerContainerNodes[0].remove();
+    }
+  }
+
+  function injectAllCrackerUsage() {
+    loadLocalCache();
+    let selected = document.getElementsByTagName("a");
+    const nodes = [];
+    for (let node of selected) {
+      if (node.getAttribute("href").startsWith("/u/")) {
+        nodes.push(node);
+      }
+    }
+    if (!nodes || nodes.length <= 0) {
+      logWarning(
+        "No chattings found; Does crack updated, or no chatting started?"
+      );
+      return;
+    }
+
+    for (let index = 0; index < nodes.length; index++) {
+      if (nodes[index].nodeName.toLowerCase() === "a") {
+        const title = extractTitleFromNode(nodes[index]);
+        updateUsage(
+          nodes[index],
+          index,
+          cachedResult[title]?.superchat ?? 0,
+          cachedResult[title]?.cracker ?? 0
+        );
+      } else {
+        logWarning(
+          "Cannot determine chatting id from index " +
+            index +
+            ": Parent node is not link node (Expected 'a', Value '" +
+            nodes[index].nodeName.toLowerCase() +
+            "'"
+        );
+      }
+    }
+    // "https://contents-api.wrtn.ai/superchat/character-super-mode/history?limit=20&type=all"}&page=${g}
+  }
+
+  async function safeLoadAll() {
+    const oldCache = structuredClone(cachedResult);
+    try {
+      await loadAll();
+    } catch (error) {
+      logError("Failed to load history due to error. Restoring state.");
+      console.log(error);
+      cachedResult = oldCache;
+      injectAllCrackerUsage(cachedResult);
+    }
+  }
+
+  async function loadAll() {
+    loadLocalCache();
+    const token = extractAccessToken();
+    let page = 1;
+    let lastParse = undefined;
+    if (localStorage.getItem("rp-lastParse")) {
+      lastParse = new Date(localStorage.getItem("rp-lastParse"));
+      log("Previous history found. Parsing after " + lastParse);
+    } else {
+      log(
+        "No successful parse history found. Redpill will try load all history"
+      );
+      localStorage.removeItem("rp-parseHistory");
+      cachedResult = {};
+      injectAllCrackerUsage();
+    }
+    if (localStorage.getItem("rp-parseHistory")) {
+      log("History data found. Loading from local storage..");
+      const start = new Date();
+      history = JSON.parse(localStorage.getItem("rp-parseHistory"));
+      log(
+        "History loaded in " + (new Date().getTime() - start.getTime()) + "ms"
+      );
+    }
+    let menuMap = createMenuMapFor();
+    let newestParse = undefined;
+    let requireStop = false;
+    while (!requireStop) {
+      let result = await fetch(
+        "https://contents-api.wrtn.ai/superchat/crackers/history?limit=20&type=consumed&page=" +
+          page++,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      let json = await result.json();
+      if (!json.data || json.data.length <= 0) {
+        log("STOPPING! No data returned, or end of the page?");
+        requireStop = true;
+        break;
+      }
+      let purchaseHistory = json.data;
+      for (let data of purchaseHistory) {
+        let purchaseTime = new Date(data.date);
+        if (lastParse && purchaseTime.getTime() <= lastParse.getTime()) {
+          log("STOPPING! Reached last parsing history.");
+          requireStop = true;
+          break;
+        }
+        if (!newestParse) {
+          newestParse = data.date;
+        }
+        const title = data.title;
+        if (!cachedResult[title]) {
+          cachedResult[title] = {
+            cracker: 0,
+            superchat: 0,
+          };
+        }
+        const balance = data.balance.total;
+        if (data.product === "cracker") {
+          cachedResult[title].cracker += balance;
+        } else if (data.product === "superchat") {
+          cachedResult[title].superchat += balance;
+        } else {
+          logWarning(
+            "Unknown product type '" +
+              data.product +
+              "' from article '" +
+              title +
+              "'"
+          );
+        }
+        let node = menuMap[title];
+        if (node) {
+          injectAllCrackerUsage();
+        }
+      }
+    }
+
+    if (newestParse) {
+      localStorage.setItem("rp-lastParse", newestParse);
+    }
+    localStorage.setItem("rp-parseHistory", JSON.stringify(cachedResult));
+    log("All system set, updating all nodes");
+    injectAllCrackerUsage();
+    return history;
+  }
+
+  function createMenuMapFor() {
+    let selected = document.querySelectorAll(".css-16q3jhz");
+    const map = {};
+    for (let node of selected) {
+      let title = extractTitleFromNode(node.parentElement);
+      map[title] = node.parentElement;
+    }
+    return map;
+  }
+
+  function extractTitleFromNode(node) {
+    return node.childNodes[0].childNodes[1].childNodes[0].innerText;
+  }
+  function createCrackerSvg() {
+    const svg = document.createElement("div");
+    svg.style.cssText = "height: fit-content; margin-top: 2px;";
+    svg.innerHTML =
+      '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16"><path fill="#FFA600" d="M21.17 12.01c.52-.59.83-1.36.83-2.21s-.31-1.62-.83-2.21c.06-.07.12-.14.17-.21 0 0 .01-.02.02-.02.05-.07.1-.14.14-.21 0-.02.02-.03.03-.05.04-.07.08-.13.11-.2.01-.02.02-.05.04-.08.03-.06.06-.13.09-.2.01-.03.03-.07.04-.11l.06-.18c.01-.05.02-.1.04-.14.01-.05.03-.1.04-.16l.03-.19c0-.04.01-.09.02-.13 0-.11.01-.22.01-.33 0-1.86-1.51-3.37-3.37-3.37-.11 0-.22 0-.33.01-.04 0-.08 0-.12.02-.07 0-.13.02-.19.03-.05 0-.1.02-.16.04-.05.01-.1.02-.14.04l-.18.06c-.04.01-.07.02-.11.04-.07.02-.13.05-.19.09a.3.3 0 0 0-.08.04c-.07.03-.14.07-.2.11-.02 0-.03.02-.05.03-.07.04-.14.09-.21.14 0 0-.02.01-.02.02-.07.05-.14.11-.21.17-.59-.51-1.36-.83-2.21-.83s-1.62.31-2.21.83a3.32 3.32 0 0 0-2.21-.83c-.85 0-1.62.31-2.21.83-.07-.06-.14-.12-.21-.17 0 0-.02-.01-.02-.02-.07-.05-.14-.1-.21-.14-.02 0-.03-.02-.05-.03-.07-.04-.13-.08-.2-.11-.02-.01-.05-.02-.08-.04-.06-.03-.13-.06-.2-.09-.03-.01-.07-.03-.11-.04l-.18-.06c-.05-.01-.1-.02-.14-.04-.05-.01-.1-.03-.16-.04l-.19-.03c-.04 0-.09-.01-.13-.02-.11 0-.22-.01-.33-.01-1.86 0-3.37 1.51-3.37 3.37 0 .11 0 .22.01.33 0 .04 0 .08.02.12 0 .07.02.13.03.19 0 .05.02.1.04.16.01.05.02.1.04.14l.06.18c.01.04.02.07.04.11.02.07.05.13.09.19a.3.3 0 0 0 .04.08c.03.07.07.14.11.2 0 .02.02.03.03.05.04.07.09.14.14.21 0 0 .01.02.02.02.05.07.11.14.17.21a3.32 3.32 0 0 0-.83 2.21c0 .85.31 1.62.83 2.21a3.32 3.32 0 0 0-.83 2.21c0 .85.31 1.62.83 2.21-.06.07-.12.14-.17.21 0 0-.01.02-.02.02-.05.07-.1.14-.14.21 0 .02-.02.03-.03.05-.04.07-.08.13-.11.2-.01.02-.02.05-.04.08-.03.06-.06.13-.09.2-.01.03-.03.07-.04.11l-.06.18c-.01.05-.02.1-.04.14-.01.05-.03.1-.04.16l-.03.19c0 .04-.01.09-.02.13 0 .11-.01.22-.01.33A3.35 3.35 0 0 0 3.02 21c.61.61 1.45.99 2.38.99.11 0 .22 0 .33-.01.04 0 .08 0 .12-.02.07 0 .13-.02.19-.03.05 0 .1-.02.16-.04.05-.01.1-.02.14-.04l.18-.06c.04-.01.07-.02.11-.04.07-.02.13-.05.19-.09a.3.3 0 0 0 .08-.04c.07-.03.14-.07.2-.11.02 0 .03-.02.05-.03.07-.04.14-.09.21-.14 0 0 .02-.01.02-.02.07-.05.14-.11.21-.17.59.51 1.36.83 2.21.83s1.62-.31 2.21-.83c.59.52 1.36.83 2.21.83s1.62-.31 2.21-.83c.07.06.14.12.21.17 0 0 .02.01.02.02.07.05.14.1.21.14.02 0 .03.02.05.03.07.04.13.08.2.11.02.01.05.02.08.04.06.03.13.06.2.09.03.01.07.03.11.04l.18.06c.05.01.1.02.14.04.05.01.1.03.16.04l.19.03c.04 0 .09.01.13.02.11 0 .22.01.33.01.92 0 1.75-.37 2.36-.97l.02-.02c.61-.61.99-1.45.99-2.38 0-.11 0-.22-.01-.33 0-.04 0-.08-.02-.12 0-.07-.02-.13-.03-.19 0-.05-.02-.1-.04-.16a.6.6 0 0 0-.04-.14l-.06-.18a.5.5 0 0 0-.04-.11.7.7 0 0 0-.09-.19.3.3 0 0 0-.04-.08c-.03-.07-.07-.14-.11-.2 0-.02-.02-.03-.03-.05-.04-.07-.09-.14-.14-.21 0 0-.01-.02-.02-.02-.05-.07-.11-.14-.17-.21.52-.59.83-1.36.83-2.21s-.31-1.62-.83-2.21M7.5 13.5 6 12l1.5-1.5L9 12zM12 6l1.5 1.5L12 9l-1.5-1.5zm0 12-1.5-1.5L12 15l1.5 1.5zm4.5-4.5L15 12l1.5-1.5L18 12z"></path></svg>';
+    return svg;
+  }
+
+  function createSuperChatSvg() {
+    const svg = document.createElement("div");
+    svg.style.cssText = "height: fit-content; margin-top: 4px;";
+    svg.innerHTML =
+      '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="16" height="16"><path fill="#1A88FF" d="M12.621 1.98c-5.414-.322-10.067 3.8-10.39 9.207a9.73 9.73 0 0 0 1.633 6.023l-.586 4.988 5.3-1.238c.896.34 1.86.558 2.87.618 5.415.323 10.067-3.8 10.39-9.207.323-5.406-3.81-10.067-9.217-10.39"></path><path fill="#fff" d="M16.07 12.21s-.01-.05-.02-.08c-.16-.73-.52-1.31-.86-1.71a18 18 0 0 0-.29-.33 8 8 0 0 1-.92-1.18s0-.01-.01-.02c0 0 0-.01-.01-.02-.52-.84-.88-1.78-1.05-2.79-.8.24-1.48.76-1.93 1.45-.02.03-.04.07-.07.11-.26.43-.42.93-.47 1.46 0 .1-.01.2-.01.31 0 .51.11.99.31 1.43a1.63 1.63 0 0 1-1.15-1.33c-.82.51-1.44 1.31-1.73 2.25 0 0 0 .03-.01.04-.09.31-.15.64-.16.98v.29c0 .26.04.52.1.77v.02c0 .01 0 .03.01.04.28 1.13 1.05 2.07 2.08 2.62.6.32 1.29.5 2.02.5h.01c2.34 0 4.23-1.81 4.24-4.05 0-.26-.02-.51-.07-.76z"></path></svg>';
+    return svg;
+  }
+
+  function loadLocalCache() {
+    if (cachedResult === undefined) {
+      if (localStorage.getItem("rp-parseHistory")) {
+        cachedResult = JSON.parse(localStorage.getItem("rp-parseHistory"));
+      } else {
+        cachedResult = {};
+      }
+    }
+  }
+
+  function log(message) {
+    console.log(
+      "%cChasm Crystallized RedPill: %cInfo: %c" + message,
+      "color: cyan;",
+      "color: blue;",
+      "color: inherit;"
+    );
+  }
+
+  function logWarning(message) {
+    console.log(
+      "%cChasm Crystallized RedPill: %cWarning: %c" + message,
+      "color: cyan;",
+      "color: yellow;",
+      "color: inherit;"
+    );
+  }
+
+  function logError(message) {
+    console.log(
+      "%cChasm Crystallized RedPill: %cError: %c" + message,
+      "color: cyan;",
+      "color: red;",
+      "color: inherit;"
+    );
+  }
+
+  function eraseCache() {
+    localStorage.removeItem("rp-lastParse");
+    localStorage.removeItem("rp-parseHistory");
+    cachedResult = {};
+    injectAllCrackerUsage();
+  }
+
+  function performInitialization() {
+    insertButton();
+    const panel = findSidePanel();
+    if (panel) {
+      loadLocalCache();
+      injectRefreshButton(panel);
+      injectAllCrackerUsage();
+    }
+  }
+  // ==========================================
+  //                초기화
+  // ==========================================
+
   document.readyState === "loading"
     ? document.addEventListener("DOMContentLoaded", setup)
     : setup();
