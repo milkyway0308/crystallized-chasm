@@ -651,7 +651,7 @@
                 <span style="font-weight:600; margin-left: 5px; color: #ff0000;">redpill</span>
                 <span style="font-weight:500; font-size: 0.7em; color: ${
                   darkTheme ? "#777" : "#999"
-                }; margin-left: 8px;">${"v1.2.1"}</span>
+                }; margin-left: 8px;">${"v1.2.2"}</span>
             `;
       const r = document.createElement("button");
       r.id = "cr-close";
