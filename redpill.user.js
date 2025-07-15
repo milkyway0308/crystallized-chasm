@@ -62,11 +62,42 @@
         b = b.paymentDate.slice(0, 7);
         return y[b] !== !1;
       }).length;
-    const v = k.filter((b) => b.isConsumed).reduce((b, n) => b + n.quantity, 0),
-      z = k.filter((b) => !b.isConsumed).reduce((b, n) => b + n.quantity, 0),
+    const v = k
+        .filter((b) => b.isConsumed)
+        .reduce(
+          (b, n) =>
+            b +
+            (n.quantity
+              ? n.quantity
+              : n.product === "cracker"
+              ? n.balance.total
+              : n.balance.total * 35),
+          0
+        ),
+      z = k
+        .filter((b) => !b.isConsumed)
+        .reduce(
+          (b, n) =>
+            b +
+            (n.quantity
+              ? n.quantity
+              : n.product === "cracker"
+              ? n.balance.total
+              : n.balance.total * 35),
+          0
+        ),
       D = k
         .filter((b) => b.isConsumed && b.consumedType === "unlimited")
-        .reduce((b, n) => b + n.quantity, 0),
+        .reduce(
+          (b, n) =>
+            b +
+            (n.quantity
+              ? n.quantity
+              : n.product === "cracker"
+              ? n.balance.total
+              : n.balance.total * 35),
+          0
+        ),
       e =
         k.length > 0
           ? k
@@ -105,9 +136,14 @@
           totalAcquisition: 0,
         });
       const q = b.isConsumed ? "consumption" : "acquisition";
-      g[t][q][n] = (g[t][q][n] || 0) + b.quantity;
+      let quantity = (b.quantity
+              ? b.quantity
+              : b.product === "cracker"
+              ? b.balance.total
+              : b.balance.total * 35);
+      g[t][q][n] = (g[t][q][n] || 0) + quantity;
       g[t][b.isConsumed ? "totalConsumption" : "totalAcquisition"] +=
-        b.quantity;
+        quantity;
     });
     r = `
             <style>
@@ -221,7 +257,12 @@
     });
     const m = {};
     k.filter((b) => b.isConsumed).forEach((b) => {
-      m[b.title] = (m[b.title] || 0) + b.quantity;
+      let quantity = (b.quantity
+              ? b.quantity
+              : b.product === "cracker"
+              ? b.balance.total
+              : b.balance.total * 35);
+      m[b.title] = (m[b.title] || 0) + quantity;
     });
     k = Object.entries(m).sort(([, b], [, n]) => n - b);
     let w = `
@@ -475,12 +516,13 @@
         w.length > 0
           ? w.sort((t, q) => new Date(q.date) - new Date(t.date))[0]
           : null;
+      // Crawling entrypoint (History / Payment)
       for (H(d, h, f, m, document.body.dataset.theme === "dark", r, v, z); ; ) {
-        w = `${"https://contents-api.wrtn.ai/superchat/character-super-mode/history?limit=20&type=all"}&page=${g}`;
+        w = `${"https://contents-api.wrtn.ai/superchat/crackers/history?limit=20&type=all"}&page=${g}`;
         R(c, g);
         b = 5;
         let t = !1,
-          q;
+          jsonData;
         for (; b > 0 && !t; )
           try {
             const l = await fetch(w, {
@@ -492,7 +534,7 @@
               signal: p.signal,
             });
             if (!l.ok) throw Error(`HTTP error! Status: ${l.status}`);
-            q = await l.json();
+            jsonData = await l.json();
             t = !0;
           } catch (l) {
             if (l.name === "AbortError") {
@@ -521,7 +563,12 @@
             appendLog(c, `\uc7ac\uc2dc\ub3c4 \uc911... (${5 - b}/5)`);
             await new Promise((B) => setTimeout(B, 500));
           }
-        if (!q || q.result !== "SUCCESS" || !q.data || q.data.length === 0) {
+        if (
+          !jsonData ||
+          jsonData.result !== "SUCCESS" ||
+          !jsonData.data ||
+          jsonData.data.length === 0
+        ) {
           appendLog(
             c,
             `\uc804\uccb4 \uae30\ub85d \ud638\ucd9c \uc644\ub8cc! (\uc18c\uc694 \uc2dc\uac04: ${Q(
@@ -536,7 +583,10 @@
           H(d, h, f, m, document.body.dataset.theme === "dark", r, v, z);
           break;
         }
-        if (n && q.data.some((l) => l.date === n.date && l.title === n.title)) {
+        if (
+          n &&
+          jsonData.data.some((l) => l.date === n.date && l.title === n.title)
+        ) {
           appendLog(
             c,
             `\uce90\uc2dc\ub41c \ub9c8\uc9c0\ub9c9 \uae30\ub85d\uc5d0 \ub3c4\ub2ec. \ud638\ucd9c \uc911\ub2e8. (\uc18c\uc694 \uc2dc\uac04: ${Q(
@@ -551,7 +601,7 @@
           H(d, h, f, m, document.body.dataset.theme === "dark", r, v, z);
           break;
         }
-        m = m.concat(q.data);
+        m = m.concat(jsonData.data);
         y && localStorage.setItem("chasmRedpillHistory", JSON.stringify(m));
         H(d, h, f, m, document.body.dataset.theme === "dark", r, v, z);
         g++;
@@ -1049,8 +1099,12 @@
         return;
       }
       if (!localStorage.getItem("rp-lastParse")) {
-        if (!confirm("이전에 통계를 불러온 전적이 존재하지 않습니다.\n이 작업은 매우 오래 걸리고, 완전히 불러오기 전까지는 이 페이지를 벗어나면 안됩니다.\n또한, 다른 탭으로 통계를 불러오는 행위는 캐시의 오염을 불러올 수 있습니다.\n또한, 이 기능은 모든 사용 내역을 불러와 분석하기에, 과다한 호출이 발생할 경우 부정 이용으로 간주될 수 있습니다.\n정말로 통계를 새로 고치시겠습니까?")) {
-            return;
+        if (
+          !confirm(
+            "이전에 통계를 불러온 전적이 존재하지 않습니다.\n이 작업은 매우 오래 걸리고, 완전히 불러오기 전까지는 이 페이지를 벗어나면 안됩니다.\n또한, 다른 탭으로 통계를 불러오는 행위는 캐시의 오염을 불러올 수 있습니다.\n또한, 이 기능은 모든 사용 내역을 불러와 분석하기에, 과다한 호출이 발생할 경우 부정 이용으로 간주될 수 있습니다.\n정말로 통계를 새로 고치시겠습니까?"
+          )
+        ) {
+          return;
         }
       }
       processing = true;
