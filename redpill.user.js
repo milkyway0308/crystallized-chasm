@@ -1224,9 +1224,9 @@
     try {
       await loadAll();
     } catch (error) {
-      logError("Failed to load history due to error. Restoring state.");
+      logError("Failed to load history due to error. Injecting to UI with last fetched data.");
       console.log(error);
-      cachedResult = oldCache;
+    //   cachedResult = oldCache;
       injectAllCrackerUsage(cachedResult);
     }
   }
