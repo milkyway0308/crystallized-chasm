@@ -1081,7 +1081,7 @@
       logWarning("No href found from chatting node element");
       return;
     }
-    let existings = node.getElementsByClassName("red-pill-realtime-usage");
+    let existings = node.querySelectorAll(".red-pill-realtime-usage");
     if (existings && existings.length > 0) {
       // To prevent duplicated injection
       return;
@@ -1114,7 +1114,7 @@
       "red-pill-realtime-usage"
     );
     if (!crackerContainerNodes || crackerContainerNodes.length <= 0) {
-      injectCrackerUsageContainer(node, index);
+      injectCrackerUsageContainer(node, index, superChat, cracker);
     }
     crackerContainerNodes = node.getElementsByClassName(
       "red-pill-realtime-usage"
@@ -1227,6 +1227,9 @@
       logError(
         "Failed to load history due to error. Injecting to UI with last fetched data."
       );
+      if (error.message && error.message.startsWith("CRYS: ")) {
+        alert(error.message.substring(6));
+      }
       console.log(error);
       //   cachedResult = oldCache;
       injectAllCrackerUsage(cachedResult);
@@ -1261,23 +1264,57 @@
     let newestParse = undefined;
     let requireStop = false;
     let count = 0;
+    let retry = 0;
     while (!requireStop) {
-      if (count >= 20) {
+      if (count++ >= 20) {
         await new Promise((r) => setTimeout(r, 500));
-      } else if (count++ % 4 == 0) {
+      } else if (count % 4 == 0) {
         await new Promise((r) => setTimeout(r, 100));
       }
-      let result = await fetch(
-        "https://contents-api.wrtn.ai/superchat/crackers/history?limit=20&type=consumed&page=" +
-          page++,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+      let result = undefined;
+      while (result === undefined) {
+        try {
+          let fetched = await fetch(
+            "https://contents-api.wrtn.ai/superchat/crackers/history?limit=20&type=consumed&page=" +
+              page++,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          if (!fetched.ok) {
+            if (retry++ >= 5) {
+              throw new Error(
+                "CRYS: 최대 재시도 횟수 이상으로 요청에서 오류가 발생하였습니다.\n나중에 다시 시도하세요."
+              );
+            } else {
+              logError(
+                "Server returned HTTP code " +
+                  fetched.status +
+                  ", retrying after 100ms"
+              );
+              await new Promise((r) => setTimeout(r, 100));
+            }
+            continue;
+          } else {
+            result = fetched;
+          }
+        } catch (error) {
+          if (retry++ >= 5) {
+            throw new Error(
+              "CRYS: 최대 재시도 횟수 이상으로 요청에서 오류가 발생하였습니다.\n나중에 다시 시도하세요."
+            );
+          } else {
+            logError("Unexpected error occured, retry after 100ms");
+            await new Promise((r) => setTimeout(r, 100));
+          }
         }
-      );
+      }
+
+      retry = 0;
       let json = await result.json();
       if (!json.data || json.data.length <= 0) {
         log("STOPPING! No data returned, or end of the page?");
@@ -1399,13 +1436,19 @@
   }
 
   function eraseCache() {
+    processing = true;
     localStorage.removeItem("rp-lastParse");
     localStorage.removeItem("rp-parseHistory");
     cachedResult = {};
     injectAllCrackerUsage();
+    processing = false;
   }
 
   function performInitialization() {
+    // No initialization will perform while processing
+    if (processing) {
+      return;
+    }
     insertButton();
     const panel = findSidePanel();
     if (panel) {
