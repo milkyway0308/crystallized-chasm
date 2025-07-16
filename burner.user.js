@@ -43,20 +43,20 @@
     const n = location.pathname.match(/\/u\/([a-f0-9]+)\/c\/([a-f0-9]+)/);
     return n ? { characterId: n[1], chatroomId: n[2] } : null;
   }
-  function m(n) {
+  function extractCookie(key) {
     const e = document.cookie.match(
       new RegExp(
-        `(?:^|; )${n.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1")}=([^;]*)`
+        `(?:^|; )${key.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1")}=([^;]*)`
       )
     );
     return e ? decodeURIComponent(e[1]) : null;
   }
-  function g(n, e = "알 수 없는 오류", t = null, o = null) {
+  function throwError(n, context = "알 수 없는 오류", request = null, response = null) {
     const a = [
-      `컨텍스트: ${e}`,
+      `컨텍스트: ${context}`,
       `오류 메시지: ${n.message || n}`,
-      t ? `요청: ${JSON.stringify(t, null, 2)}` : "",
-      o ? `응답: ${JSON.stringify(o, null, 2)}` : "",
+      request ? `요청: ${JSON.stringify(request, null, 2)}` : "",
+      response ? `응답: ${JSON.stringify(response, null, 2)}` : "",
     ]
       .filter(Boolean)
       .join("\n");
@@ -72,7 +72,7 @@
     const o = {
       method: n,
       headers: {
-        Authorization: `Bearer ${m("access_token")}`,
+        Authorization: `Bearer ${extractCookie("access_token")}`,
         "Content-Type": "application/json",
       },
     };
@@ -80,12 +80,12 @@
     try {
       const n = await fetch(e, o);
       return 401 === n.status || 403 === n.status
-        ? (g(new Error("Authentication error"), "인증 오류"), null)
+        ? (throwError(new Error("Authentication error"), "인증 오류"), null)
         : n.ok
         ? n.json()
         : null;
     } catch (n) {
-      return g(n, "Fetch 요청 실패"), null;
+      return throwError(n, "Fetch 요청 실패"), null;
     }
   }
   async function x(n, e, t = null, o = {}) {
@@ -108,7 +108,7 @@
         },
         onerror: () => {
           const n = new Error("GM request failed");
-          g(n, "GM 요청 실패"), r(n);
+          throwError(n, "GM 요청 실패"), r(n);
         },
       };
       t && (l.data = JSON.stringify(t)), GM.xmlHttpRequest(l);
@@ -125,10 +125,10 @@
       );
       return t?.data ? new h(t.data, this.request) : null;
     }
-    async getMessages(e, t = "", o = 40) {
-      const a = t
-        ? `${n}/character-chat/api/v2/chat-room/${e}/messages?limit=${o}&cursor=${t}`
-        : `${n}/character-chat/api/v2/chat-room/${e}/messages?limit=${o}`;
+    async getMessages(e, cursor = "", limit = 40) {
+      const a = cursor
+        ? `${n}/character-chat/api/v2/chat-room/${e}/messages?limit=${limit}&cursor=${cursor}`
+        : `${n}/character-chat/api/v2/chat-room/${e}/messages?limit=${limit}`;
       return await this.request("GET", a);
     }
     async getPersona() {
@@ -907,7 +907,7 @@
                   e = await n.json();
                 return n.ok
                   ? e?.candidates?.[0]?.content?.parts?.[0]?.text || null
-                  : (g(
+                  : (throwError(
                       new Error("Gemini API request failed"),
                       "Gemini API 요청 실패",
                       null,
@@ -949,7 +949,7 @@
                   ),
                   a = await t.json();
                 return !t.ok || a.error
-                  ? (g(
+                  ? (throwError(
                       new Error("OpenRouter API request failed"),
                       "OpenRouter API 요청 실패",
                       o,
@@ -964,7 +964,7 @@
                       model: a.model || n,
                     };
               } catch (n) {
-                return g(n, "OpenRouter API 요청 실패", o), null;
+                return throwError(n, "OpenRouter API 요청 실패", o), null;
               }
             })(U, f, N);
             (j = n?.text),
@@ -1113,7 +1113,7 @@
             (I.textContent = "00:00"),
             (A.disabled = !1),
             (A.textContent = "시작"),
-            g(n, "버너 실행 중 오류");
+            throwError(n, "버너 실행 중 오류");
         }
       }),
       j.addEventListener("click", () => s.remove());
@@ -1211,7 +1211,7 @@
                     ? alert("프로필이 성공적으로 변경되었습니다.")
                     : alert("프로필 변경에 실패했습니다.");
                 } catch (n) {
-                  g(n, "프로필 변경 중 오류");
+                  throwError(n, "프로필 변경 중 오류");
                 }
               }),
               u.addEventListener("click", () => {
@@ -1242,7 +1242,7 @@
                       await b(n))
                     : alert("프로필 저장에 실패했습니다.");
                 } catch (n) {
-                  g(n, "프로필 저장 중 오류");
+                  throwError(n, "프로필 저장 중 오류");
                 }
               }),
               l.length ||
