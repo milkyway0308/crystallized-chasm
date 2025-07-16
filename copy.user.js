@@ -89,7 +89,7 @@ GM_addStyle(`
       });
     return button;
   }
-c
+
   function createDropdownButton(t, e, node) {
     // Clone origin
     const cloned = node.cloneNode(true);
