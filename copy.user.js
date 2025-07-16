@@ -7,50 +7,116 @@
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/copy.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/copy.user.js
-// @grant       none
+// @grant       GM_addStyle
 // ==/UserScript==
+GM_addStyle(`
+    .chasm-dropdown-container .dropdown {
+        visibility: hidden;
+    }    
+    .chasm-dropdown-container:hover .dropdown {
+        visibility: hidden;
+        position: absolute;
+        margin-left: 350px;
+        background-color: black;
+        color: white;
+    }
+`);
 !(function () {
-  function decodeParameter(t) {
-    return (t = document.cookie.match(
+    /**
+     * 쿠키에서 주어진 키를 찾아 값을 반환합니다.
+     * @param {*} key 쿠키의 키
+     * @returns 쿠키의 값
+     */
+  function parseCookie(key) {
+    const found = document.cookie.match(
       new RegExp(
         "(?:^|; )" +
-          t.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, "\\$1") +
+          key.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, "\\$1") +
           "=([^;]*)"
       )
-    ))
-      ? decodeURIComponent(t[1])
-      : void 0;
+    );
+    if (found) {
+      return key[1];
+    }
+    return null;
   }
-  async function e(e, a, r) {
+  /**
+   * HTTP 프로토콜을 통해 REST API에 요청합니다.
+   * @param {*} method 요청 타입 (GET / POST..)
+   * @param {*} url 요청 대상 URL
+   * @param {*} body 요청 폼 데이터 (바디)
+   * @returns 정상 처리시 파싱된 JSON, 오류 발생 시 null
+   */
+  async function request(method, url, body) {
     try {
-      (e = {
-        method: e,
+      const requestParam = {
+        method: method,
         headers: {
-          Authorization: `Bearer ${decodeParameter("access_token")}`,
+          Authorization: `Bearer ${parseCookie("access_token")}`,
           "Content-Type": "application/json",
         },
-      }),
-        r && (e.body = JSON.stringify(r));
-      const n = await fetch(a, e);
-      if (!n.ok) throw Error(`HTTP error! Status: ${n.status}`);
-      return await n.json();
+      };
+      if (body) {
+        requestParam.body = JSON.stringify(body);
+      }
+      const result = await fetch(url, requestParam);
+      if (!result.ok) throw Error(`HTTP error! Status: ${result.status}`);
+      return await result.json();
     } catch (t) {
       return null;
     }
   }
-  function a(t, e, a) {
-    const r = a.cloneNode(!0),
-      n = document.createElement("button");
-    return (
-      (n.innerHTML = r.innerHTML),
-      (n.className = a.className),
-      (a = n.querySelector("p")) && (a.textContent = t),
-      n.removeAttribute("onClick"),
-      n.addEventListener("click", (t) => {
+  /**
+   * 컨텍스트 메뉴 엘리먼트를 복사 후 수정하여 반환합니다.
+   * @param {*} t 버튼 내용
+   * @param {*} e 버튼 클릭시 실행될 람다
+   * @param {*} a 복사될 원본 메뉴 엘리먼트
+   * @returns 복사된 메뉴 엘리먼트
+   */
+  function createButton(t, e, a) {
+    // Why we need to clone this?
+    // const cloned = a.cloneNode(true);
+    const button = document.createElement("button");
+    // Just direct copy element with innerHTML replacement
+    button.innerHTML = a.innerHTML;
+    button.className = a.className;
+    const textNode = button.querySelector("p");
+
+    textNode.textContent = t;
+    button.removeAttribute("onClick"),
+      button.addEventListener("click", (t) => {
         t.preventDefault(), t.stopPropagation(), e();
-      }),
-      n
-    );
+      });
+    return button;
+  }
+c
+  function createDropdownButton(t, e, node) {
+    // Clone origin
+    const cloned = node.cloneNode(true);
+    const button = document.createElement("button");
+    button.innerHTML = cloned.innerHTML;
+    button.className = cloned.className;
+    button.innerText = "";
+    node = button.querySelector("p");
+    node.textContent = t;
+    node.className = "chasm-dropdown-container " + node.className;
+    button.removeAttribute("onClick");
+    const dropdown = document.createElement("div");
+    dropdown.className = "dropdown";
+    dropdown.style.cssText =
+      "background-color: black; color: white;position: absolute; width: 350px; height: 50px;";
+    dropdown.textContent = "Test!";
+    const textContent = document.createElement("button");
+    textContent.innerHTML = cloned.innerHTML;
+    textContent.appendChild(dropdown);
+
+    node.appendChild(textContent);
+
+    button.addEventListener("click", (t) => {
+      t.preventDefault();
+      t.stopPropagation();
+    });
+    return button;
   }
 
   function acquireMenuElements() {
@@ -79,7 +145,7 @@
 
   async function setup() {
     /^\/my(\/.*)?$/.test(location.pathname) &&
-      decodeParameter("access_token") &&
+      parseCookie("access_token") &&
       o(document.body, () => {
         acquireMenuElements().forEach((t) => {
           t.onclick = () => {
@@ -111,7 +177,10 @@
         if (menu && menu.childNodes.length < 6) {
           const element = menu.childNodes[0].cloneNode(!0);
           menu.appendChild(
-            a(
+            createDropdownButton("Test", async () => {}, element)
+          );
+          menu.appendChild(
+            createButton(
               "✦ 공개로 재게시",
               async () => {
                 if (
@@ -136,7 +205,7 @@
             )
           ),
             menu.appendChild(
-              a(
+              createButton(
                 "✦ 비공개로 재게시",
                 async () => {
                   if (
@@ -163,7 +232,7 @@
               )
             ),
             menu.appendChild(
-              a(
+              createButton(
                 "✦ 링크 공개로 재게시",
                 async () => {
                   if (
@@ -190,7 +259,7 @@
               )
             ),
             menu.appendChild(
-              a(
+              createButton(
                 "↙ JSON 복사",
                 async () => {
                   if (window.currentClickedId) {
@@ -208,7 +277,7 @@
               )
             ),
             menu.appendChild(
-              a(
+              createButton(
                 "↗ JSON 붙여넣기",
                 async () => {
                   if (
@@ -253,7 +322,7 @@
               )
             ),
             menu.appendChild(
-              a(
+              createButton(
                 "⚠ JSON 강제 붙여넣기",
                 async () => {
                   if (
@@ -316,7 +385,7 @@
   }
   const i = new (class {
       async getMycharacters(t, a) {
-        return await e(
+        return await request(
           "GET",
           t
             ? `https://contents-api.wrtn.ai/character/characters/me?limit=${a}&cursor=${t}`
@@ -331,7 +400,7 @@
        */
       async publishCharacter(originId, state) {
         const origin = (
-          await e(
+          await request(
             "GET",
             `https://contents-api.wrtn.ai/character/characters/me/${originId}`
           )
@@ -428,7 +497,7 @@
               }
             }
           }
-          let dataToReturn = await e(
+          let dataToReturn = await request(
             "POST",
             "https://contents-api.wrtn.ai/character/characters",
             cloned
@@ -571,7 +640,7 @@
               keywordBook: [],
             },
           ];
-          await e(
+          await request(
             "PATCH",
             `https://contents-api.wrtn.ai/character/characters/${id}`,
             r
@@ -591,7 +660,7 @@
           }
           return (
             r,
-            await e(
+            await request(
               "PATCH",
               `https://contents-api.wrtn.ai/character/characters/${id}`,
               r
@@ -601,7 +670,7 @@
       }
       async getMycharacter(t) {
         if (!t) return null;
-        const a = await e(
+        const a = await request(
           "GET",
           `https://contents-api.wrtn.ai/character/characters/me/${t}`
         );
@@ -609,13 +678,13 @@
           ? {
               data: a.data,
               reload: async () =>
-                await e(
+                await request(
                   "GET",
                   `https://contents-api.wrtn.ai/character/characters/me/${t}`
                 ),
               get: async () =>
                 (
-                  await e(
+                  await request(
                     "GET",
                     `https://contents-api.wrtn.ai/character/characters/me/${t}`
                   )
@@ -626,7 +695,7 @@
               remove: async () =>
                 "SUCCESS" ===
                 (
-                  await e(
+                  await request(
                     "DELETE",
                     `https://contents-api.wrtn.ai/character/characters/me/${t}`
                   )
