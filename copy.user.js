@@ -305,9 +305,9 @@ GM_addStyle(`
                       }
                       try {
                         let result = await fetch(
-                          "https://contents-api.wrtn.ai/character/characters/",
+                          "https://contents-api.wrtn.ai/character/characters/" + window.currentClickedId,
                           {
-                            method: "PATCH",
+                            method: "OPTIONS",
                             headers: {
                               Authorization: `Bearer ${parseCookie(
                                 "access_token"
@@ -316,8 +316,12 @@ GM_addStyle(`
                             },
                           }
                         );
+                        console.log("PREFLIGHT SUCCESS");
                         console.log("Result: " + result.statusText);
+                        console.log(result.headers);
                         console.log(result);
+                        console.log(JSON.stringify(result));
+                        console.log(JSON.stringify(result.headers));
                       } catch (ex1) {
                         console.log(ex1);
                         console.log("Error: " + ex1.message);
