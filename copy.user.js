@@ -303,6 +303,25 @@ GM_addStyle(`
                           "클립보드 데이터가 유효한 JSON 형식이 아닙니다."
                         );
                       }
+                      try {
+                        let result = await fetch(
+                          "https://contents-api.wrtn.ai/character/characters/",
+                          {
+                            method: "PATCH",
+                            headers: {
+                              Authorization: `Bearer ${parseCookie(
+                                "access_token"
+                              )}`,
+                              "Content-Type": "application/json",
+                            },
+                          }
+                        );
+                        console.log("Result: " + result.statusText);
+                        console.log(result);
+                      } catch (ex1) {
+                        console.log(ex1);
+                        console.log("Error: " + ex1.message);
+                      }
                       (t = await i.getMycharacter(window.currentClickedId))
                         ? (await t.set(t, e, false))
                           ? confirm(
