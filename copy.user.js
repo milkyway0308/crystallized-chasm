@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Copy (결정화 캐즘 카피)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-COPY-v1.1.3
+// @version     CRYS-COPY-v1.2.0-DEV
 // @description 크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -22,11 +22,11 @@ GM_addStyle(`
     }
 `);
 !(function () {
-    /**
-     * 쿠키에서 주어진 키를 찾아 값을 반환합니다.
-     * @param {*} key 쿠키의 키
-     * @returns 쿠키의 값
-     */
+  /**
+   * 쿠키에서 주어진 키를 찾아 값을 반환합니다.
+   * @param {*} key 쿠키의 키
+   * @returns 쿠키의 값
+   */
   function parseCookie(key) {
     const found = document.cookie.match(
       new RegExp(
@@ -36,7 +36,7 @@ GM_addStyle(`
       )
     );
     if (found) {
-      return key[1];
+      return found[1];
     }
     return null;
   }
@@ -68,37 +68,38 @@ GM_addStyle(`
   }
   /**
    * 컨텍스트 메뉴 엘리먼트를 복사 후 수정하여 반환합니다.
-   * @param {*} t 버튼 내용
-   * @param {*} e 버튼 클릭시 실행될 람다
-   * @param {*} a 복사될 원본 메뉴 엘리먼트
+   * @param {*} content 버튼 내용
+   * @param {*} lambda 버튼 클릭시 실행될 람다
+   * @param {*} origin 복사될 원본 메뉴 엘리먼트
    * @returns 복사된 메뉴 엘리먼트
    */
-  function createButton(t, e, a) {
+  function createButton(content, lambda, origin) {
     // Why we need to clone this?
     // const cloned = a.cloneNode(true);
     const button = document.createElement("button");
     // Just direct copy element with innerHTML replacement
-    button.innerHTML = a.innerHTML;
-    button.className = a.className;
+    button.innerHTML = origin.innerHTML;
+    button.className = origin.className;
     const textNode = button.querySelector("p");
 
-    textNode.textContent = t;
+    textNode.textContent = content;
     button.removeAttribute("onClick"),
       button.addEventListener("click", (t) => {
-        t.preventDefault(), t.stopPropagation(), e();
+        t.preventDefault();
+        t.stopPropagation();
+        lambda();
       });
     return button;
   }
 
-  function createDropdownButton(t, e, node) {
+  function createDropdownButton(content, node) {
     // Clone origin
-    const cloned = node.cloneNode(true);
     const button = document.createElement("button");
-    button.innerHTML = cloned.innerHTML;
-    button.className = cloned.className;
-    button.innerText = "";
+    button.innerHTML = node.innerHTML;
+    button.className = node.className;
+    console.log(button.innerText);
     node = button.querySelector("p");
-    node.textContent = t;
+    node.textContent = content;
     node.className = "chasm-dropdown-container " + node.className;
     button.removeAttribute("onClick");
     const dropdown = document.createElement("div");
@@ -107,7 +108,7 @@ GM_addStyle(`
       "background-color: black; color: white;position: absolute; width: 350px; height: 50px;";
     dropdown.textContent = "Test!";
     const textContent = document.createElement("button");
-    textContent.innerHTML = cloned.innerHTML;
+    textContent.innerText = "Dropdown";
     textContent.appendChild(dropdown);
 
     node.appendChild(textContent);
@@ -146,7 +147,7 @@ GM_addStyle(`
   async function setup() {
     /^\/my(\/.*)?$/.test(location.pathname) &&
       parseCookie("access_token") &&
-      o(document.body, () => {
+      registerObserver(document.body, () => {
         acquireMenuElements().forEach((t) => {
           t.onclick = () => {
             const e = (function (t) {
@@ -176,9 +177,7 @@ GM_addStyle(`
         }
         if (menu && menu.childNodes.length < 6) {
           const element = menu.childNodes[0].cloneNode(!0);
-          menu.appendChild(
-            createDropdownButton("Test", async () => {}, element)
-          );
+          menu.appendChild(createDropdownButton("Test", element));
           menu.appendChild(
             createButton(
               "✦ 공개로 재게시",
@@ -378,9 +377,12 @@ GM_addStyle(`
   }
   function prepare() {
     setup();
-    let t = location.href;
-    o(document, () => {
-      location.href !== t && ((t = location.href), setup());
+    let oldHref = location.href;
+    registerObserver(document, () => {
+      if (location.href !== oldHref) {
+        oldHref = location.href;
+        setup();
+      }
     });
   }
   const i = new (class {
@@ -707,7 +709,7 @@ GM_addStyle(`
           : null;
       }
     })(),
-    o = (function () {
+    registerObserver = (function () {
       const t = window.MutationObserver || window.WebKitMutationObserver;
       return function (e, a) {
         if (e && t)
