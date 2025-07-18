@@ -85,7 +85,12 @@
     try {
       const n = await fetch(e, o);
       if (n.status == 503) {
-        throwError(n, new Error("LLM 서버에서 오류를 반환했거나 서버 과부하로 인해 요청이 거부되었습니다. 잠시 후에 다시 시도하세요."));
+        throwError(
+          n,
+          new Error(
+            "LLM 서버에서 오류를 반환했거나 서버 과부하로 인해 요청이 거부되었습니다. 잠시 후에 다시 시도하세요."
+          )
+        );
       }
       return 401 === n.status || 403 === n.status
         ? (throwError(new Error("Authentication error"), "인증 오류"), null)
@@ -1128,23 +1133,22 @@
   async function injectButton() {
     const selected = document.getElementsByClassName("burner-test-button");
     if (selected && selected.length > 0) {
-        return;
+      return;
     }
-    console.log("Injecting");
-    // Top element
+    // Top element 
     const data = document.getElementsByClassName("css-2j5iyq");
     if (data && data.length > 0) {
-        const top = data[0];
-        const buttonCloned = top.childNodes[0].cloneNode(true);
-        buttonCloned.className = "burner-test-button " + buttonCloned.className;
-        const textNode = buttonCloned.getElementsByTagName("p");
-        const imageNode = buttonCloned.getElementsByTagName("img");
-        top.insertBefore(buttonCloned, top.childNodes[0]);
-        console.log(top.childNodes);
-        textNode[0].innerText = "🔥  Chasm Burner";
-        imageNode[0].remove();
-        buttonCloned.removeAttribute("onClick");
-        buttonCloned.addEventListener("click", C);
+      const top = data[0];
+      const buttonCloned = top.childNodes[0].cloneNode(true);
+      buttonCloned.className = "burner-test-button " + buttonCloned.className;
+      const textNode = buttonCloned.getElementsByTagName("p");
+      const imageNode = buttonCloned.getElementsByTagName("img");
+      top.insertBefore(buttonCloned, top.childNodes[0]);
+      console.log(top.childNodes);
+      textNode[0].innerText = "🔥  Chasm Burner";
+      imageNode[0].remove();
+      buttonCloned.removeAttribute("onClick");
+      buttonCloned.addEventListener("click", C);
     }
   }
   async function addChasmButton() {
@@ -1293,6 +1297,14 @@
       }, e);
       n.push(t);
     });
+  }
+
+  function isDarkMode() {
+    return document.body.getAttribute("data-theme") === "dark";
+  }
+
+  function isLightMode() {
+    return document.body.getAttribute("data-theme") === "light";
   }
   async function B() {
     await addChasmButton(), addBurnerButton(), injectButton();
