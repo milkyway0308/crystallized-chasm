@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Burner+ (결정화 캐즘 버너+)
 // @namespace   https://github.com/chasm-js
-// @version     CRYS-BURN-v1.0.0
+// @version     CRYS-BURN-v1.1.0
 // @description 크랙 캐릭터 채팅 요약 및 반영. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -51,7 +51,12 @@
     );
     return e ? decodeURIComponent(e[1]) : null;
   }
-  function throwError(n, context = "알 수 없는 오류", request = null, response = null) {
+  function throwError(
+    n,
+    context = "알 수 없는 오류",
+    request = null,
+    response = null
+  ) {
     const a = [
       `컨텍스트: ${context}`,
       `오류 메시지: ${n.message || n}`,
@@ -62,8 +67,8 @@
       .join("\n");
     throw (
       (prompt(
-        "치명적인 오류가 발생했습니다. 아래 내용을 복사하여 문의해주세요:",
-        `[Chasm Burner+ Error]\n${a}\n\n오류 내용을 복사하여 https://gall.dcinside.com/mini/chasm 에 문의해주세요.`
+        "구동 중 예상치 못한 오류가 발생하였습니다. 다음 내용을 복사하여 결정화 캐즘 프로젝트 게시물, 혹은 IGX 지원 센터에 문의해주세요.",
+        `[Chasm Crystallized Burner+ Error]\n${a}\n\n오류 내용을 복사하여 https://gall.dcinside.com/mini/chasm 에 문의해주세요.`
       ),
       n)
     );
@@ -79,6 +84,9 @@
     t && (o.body = JSON.stringify(t));
     try {
       const n = await fetch(e, o);
+      if (n.status == 503) {
+        throwError(n, new Error("LLM 서버에서 오류를 반환했거나 서버 과부하로 인해 요청이 거부되었습니다. 잠시 후에 다시 시도하세요."));
+      }
       return 401 === n.status || 403 === n.status
         ? (throwError(new Error("Authentication error"), "인증 오류"), null)
         : n.ok
@@ -438,7 +446,7 @@
         o.textColor
       }; padding: 20px; border-radius: 8px; width: ${l}px; min-height: 500px; display: flex; flex-direction: column;">\n                    <style>\n                        .cb-spinner {\n                            display: inline-block;\n                            width: 16px;\n                            height: 16px;\n                            border: 2px solid ${
         o.buttonText
-      };\n                            border-radius: 50%;\n                            border-top-color: transparent;\n                            animation: cb-spin 1s linear infinite;\n                            margin-left: 5px;\n                            vertical-align: middle;\n                        }\n                        @keyframes cb-spin {\n                            to { transform: rotate(360deg); }\n                        }\n                    </style>\n                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">\n                        <h2 id="cb-title" style="margin: 0; font-family: Pretendard; display: flex; align-items: baseline; flex-shrink: 0; letter-spacing: -1px;">\n                            <span style="font-weight:800; letter-spacing: -1px;">⌘ Chasm Crystallized</span>\n                            <span style="font-weight:600; margin-left: 5px;">burner+</span>\n                            <span style="font-weight:500; font-size: 0.7em; color: #999; margin-left: 8px;">v1.0.0</span>\n                        </h2>\n                        <button id="cb-close" style="background: none; border: none; color: ${
+      };\n                            border-radius: 50%;\n                            border-top-color: transparent;\n                            animation: cb-spin 1s linear infinite;\n                            margin-left: 5px;\n                            vertical-align: middle;\n                        }\n                        @keyframes cb-spin {\n                            to { transform: rotate(360deg); }\n                        }\n                    </style>\n                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">\n                        <h2 id="cb-title" style="margin: 0; font-family: Pretendard; display: flex; align-items: baseline; flex-shrink: 0; letter-spacing: -1px;">\n                            <span style="font-weight:800; letter-spacing: -1px;">⌘ Chasm Crystallized</span>\n                            <span style="font-weight:600; margin-left: 5px;">burner+</span>\n                            <span style="font-weight:500; font-size: 0.7em; color: #999; margin-left: 8px;">v1.1.0</span>\n                        </h2>\n                        <button id="cb-close" style="background: none; border: none; color: ${
         o.textColor
       }; font-size: 1.2em; cursor: pointer; padding: 0;">✕</button>\n                    </div>\n                    <div id="cb-tabs" style="display: flex; gap: 10px; flex-shrink: 0; margin-bottom: 10px;">\n                        <button id="cb-tab-burner" style="padding: 8px 16px; border: none; background: ${
         o.tabActiveBg
@@ -570,7 +578,7 @@
         o.buttonText
       }; text-decoration: none; padding: 5px 10px; background: ${
         o.buttonBg
-      }; border-radius: 4px;">문의 및 건의</a>\n                                <a href="https://archive.is/OHedq" target="_blank" style="font-size: 0.9em; color: ${
+      }; border-radius: 4px;">문의 및 건의</a>\n                                <a href="https://discord.com/invite/hEb44bUFgu" target="_blank" style="font-size: 0.9em; color: ${
         o.buttonText
       }; text-decoration: none; padding: 5px 10px; background: ${
         o.buttonBg
@@ -726,11 +734,9 @@
         "gemini-2.0-flash" === t.geminiModel
           ? t.geminiModel
           : "custom"),
-      (k.value = [
-        "gemini-2.5",
-        "gemini-2.0-flash",
-        "gemini-2.5-pro"
-      ].includes(t.geminiModel)
+      (k.value = ["gemini-2.5", "gemini-2.0-flash", "gemini-2.5-pro"].includes(
+        t.geminiModel
+      )
         ? t.geminiModel
         : "custom"),
       (w.style.display = "custom" === k.value ? "block" : "none"),
@@ -1118,10 +1124,34 @@
       }),
       j.addEventListener("click", () => s.remove());
   }
-  async function k() {
+
+  async function injectButton() {
+    const selected = document.getElementsByClassName("burner-test-button");
+    if (selected && selected.length > 0) {
+        return;
+    }
+    console.log("Injecting");
+    // Top element
+    const data = document.getElementsByClassName("css-2j5iyq");
+    if (data && data.length > 0) {
+        const top = data[0];
+        const buttonCloned = top.childNodes[0].cloneNode(true);
+        buttonCloned.className = "burner-test-button " + buttonCloned.className;
+        const textNode = buttonCloned.getElementsByTagName("p");
+        const imageNode = buttonCloned.getElementsByTagName("img");
+        top.insertBefore(buttonCloned, top.childNodes[0]);
+        console.log(top.childNodes);
+        textNode[0].innerText = "🔥  Chasm Burner";
+        imageNode[0].remove();
+        buttonCloned.removeAttribute("onClick");
+        buttonCloned.addEventListener("click", C);
+    }
+  }
+  async function addChasmButton() {
     if (!/\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)) return;
     const n = document.querySelector(".css-uxwch2");
     console.log(n);
+    await injectButton();
     if (
       n &&
       !document.getElementById("chasmMenu") &&
@@ -1138,7 +1168,7 @@
         (i.id = "chasmMenu"),
           (i.className = t),
           (i.style.display = "flex"),
-          (i.innerHTML = `\n                <p color="text_tertiary" class="${o}">\n                    <span style="font-weight:800; letter-spacing: -1px;">⌘ Chasm Crystalized</span> — 캐즘\n                    <span style="margin-left: 4px; font-size: 0.8rem; opacity: 0.5;">v1.0.0</span>\n                </p>\n            `);
+          (i.innerHTML = `\n                <p color="text_tertiary" class="${o}">\n                    <span style="font-weight:800; letter-spacing: -1px;">⌘ Chasm Crystalized</span> — 캐즘\n                    <span style="margin-left: 4px; font-size: 0.8rem; opacity: 0.5;">v1.1.0</span>\n                </p>\n            `);
         const s = document.createElement("div");
         (s.id = "chasmBurner"),
           (s.className = a),
@@ -1255,17 +1285,17 @@
         return;
       }
   }
-  function w() {
+  function addBurnerButton() {
     const n = [];
     [0, 500, 1e3, 1500, 3e3, 6e3, 7e3, 1e4].forEach((e) => {
       const t = setTimeout(() => {
-        k();
+        addChasmButton();
       }, e);
       n.push(t);
     });
   }
   async function B() {
-    await k(), w();
+    await addChasmButton(), addBurnerButton(), injectButton();
   }
   "loading" === document.readyState
     ? (document.addEventListener("DOMContentLoaded", B),
