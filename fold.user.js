@@ -86,10 +86,6 @@ GM_addStyle(
         }
         let json = await result.json();
         const data = json.data;
-        // Map next URL
-        nextURL =
-          "https://contents-api.wrtn.ai/character-chat/api/v2/chat?type=character&limit=40&cursor=" +
-          result.nextCursor;
         const sessionContainer = data.chats;
         for (let session of sessionContainer) {
           const sessionId = session._id;
@@ -125,6 +121,10 @@ GM_addStyle(
           log("Exiting loop - no next cursor");
           break;
         }
+        // Map next URL
+        nextURL =
+          "https://contents-api.wrtn.ai/character-chat/api/v2/chat?type=character&limit=40&cursor=" +
+          data.nextCursor;
         const elapsed = new Date() - start;
         if (elapsed < 10) {
           await new Promise((resolve) => setTimeout(resolve, 10 - elapsed));
