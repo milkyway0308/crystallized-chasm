@@ -131,12 +131,12 @@ GM_addStyle(
         await new Promise((resolve) => setTimeout(resolve, 50));
       } else {
         // Retry
-        if (retry++ >= 3) {
-          logError("Max retry count reached");
+        if (retry++ >= 10) {
+          logError("Max retry count reached (HTTP " + result.status + ")");
           // TODO: Add load failure scren
           return;
         }
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
     for (let value of Object.values(map)) {
