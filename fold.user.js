@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized Fold (결정화 캐즘 폴드)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-FOLD-v1.0.0
+// @version      CRYS-FOLD-v1.0.1
 // @description  채팅창 병합 및 접힘 기능 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
