@@ -17,8 +17,8 @@ GM_addStyle(
     'body[data-theme="dark"] .chasm-fold-button:hover { color: #F0EFEB; transition: color 0.1s ease;}' +
     'body[data-theme="light"] .chasm-fold-button:hover { color: #1A1918; transition: color 0.1s ease;}' +
     '.chasm-fold-button[expanded="true"] { color: white; transition: color 0.1s ease; }' +
-    ".chasm-fold-title { font-size: 14px; }" +
-    ".chasm-fold-description { font-size: 11px; color: gray; margin-top: 5px; font-weight: light; }" +
+    '.chasm-fold-title { font-size: 14px; }' +
+    '.chasm-fold-description { font-size: 11px; color: gray; margin-top: 5px; font-weight: light; }' +
     'body[data-theme="dark"] .chasm-fold-title { color: #F0EFEB; font-weight: bold;}' +
     'body[data-theme="light"] .chasm-fold-title {color: #1A1918; font-weight: bold;}' +
     ".chasm-fold .chasm-fold-contents { visibility: hidden; max-height: 0px;}" +
@@ -128,6 +128,7 @@ GM_addStyle(
         if (elapsed < 10) {
           await new Promise((resolve) => setTimeout(resolve, 10 - elapsed));
         }
+        await new Promise((resolve) => setTimeout(resolve, 50));
       } else {
         // Retry
         if (retry++ >= 3) {
