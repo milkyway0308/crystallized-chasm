@@ -71,4 +71,4 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 ## 결정화 캐즘 - 붉은 약 (v1.2.2) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js) ]
 ## 결정화 캐즘 - 버너+ (v1.1.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/burner.user.js) ]
 ## 결정화 캐즘 - 과포화 (v1.0.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/tmi.user.js) ]
-## 결정화 캐즘 - 폴드 (v1.0.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/fold.user.js) ]
+## 결정화 캐즘 - 폴드 (v1.0.2) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/fold.user.js) ]
