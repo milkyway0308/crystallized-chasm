@@ -120,7 +120,7 @@ GM_addStyle(
           });
         }
 
-        if (data.nextCursor === null) {
+        if (data.nextCursor === null || data.nextCursor === undefined) {
           // Request completed (maybe)
           break;
         }
@@ -130,6 +130,9 @@ GM_addStyle(
         }
         await new Promise((resolve) => setTimeout(resolve, 50));
       } else {
+        if (result.status === 500) {
+          logError("Crack server returned internal server error. Force exiting code (HTTP " + result.status + " / " + result.statusText + ")");  
+        }
         // Retry
         if (retry++ >= 10) {
           logError("Max retry count reached (HTTP " + result.status + " / " + result.statusText + ")");
