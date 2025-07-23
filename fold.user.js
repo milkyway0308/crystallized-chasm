@@ -122,6 +122,7 @@ GM_addStyle(
 
         if (data.nextCursor === null || data.nextCursor === undefined) {
           // Request completed (maybe)
+          log("Exiting loop - no next cursor");
           break;
         }
         const elapsed = new Date() - start;
@@ -132,10 +133,11 @@ GM_addStyle(
       } else {
         if (result.status === 500) {
           logError("Crack server returned internal server error. Force exiting code (HTTP " + result.status + " / " + result.statusText + ")");  
+          break;
         }
         // Retry
         if (retry++ >= 10) {
-          logError("Max retry count reached (HTTP " + result.status + " / " + result.statusText + ")");
+          logError("Max retry count reached (HTTP " + result.status + " / " + result.statusText + " / URL " + nextURL + ")");
           // TODO: Add load failure scren
           return;
         }
