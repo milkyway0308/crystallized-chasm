@@ -144,11 +144,6 @@ GM_addStyle(
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
-    for (let value of Object.values(map)) {
-      value.sort((a, b) => {
-        return a[0].lastUpdate < b[0].lastUpdate;
-      });
-    }
     const byMonth = {};
     for (let entries of Object.entries(map)) {
       // [1][0] = [1] -> Value, [0] -> First element of sessions
