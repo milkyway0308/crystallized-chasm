@@ -11,7 +11,7 @@
 // ==/UserScript==
 GM_addStyle(
   "@keyframes rotate { from { transform: rotate(0deg); } to {  transform: rotate(360deg); }}" +
-    ".chasm-fold { user-select: none; font-family: Pretendard; }" +
+    ".chasm-fold-listings { user-select: none; font-family: Pretendard; }" +
     ".chasm-fold-button { color: gray; transition: color 0.1s ease;}" +
     'body[data-theme="light"] .chasm-fold-button[data-theme=white] { color: gray; transition: color 0.1s ease;}' +
     'body[data-theme="dark"] .chasm-fold-button:hover { color: #F0EFEB; transition: color 0.1s ease;}' +
@@ -21,8 +21,8 @@ GM_addStyle(
     ".chasm-fold-description { font-size: 11px; color: gray; margin-top: 5px; font-weight: light; }" +
     'body[data-theme="dark"] .chasm-fold-title { color: #F0EFEB; font-weight: bold;}' +
     'body[data-theme="light"] .chasm-fold-title {color: #1A1918; font-weight: bold;}' +
-    ".chasm-fold .chasm-fold-contents { visibility: hidden; max-height: 0px;}" +
-    '.chasm-fold[expanded="true"] .chasm-fold-contents { visibility: visible; max-height: 100%;}' +
+    ".chasm-fold-listings .chasm-fold-contents { visibility: hidden; max-height: 0px;}" +
+    '.chasm-fold-listings[expanded="true"] .chasm-fold-contents { visibility: visible; max-height: 100%;}' +
     ".chasm-fold-hide-all { display: none; }"
 );
 (async function () {
@@ -267,7 +267,7 @@ GM_addStyle(
 
   function appendElement(root, text) {
     const node = document.createElement("div");
-    node.className = EXCLUDE_CLASS_NAME;
+    node.className = `${EXCLUDE_CLASS_NAME} ${CLASS_LISTING}`;
     node.style =
       "display: flex; flex-direction: column; width: 100%;margin-top: 10px; font-size: 15px; font-weight: bolder;";
     node.setAttribute("fold-origin", text);
@@ -308,7 +308,7 @@ GM_addStyle(
     const node = document.createElement("a");
     node.href = url;
     const infoContainer = document.createElement("div");
-    infoContainer.className = `${CLASS_DISALLOW_REMOVAL} ${CLASS_LISTING}`;
+    infoContainer.className = `${CLASS_DISALLOW_REMOVAL}`;
     // infoContainer.className = "css-hwxbww efhw7t80";
     infoContainer.style.cssText = "margin-left: 30px; margin-top: 10px;";
     const titleContainer = document.createElement("div");
