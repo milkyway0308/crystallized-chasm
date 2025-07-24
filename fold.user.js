@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized Fold (결정화 캐즘 폴드)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-FOLD-v1.0.5
+// @version      CRYS-FOLD-v1.0.6
 // @description  채팅창 병합 및 접힘 기능 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
@@ -17,17 +17,25 @@ GM_addStyle(
     'body[data-theme="dark"] .chasm-fold-button:hover { color: #F0EFEB; transition: color 0.1s ease;}' +
     'body[data-theme="light"] .chasm-fold-button:hover { color: #1A1918; transition: color 0.1s ease;}' +
     '.chasm-fold-button[expanded="true"] { color: white; transition: color 0.1s ease; }' +
-    '.chasm-fold-title { font-size: 14px; }' +
-    '.chasm-fold-description { font-size: 11px; color: gray; margin-top: 5px; font-weight: light; }' +
+    ".chasm-fold-title { font-size: 14px; }" +
+    ".chasm-fold-description { font-size: 11px; color: gray; margin-top: 5px; font-weight: light; }" +
     'body[data-theme="dark"] .chasm-fold-title { color: #F0EFEB; font-weight: bold;}' +
     'body[data-theme="light"] .chasm-fold-title {color: #1A1918; font-weight: bold;}' +
     ".chasm-fold .chasm-fold-contents { visibility: hidden; max-height: 0px;}" +
-    '.chasm-fold[expanded="true"] .chasm-fold-contents { visibility: visible; max-height: 100%;}'
+    '.chasm-fold[expanded="true"] .chasm-fold-contents { visibility: visible; max-height: 100%;}' +
+    ".chasm-fold-hide-all { display: none; }"
 );
 (async function () {
-  const EXCLUDE_CLASS_NAME = "chasm-fold";
+  const EXCLUDE_CLASS_NAME = "chasm-fold-excludes";
   const FOLD_BUTTON_NAME = "chasm-fold-button";
   const FOLDED_CONTENTS = "chasm-fold-contents";
+  const CLASS_ALLOW_REMOVAL = "chasm-fold-allow-removal";
+  const CLASS_DISALLOW_REMOVAL = "chasm-fold-disallow-removal";
+  const CLASS_LOADING = "chasm-fold-loading";
+  const CLASS_LISTING = "chasm-fold-listings";
+  // To prevent duplicated initialization
+  let doesUpdateCalled = false;
+  let lastUpdate = new Date();
 
   async function doInitialize() {
     let sideBar = document.getElementsByClassName("css-ks2xqc");
@@ -35,16 +43,39 @@ GM_addStyle(
       logWarning("Cannot acquire sidebar; Does crack updated, or bug occured?");
       return;
     }
-    clearSidebar(false);
-    attachObserver(sideBar[0], () => {
+    attachObserver(sideBar[0], async () => {
+      // Soft-delete sidebar
       clearSidebar(false);
+      if (doesUpdateCalled) return;
+      // If all empty, maybe ui cleared by framework
+      // ..or, more than 5 seconds passed from last update
+      // Anyway, we have to re-update it if condition matched
+      if (
+        document.getElementsByClassName(CLASS_LISTING).length <= 0
+        //  ||new Date() - lastUpdate > 5000
+      ) {
+        lastUpdate = new Date();
+        doesUpdateCalled = true;
+        deleteAllListings(sideBar[0]);
+        clearSidebar(true);
+        appendLoading(sideBar[0]);
+        await doLoad(sideBar[0]);
+        deleteLoading(sideBar[0]);
+        lastUpdate = new Date();
+        doesUpdateCalled = false;
+      }
     });
+    doesUpdateCalled = true;
+    deleteAllListings(sideBar[0]);
+    clearSidebar(true);
     appendLoading(sideBar[0]);
     await doLoad(sideBar[0]);
+    deleteLoading(sideBar[0]);
+    lastUpdate = new Date();
+    doesUpdateCalled = false;
   }
 
   function clearSidebar(force) {
-    // let sideBar = document.getElementsByClassName("css-kvsjdq");
     let sideBar = document.getElementsByClassName("css-ks2xqc");
     if (!sideBar || sideBar.length <= 0) {
       logWarning("Cannot acquire sidebar; Does crack updated, or bug occured?");
@@ -53,16 +84,26 @@ GM_addStyle(
     sideBar = sideBar[0];
     let nodeToRemove = [];
     for (let node of sideBar.childNodes) {
-      if (force || !node.className.includes(EXCLUDE_CLASS_NAME)) {
+      if (node.classList.contains(CLASS_DISALLOW_REMOVAL)) {
+        continue;
+      }
+      if (force || !node.classList.contains(EXCLUDE_CLASS_NAME)) {
         nodeToRemove.push(node);
       }
     }
     for (let node of nodeToRemove) {
-      node.remove();
+      if (node.classList.contains(CLASS_ALLOW_REMOVAL)) {
+        node.remove();
+      } else {
+        if (node.style.cssText.length <= 0) {
+          node.style.cssText = "display: none;";
+        }
+      }
     }
   }
 
   async function doLoad(sideBar) {
+    doesUpdateCalled = true;
     const map = {};
     const urls = [];
     let nextURL =
@@ -115,7 +156,6 @@ GM_addStyle(
             lastUpdate: new Date(session.updatedAt),
           });
         }
-
         if (data.nextCursor === null || data.nextCursor === undefined) {
           // Request completed (maybe)
           log("Exiting loop - no next cursor");
@@ -132,12 +172,26 @@ GM_addStyle(
         await new Promise((resolve) => setTimeout(resolve, 50));
       } else {
         if (result.status === 500) {
-          logError("Crack server returned internal server error. Force exiting code (HTTP " + result.status + " / " + result.statusText + ")");  
+          logError(
+            "Crack server returned internal server error. Force exiting code (HTTP " +
+              result.status +
+              " / " +
+              result.statusText +
+              ")"
+          );
           break;
         }
         // Retry
         if (retry++ >= 10) {
-          logError("Max retry count reached (HTTP " + result.status + " / " + result.statusText + " / URL " + nextURL + ")");
+          logError(
+            "Max retry count reached (HTTP " +
+              result.status +
+              " / " +
+              result.statusText +
+              " / URL " +
+              nextURL +
+              ")"
+          );
           // TODO: Add load failure scren
           return;
         }
@@ -162,12 +216,13 @@ GM_addStyle(
     });
     // All comparing complete, update display
     clearSidebar(true);
+    let index = 0;
     for (let entries of Object.values(rearranged)) {
       const entryDate = entries[0][0].lastUpdate;
       const topEntryName = `${entryDate.getFullYear()}년 ${
         entryDate.getMonth() + 1
       }월`;
-      appendDivider(sideBar, topEntryName);
+      appendDivider(sideBar, topEntryName, index++ == 0);
       entries = entries.sort(function (a, b) {
         return a[0].lastUpdate < b[0].lastUpdate;
       });
@@ -188,11 +243,16 @@ GM_addStyle(
     }
   }
 
-  function appendDivider(root, text) {
+  function appendDivider(root, text, isFirst) {
     let container = document.createElement("div");
     container.className = EXCLUDE_CLASS_NAME;
-    container.style.cssText =
-      "color: gray; display: flex; align-items: center; margin-top: 15px;";
+    if (isFirst) {
+      container.style.cssText =
+        "color: gray; display: flex; align-items: center; ";
+    } else {
+      container.style.cssText =
+        "color: gray; display: flex; align-items: center; margin-top: 15px;";
+    }
     let node = document.createElement("p");
     node.style.cssText =
       "margin-left: 10px; font-size: 15px;width: fit-content; white-space: nowrap; color: gray; font-family: Pretendard; font-weight: bold;";
@@ -215,11 +275,16 @@ GM_addStyle(
     collapsable.className = FOLD_BUTTON_NAME;
     collapsable.style.cssText = "display: flex; flex-direction:row;";
     collapsable.onclick = () => {
+      // To prevent unexpected update call
+      if (doesUpdateCalled) return;
+      doesUpdateCalled = true;
       if (node.hasAttribute("expanded")) {
         node.removeAttribute("expanded");
       } else {
         node.setAttribute("expanded", "true");
       }
+      lastUpdate = new Date();
+      doesUpdateCalled = false;
     };
     const collapsableText = document.createElement("p");
     collapsableText.textContent = text;
@@ -243,6 +308,7 @@ GM_addStyle(
     const node = document.createElement("a");
     node.href = url;
     const infoContainer = document.createElement("div");
+    infoContainer.className = `${CLASS_DISALLOW_REMOVAL} ${CLASS_LISTING}`;
     // infoContainer.className = "css-hwxbww efhw7t80";
     infoContainer.style.cssText = "margin-left: 30px; margin-top: 10px;";
     const titleContainer = document.createElement("div");
@@ -264,9 +330,21 @@ GM_addStyle(
     parent.append(node);
   }
 
+  function deleteAllListings(root) {
+    const elements = root.getElementsByClassName(CLASS_LISTING);
+    // Removing from direct array occurs incompleted removal
+    const toRemove = [];
+    for (let element of elements) {
+      toRemove.push(element);
+    }
+    for (let element of toRemove) {
+      element.remove();
+    }
+  }
+
   function appendLoading(root) {
     const container = document.createElement("div");
-    container.className = EXCLUDE_CLASS_NAME;
+    container.className = `${EXCLUDE_CLASS_NAME} ${CLASS_DISALLOW_REMOVAL} ${CLASS_LOADING}`;
     container.style.cssText =
       "color: gray; margin-top: auto; margin-bottom: auto; display: flex; flex-direction: column; justify-items: center;align-items: center;";
     const svgContainer = document.createElement("div");
@@ -282,6 +360,12 @@ GM_addStyle(
     root.append(container);
   }
 
+  function deleteLoading(root) {
+    const elements = root.getElementsByClassName(CLASS_LOADING);
+    if (elements && elements.length > 0) {
+      elements[0].remove();
+    }
+  }
   function isDarkMode() {
     return document.body.getAttribute("data-theme") === "dark";
   }
