@@ -1130,7 +1130,6 @@
     if (selected && selected.length > 0) {
         return;
     }
-    console.log("Injecting");
     // Top element
     const data = document.getElementsByClassName("css-2j5iyq");
     if (data && data.length > 0) {
@@ -1140,7 +1139,6 @@
         const textNode = buttonCloned.getElementsByTagName("p");
         const imageNode = buttonCloned.getElementsByTagName("img");
         top.insertBefore(buttonCloned, top.childNodes[0]);
-        console.log(top.childNodes);
         textNode[0].innerText = "🔥  Chasm Burner";
         imageNode[0].remove();
         buttonCloned.removeAttribute("onClick");
@@ -1150,7 +1148,6 @@
   async function addChasmButton() {
     if (!/\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)) return;
     const n = document.querySelector(".css-uxwch2");
-    console.log(n);
     await injectButton();
     if (
       n &&
