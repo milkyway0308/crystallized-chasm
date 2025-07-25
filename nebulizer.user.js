@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Nebulizer (결정화 캐즘 네뷸라이저)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-NEBL-v1.1.1
+// @version     CRYS-NEBL-v1.1.2
 // @description 차단 목록의 제작자의 댓글을 블러 처리 및 차단된 댓글 대량 삭제. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -329,18 +329,52 @@ GM_addStyle(
   }
 
   function extractWriterNicknameFrom(commentary) {
-    for (let key of Object.keys(commentary)) {
-      if (key.startsWith("__reactProps")) {
-        return commentary[key].children[5].props.children[3].props.comment
-          .writer.nickname;
-      }
+    // for (let key of Object.keys(commentary)) {
+    //   if (key.startsWith("__reactProps")) {
+
+    //     return commentary[key].children[5].props.children[3].props.comment
+    //       .writer.nickname;
+    //   }
+    // }
+    let data = findCommentProperty(commentary);
+    if (data) {
+      console.log(data);
+      return data.writer.nickname;
     }
     return undefined;
+  }
+
+  function findCommentProperty(node) {
+    for (let key of Object.keys(node)) {
+      if (key.startsWith("__reactProps")) {
+        if (node[key].comment) return node[key].comment;
+        for (let children of node[key].children) {
+          if (children && children.props) {
+            if (children.props.comment) {
+              return children.props.comment;
+            }
+            for (let subchild of children.props.children) {
+              if (subchild && subchild.props && subchild.props.comment) {
+                return subchild.props.comment;
+              }
+            }
+          }
+        }
+      }
+    }
+    for (let childNode of node.childNodes) {
+      const extracted = findCommentProperty(childNode);
+      if (extracted != null) {
+        return extracted;
+      }
+    }
+    return null;
   }
 
   async function reloadCache() {
     const banList = await extractAllBanList();
     cache = banList;
+    log(`Loaded ${cache.length} banlist`);
     localStorage.setItem(LOCAL_KEY_USER_LIST, JSON.stringify(banList));
     log(`Loaded ${cache.length} banlist`);
   }
