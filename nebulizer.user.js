@@ -21,23 +21,33 @@ GM_addStyle(
   let cache = undefined;
   let updating = false;
   let deleting = false;
-  let elementSize = 0;
+  let filteredElements = [];
   async function setup() {
     appendSyncButton();
     if (updating) return;
     if (/^\/detail(\/.*)?$/.test(location.pathname)) {
       injectDestroyButtons();
       let elements = getAllCommentary();
-      if (elementSize === elements.length) {
-        return;
-      }
       if (cache === undefined) {
         await fillCache();
       }
-      updating = true;
-      elementSize = elements.length;
+      let newElements = [];
       for (let element of elements) {
         const writerId = extractWriterNicknameFrom(element);
+        if (cache.includes(writerId)) {
+          newElements.push(writerId);
+        }
+      }
+      if (newElements.length === filteredElements.length) {
+        // All elements equals - stop comparing
+        return;
+      }
+      console.log("==Starting==");
+      filteredElements = newElements;
+      updating = true;
+      for (let element of elements) {
+        const writerId = extractWriterNicknameFrom(element);
+        console.log("Scanning " + writerId);
         if (!cache.includes(writerId)) {
           continue;
         }
@@ -338,7 +348,6 @@ GM_addStyle(
     // }
     let data = findCommentProperty(commentary);
     if (data) {
-      console.log(data);
       return data.writer.nickname;
     }
     return undefined;
@@ -353,9 +362,11 @@ GM_addStyle(
             if (children.props.comment) {
               return children.props.comment;
             }
-            for (let subchild of children.props.children) {
-              if (subchild && subchild.props && subchild.props.comment) {
-                return subchild.props.comment;
+            if (children.props.children) {
+              for (let subchild of children.props.children) {
+                if (subchild && subchild.props && subchild.props.comment) {
+                  return subchild.props.comment;
+                }
               }
             }
           }
@@ -374,7 +385,6 @@ GM_addStyle(
   async function reloadCache() {
     const banList = await extractAllBanList();
     cache = banList;
-    log(`Loaded ${cache.length} banlist`);
     localStorage.setItem(LOCAL_KEY_USER_LIST, JSON.stringify(banList));
     log(`Loaded ${cache.length} banlist`);
   }
