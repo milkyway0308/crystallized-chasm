@@ -76,6 +76,11 @@ GM_addStyle(
     rootNode[0].append(top);
     top.onclick = async () => {
       if (deleting) return;
+      await fillCache();
+      if (cache.length <= 0) {
+        alert("동기화된 차단 목록이 존재하지 않거나, 차단한 제작자가 없습니다.\n" + "차단 관리 페이지로 이동하여 '목록 동기화' 버튼으로 차단 목록을 동기화해주세요.");
+        return;
+      }
       if (
         confirm(
           "정말로 이 캐릭터에서 차단된 제작자의 댓글을 모두 삭제하시겠습니까?\n" +
