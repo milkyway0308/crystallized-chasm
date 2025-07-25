@@ -78,7 +78,10 @@ GM_addStyle(
       if (deleting) return;
       await fillCache();
       if (cache.length <= 0) {
-        alert("동기화된 차단 목록이 존재하지 않거나, 차단한 제작자가 없습니다.\n" + "차단 관리 페이지로 이동하여 '목록 동기화' 버튼으로 차단 목록을 동기화해주세요.");
+        alert(
+          "동기화된 차단 목록이 존재하지 않거나, 차단한 제작자가 없습니다.\n" +
+            "차단 관리 페이지로 이동하여 '목록 동기화' 버튼으로 차단 목록을 동기화해주세요."
+        );
         return;
       }
       if (
@@ -335,6 +338,7 @@ GM_addStyle(
     const banList = await extractAllBanList();
     cache = banList;
     localStorage.setItem(LOCAL_KEY_USER_LIST, JSON.stringify(banList));
+    log(`Loaded ${cache.length} banlist`);
   }
 
   async function fillCache() {
