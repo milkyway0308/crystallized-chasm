@@ -292,11 +292,13 @@ GM_addStyle(
       );
       if (!result.ok) {
         // Maybe fetch completed?
+        log("Result is not OK (HTTP " + result.status + ")");
         break;
       }
       const json = await result.json();
       if (!json.data || !json.data.blocks || json.data.blocks.length <= 0) {
         // Fetch completed (Really)
+        log("Empty array returned, request complete!");
         break;
       }
       const dataList = json.data.blocks;
@@ -306,6 +308,8 @@ GM_addStyle(
           banList.push(data.name);
         }
       }
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
     }
     return banList;
   }
