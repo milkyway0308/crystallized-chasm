@@ -170,6 +170,8 @@ GM_addStyle(
           )
         ) {
           location.reload();
+        } else {
+          deleting = false;
         }
       }
     };
