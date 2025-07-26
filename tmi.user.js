@@ -12,6 +12,8 @@
 (async function () {
   let initialCracker = undefined;
   let doesInitialized = false;
+  let updating = false;
+  let refetchAt = new Date();
 
   function updateCracker(cracker) {
     initialCracker = cracker;
@@ -60,7 +62,7 @@
     }
     const tag = elementsText[0];
     if (isDarkMode().toString() != tag.getAttribute("chasm-tmi-dark-mode")) {
-           if (isDarkMode()) {
+      if (isDarkMode()) {
         tag.setAttribute("chasm-tmi-dark-mode", "true");
         tag.style.cssText =
           "margin-left: 5px; font-weight: bolder; font-size: 16px; color: #FFFFFF; transition: color 0.2s;";
@@ -223,22 +225,25 @@
   }
 
   async function doInitialize() {
+    if (updating) return;
     if (!doesInitialized) {
       doesInitialized = true;
       attachObserver(document.body, doInitialize);
     }
-
+    updating = true;
     if (initialCracker === undefined) {
-      initialCracker = await getCrackerFromServer();
-      if (initialCracker !== undefined) {
-        updateCracker(initialCracker);
+      const lastCracker = await getCrackerFromServer();
+      if (lastCracker !== undefined) {
+        updateCracker(lastCracker);
+        updating = false;
+        return;
       }
     }
-    if (initialCracker === undefined) {
-      // Failed to fetch - just stop
-      return;
+    let nextCracker = await extractCracker();
+    if (nextCracker !== undefined) {
+      updateCracker(await extractCracker());
     }
-    updateCracker(await extractCracker());
+    updating = false;
   }
 
   function attachObserver(observeTarget, lambda) {
