@@ -166,8 +166,8 @@ GM_addStyle(
           "https://contents-api.wrtn.ai/character-chat/api/v2/chat?type=character&limit=40&cursor=" +
           data.nextCursor;
         const elapsed = new Date() - start;
-        if (elapsed < 10) {
-          await new Promise((resolve) => setTimeout(resolve, 10 - elapsed));
+        if (elapsed < 30) {
+          await new Promise((resolve) => setTimeout(resolve, 30 - elapsed));
         }
         await new Promise((resolve) => setTimeout(resolve, 50));
       } else {
