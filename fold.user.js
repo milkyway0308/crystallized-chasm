@@ -126,6 +126,7 @@ GM_addStyle(
           break;
         }
         let json = await result.json();
+        console.log(json);
         const data = json.data;
         const sessionContainer = data.chats;
         for (let session of sessionContainer) {
@@ -243,6 +244,16 @@ GM_addStyle(
     }
   }
 
+  // ==================================================
+  //                  노드 / 태그 생성
+  // ==================================================
+  /**
+   * 분리선을 생성해 반환합니다.
+   * 분리선의 첫 부분에는 지정한 텍스트가 입력되며, 텍스트의 끝부터는 선이 그어집니다.
+   * @param {HTMLElement} root
+   * @param {string} text
+   * @param {boolean} isFirst
+   */
   function appendDivider(root, text, isFirst) {
     let container = document.createElement("div");
     container.className = EXCLUDE_CLASS_NAME;
@@ -296,7 +307,11 @@ GM_addStyle(
     markerText.style.cssText =
       "width: 100%; margin-right: 15px; text-align: right; white-space: nowrap; font-size: 12px;";
     collapsable.append(markerText);
-    node.append(collapsable);
+    let integrationNode = document.createElement("div");
+    integrationNode.className = "chasm-fold-category-integration";
+    integrationNode.style.cssText = "display: flex; flex-direction: column;";
+    integrationNode.append(collapsable);
+    node.append(integrationNode);
     const contents = document.createElement("div");
     contents.className = FOLDED_CONTENTS;
     node.append(contents);
@@ -366,6 +381,14 @@ GM_addStyle(
       elements[0].remove();
     }
   }
+  // ==================================================
+  //                     크랙 유틸리티
+  // ==================================================
+
+  /**
+   * 현재 크랙의 테마가 다크 모드인지 반환합니다.
+   * @returns 다크 모드가 적용되었는지의 여부
+   */
   function isDarkMode() {
     return document.body.getAttribute("data-theme") === "dark";
   }
@@ -383,6 +406,9 @@ GM_addStyle(
     return null;
   }
 
+  // ==================================================
+  //                     범용 유틸리티
+  // ==================================================
   function formatTime(date) {
     const current = new Date();
     const difference = (current - date) / 1000;
@@ -414,6 +440,9 @@ GM_addStyle(
       });
     }
   }
+  // ==================================================
+  //                 로그 관련 유틸리티
+  // ==================================================
   function log(message) {
     console.log(
       "%cChasm Crystallized Fold: %cInfo: %c" + message,
@@ -440,6 +469,9 @@ GM_addStyle(
       "color: inherit;"
     );
   }
+  // ==================================================
+  //                       초기화
+  // ==================================================
   "loading" === document.readyState
     ? (document.addEventListener("DOMContentLoaded", B),
       window.addEventListener("load", B))
