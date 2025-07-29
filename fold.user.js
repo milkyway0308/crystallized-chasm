@@ -126,7 +126,6 @@ GM_addStyle(
           break;
         }
         let json = await result.json();
-        console.log(json);
         const data = json.data;
         const sessionContainer = data.chats;
         for (let session of sessionContainer) {
