@@ -7,10 +7,14 @@
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js
-// @grant       none
+// @grant       GM_addStyle
 // ==/UserScript==
+GM_addStyle(
+  'body[data-theme="dark"] .red-pill-realtime-usage { color: #F0EFEB; font-weight: bold; font-size: 12px;}' +
+    'body[data-theme="light"] .red-pill-realtime-usage {color: #1A1918; font-weight: bold; font-size: 12px;}'
+);
 (function () {
-  function processConsumeCount() {}
+  let isIntegrationMode = false;
   /**
    * 쿠키에서 액세스 토큰을 추출해 반환합니다.
    * @returns 액세스 토큰
@@ -1117,38 +1121,53 @@
     return document.body.getAttribute("data-theme") === "light";
   }
 
-  function injectCrackerUsageContainer(node, index, superChat, cracker) {
+  function injectCrackerUsageContainer(
+    node,
+    index,
+    superChat,
+    cracker,
+    integrationMode
+  ) {
     if (superChat <= 0 && cracker <= 0) {
       deleteCrackerUsage(node, index);
       return;
     }
-    let url = node.getAttribute("href");
-    if (!url) {
-      logWarning("No href found from chatting node element");
-      return;
+    if (!integrationMode) {
+      let url = node.getAttribute("href");
+      if (!url) {
+        logWarning("No href found from chatting node element");
+        return;
+      } else {
+        log("Inserting realtime usage to index " + index + " (ID " + url + ")");
+      }
     }
     let existings = node.querySelectorAll(".red-pill-realtime-usage");
     if (existings && existings.length > 0) {
       // To prevent duplicated injection
       return;
     }
-    log("Inserting realtime usage to index " + index + " (ID " + url + ")");
-    url = url.substring(2);
     // Force increase height of root container
     const container = node.childNodes[0];
-    container.style.cssText = "height: 84px; padding-top: 5px; ";
+    if (!isIntegrationMode) {
+      container.style.cssText = "height: 84px; padding-top: 5px;";
+    }
     const description = container.childNodes[1];
     // Creating text node container (Theme controller)
     const crackerContainerNode = document.createElement("div");
     crackerContainerNode.setAttribute("display", "flex");
     crackerContainerNode.setAttribute("width", "100%");
-    crackerContainerNode.className =
-      "red-pill-realtime-usage css-mz5j7e efhw7t80";
-    crackerContainerNode.style.cssText =
-      "display: flex; flex-direction: row; align-items: center; margin-top: -5px;";
+    crackerContainerNode.className = "red-pill-realtime-usage";
     crackerContainerNode.setAttribute("last-cracker", "0");
     crackerContainerNode.setAttribute("last-superchat", "0");
-    description.append(crackerContainerNode);
+    if (integrationMode) {
+      crackerContainerNode.style.cssText =
+        "display: flex; flex-direction: row; align-items: center; margin-top: 0px; margin-left: 15px;";
+      node.append(crackerContainerNode);
+    } else {
+      crackerContainerNode.style.cssText =
+        "display: flex; flex-direction: row; align-items: center; margin-top: -5px;";
+      description.append(crackerContainerNode);
+    }
   }
 
   function updateUsage(node, index, superChat, cracker) {
@@ -1160,7 +1179,13 @@
       "red-pill-realtime-usage"
     );
     if (!crackerContainerNodes || crackerContainerNodes.length <= 0) {
-      injectCrackerUsageContainer(node, index, superChat, cracker);
+      injectCrackerUsageContainer(
+        node,
+        index,
+        superChat,
+        cracker,
+        isIntegrationMode
+      );
     }
     crackerContainerNodes = node.getElementsByClassName(
       "red-pill-realtime-usage"
@@ -1187,6 +1212,7 @@
       textContent.className = isDarkMode()
         ? "chat-list-item-topic css-1a0pj6v efhw7t80"
         : "chat-list-item-character-name css-qwz0be efhw7t80";
+      textContent.style.cssText = "margin-right: 3px";
       textContent.innerText = cracker.toLocaleString(undefined, {
         minimumFractionDigits: 0,
       });
@@ -1202,6 +1228,7 @@
       textContent.className = isDarkMode()
         ? "chat-list-item-topic css-1a0pj6v efhw7t80"
         : "chat-list-item-character-name css-qwz0be efhw7t80";
+      textContent.style.cssText = "margin-right: 3px";
       textContent.innerText = superChat.toLocaleString(undefined, {
         minimumFractionDigits: 0,
       });
@@ -1227,8 +1254,36 @@
     }
   }
 
+  function injectIntegrationNode() {
+    const nodes = document.getElementsByClassName(
+      "chasm-fold-category-integration"
+    );
+    for (let index = 0; index < nodes.length; index++) {
+      const title = nodes[index].getAttribute("chasm-fold-article-origin");
+      updateUsage(
+        nodes[index],
+        index,
+        cachedResult[title]?.superchat ?? 0,
+        cachedResult[title]?.cracker ?? 0
+      );
+    }
+  }
   function injectAllCrackerUsage() {
     loadLocalCache();
+    if (isIntegrationMode) {
+      injectIntegrationNode();
+      return;
+    }
+    if (
+      document.getElementsByClassName("chasm-fold-category-integration")
+        .length > 0
+    ) {
+      log("Fold update detected. Running as integration mode");
+      isIntegrationMode = true;
+      injectIntegrationNode();
+      return;
+    }
+    // Check integration first
     let selected = document.getElementsByTagName("a");
     const nodes = [];
     for (let node of selected) {

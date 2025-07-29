@@ -230,6 +230,7 @@ GM_addStyle(
       for (let sessions of entries) {
         const foldedNode = appendElement(
           sideBar,
+          sessions[0].name,
           `${sessions[0].name} (${sessions.length})`
         );
         for (let session of sessions) {
@@ -276,7 +277,7 @@ GM_addStyle(
     root.append(container);
   }
 
-  function appendElement(root, text) {
+  function appendElement(root, origin, text) {
     const node = document.createElement("div");
     node.className = `${EXCLUDE_CLASS_NAME} ${CLASS_LISTING}`;
     node.style =
@@ -310,6 +311,7 @@ GM_addStyle(
     let integrationNode = document.createElement("div");
     integrationNode.className = "chasm-fold-category-integration";
     integrationNode.style.cssText = "display: flex; flex-direction: column;";
+    integrationNode.setAttribute("chasm-fold-article-origin", origin);
     integrationNode.append(collapsable);
     node.append(integrationNode);
     const contents = document.createElement("div");
