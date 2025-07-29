@@ -55,8 +55,12 @@ GM_addStyle(
           continue;
         }
         for (let childElement of element.childNodes) {
-          if (childElement.nodeName.toLowerCase() === "p") {
+          if (
+            childElement.nodeName.toLowerCase() === "p" &&
+            !childElement.hasAttribute("chasm-nebulizer-proceed")
+          ) {
             childElement.classList.add(CLASS_COMMENT_HIDDEN);
+            childElement.setAttribute("chasm-nebulizer-proceed", "true");
             childElement.onclick = () => {
               childElement.onclick = null;
               childElement.classList.remove(CLASS_COMMENT_HIDDEN);
