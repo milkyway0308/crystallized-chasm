@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Nebulizer (결정화 캐즘 네뷸라이저)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-NEBL-v1.1.3
+// @version     CRYS-NEBL-v1.1.4
 // @description 차단 목록의 제작자의 댓글을 블러 처리 및 차단된 댓글 대량 삭제. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -22,12 +22,17 @@ GM_addStyle(
   let updating = false;
   let deleting = false;
   let filteredElements = [];
+  let elementSize = 0;
   async function setup() {
     appendSyncButton();
     if (updating) return;
     if (/^\/detail(\/.*)?$/.test(location.pathname)) {
       injectDestroyButtons();
       let elements = getAllCommentary();
+      if (elementSize === elements.length) {
+        return;
+      }
+      elementSize = elements.length;
       if (cache === undefined) {
         await fillCache();
       }
@@ -42,12 +47,10 @@ GM_addStyle(
         // All elements equals - stop comparing
         return;
       }
-      console.log("==Starting==");
       filteredElements = newElements;
       updating = true;
       for (let element of elements) {
         const writerId = extractWriterNicknameFrom(element);
-        console.log("Scanning " + writerId);
         if (!cache.includes(writerId)) {
           continue;
         }
@@ -269,22 +272,6 @@ GM_addStyle(
       root.append(div);
     }
   }
-  function prepare() {
-    setup();
-    attachObserver(document, () => {
-      setup();
-    });
-    let oldHref = location.href;
-    attachObserver(document, () => {
-      if (location.href !== oldHref) {
-        oldHref = location.href;
-        if (location.href.startsWith("https://crack.wrtn.ai/detail/")) {
-          elementSize = 0;
-        }
-        setup();
-      }
-    });
-  }
 
   async function extractAllBanList() {
     let page = 1;
@@ -324,28 +311,23 @@ GM_addStyle(
     return banList;
   }
 
+  // =================================================
+  //             크랙 종속성 유틸리티성 메서드
+  // =================================================
+  /**
+   * 모든 최상단 댓글 컨테이너를 가져옵니다.
+   * @returns 모든 최상단 댓글 컨테이너
+   */
   function getAllCommentary() {
     return document.getElementsByClassName("css-sj8vxf");
   }
 
-  function extractWriterIdFrom(commentary) {
-    for (let key of Object.keys(commentary)) {
-      if (key.startsWith("__reactProps")) {
-        return commentary[key].children[5].props.children[3].props.comment
-          .writer.userId;
-      }
-    }
-    return undefined;
-  }
-
+  /**
+   * 댓글 작성자 ID를 HTML 노드에서 가져옵니다.
+   * @param {Node} commentary 댓글 노드
+   * @returns 작성자 ID
+   */
   function extractWriterNicknameFrom(commentary) {
-    // for (let key of Object.keys(commentary)) {
-    //   if (key.startsWith("__reactProps")) {
-
-    //     return commentary[key].children[5].props.children[3].props.comment
-    //       .writer.nickname;
-    //   }
-    // }
     let data = findCommentProperty(commentary);
     if (data) {
       return data.writer.nickname;
@@ -353,25 +335,18 @@ GM_addStyle(
     return undefined;
   }
 
+  /**
+   * 최상단 댓글 컨테이너(div)에서 첫번쨰로 해당디는 댓글 메타데이터를 가져옵니다.
+   * @param {Node} node
+   * @returns 댓글 메타데이터 혹은 undefined
+   */
   function findCommentProperty(node) {
-    for (let key of Object.keys(node)) {
-      if (key.startsWith("__reactProps")) {
-        if (node[key].comment) return node[key].comment;
-        for (let children of node[key].children) {
-          if (children && children.props) {
-            if (children.props.comment) {
-              return children.props.comment;
-            }
-            if (children.props.children) {
-              for (let subchild of children.props.children) {
-                if (subchild && subchild.props && subchild.props.comment) {
-                  return subchild.props.comment;
-                }
-              }
-            }
-          }
-        }
-      }
+    const foundComment = findReactProperty(node, (prop) => {
+      return findCommentFrom(prop);
+    });
+    if (foundComment) {
+      console.log("Found " + foundComment);
+      return foundComment;
     }
     for (let childNode of node.childNodes) {
       const extracted = findCommentProperty(childNode);
@@ -382,6 +357,10 @@ GM_addStyle(
     return null;
   }
 
+  /**
+   * 캐시를 크랙 API를 통해 불러옵니다.
+   * 저장된 캐시 데이터는 덮어씌워집니다.
+   */
   async function reloadCache() {
     const banList = await extractAllBanList();
     cache = banList;
@@ -389,6 +368,10 @@ GM_addStyle(
     log(`Loaded ${cache.length} banlist`);
   }
 
+  /**
+   * 캐시를 메모리에서 불러옵니다.
+   * 만약 캐시가 존재하지 않는다면 빈 배열로 설정합니다.
+   */
   async function fillCache() {
     if (localStorage.getItem(LOCAL_KEY_USER_LIST)) {
       cache = await JSON.parse(localStorage.getItem(LOCAL_KEY_USER_LIST));
@@ -397,9 +380,48 @@ GM_addStyle(
     }
   }
 
+  /**
+   * 주어진 리액트 속성에서 댓글 데이터를 추출합니다.
+   * @param {*} props 리액트 속성
+   * @returns 댓글 메타데이터 혹은 undefined
+   */
+  function findCommentFrom(props) {
+    if (props.comment) return props.comment;
+    for (let children of props.children) {
+      if (!children || !children.props) continue;
+      if (children.props.comment) {
+        return children.props.comment;
+      }
+      // Cannot use recursion call - we have to stop here
+      // If we use recursion, non-iterable children occurs unexpected exception
+      if (children.props.children) {
+        for (let subchild of children.props.children) {
+          if (subchild && subchild.props && subchild.props.comment) {
+            return subchild.props.comment;
+          }
+        }
+      }
+    }
+    return undefined;
+  }
+
   // =================================================
   //                유틸리티성 메서드
   // =================================================
+  /**
+   * 대상 노드의 필드에서 리액트 속성(React Property)를 찾아 람다에 파라미터로 전달합니다.
+   * @param {Node} node 리액트 속성을 찾을 대상 노드
+   * @param {Function} lambda 만약 리액트 속성이 존재한다면 실행될 람다
+   * @returns 람다의 결과값 혹은 undefined
+   */
+  function findReactProperty(node, lambda) {
+    for (let key of Object.keys(node)) {
+      if (key.startsWith("__reactProps")) {
+        return lambda(node[key]);
+      }
+    }
+    return undefined;
+  }
   /**
    * 크랙 페이지의 테마가 다크 모드인지 확인합니다.
    * @returns 다크 모드 여부
@@ -434,6 +456,22 @@ GM_addStyle(
         attributes: true,
       });
     }
+  }
+  /**
+   * 지정한 노드 혹은 요소에 URL 변동 감지성 변경 옵저버를 등록합니다.
+   * 이 펑션으로 등록된 옵저버는 이전과 현재 URL이 다를때만 작동합니다.
+   * @param {*} runIfFirst 첫 초기화시 작동 여부
+   * @param {*} node 변경 감지 대상
+   * @param {*} lambda 실행할 람다
+   */
+  function attachHrefObserver(node, lambda) {
+    let oldHref = location.href;
+    attachObserver(node, () => {
+      if (oldHref !== location.href) {
+        oldHref = location.href;
+        lambda();
+      }
+    });
   }
   /**
    * 콘솔에 지정한 포맷으로 디버그를 출력합니다.
@@ -471,6 +509,23 @@ GM_addStyle(
       "color: inherit;"
     );
   }
+
+  // =================================================
+  //                  스크립트 초기화
+  // =================================================
+  function prepare() {
+    setup();
+    attachHrefObserver(document, () => {
+      elementSize = 0;
+      filteredElements = [];
+    });
+    attachObserver(document, () => {
+      setup();
+    });
+  }
+  // =================================================
+  //               스크립트 초기 실행
+  // =================================================
   "loading" === document.readyState
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
