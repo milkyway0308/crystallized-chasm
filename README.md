@@ -115,7 +115,7 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 > ⚠ 결정화 캐즘 뮤트는 안정성을 위해 노드를 제거하지 않고 렌더에서 제거합니다.<br>
 > 이 기능으로 인해 많은 양의 반복 호출이 발생할 수 있으며, 이는 크랙 웹 사이트의 성능 저하를 불러올 수 있습니다.
 
-## 결정화 캐즘 - 네뷸라이저 (v1.1.3) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/nebulizer.user.js) ]<br>
+## 결정화 캐즘 - 네뷸라이저 (v1.1.5) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/nebulizer.user.js) ]<br>
 
 결정화 캐즘 네뷸라이저는 차단된 제작자의 댓글 숨김 및 대량 자동 삭제를 추가해줍니다.<br>
 
