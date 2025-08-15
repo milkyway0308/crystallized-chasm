@@ -217,7 +217,7 @@ GM_addStyle(
             {
               method: "post",
               body: JSON.stringify({
-                crackerModel: "superchat",
+                crackerModel: "normalchat",
                 images: [],
                 isSuperMode: false,
                 message: message.message,
