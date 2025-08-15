@@ -190,6 +190,7 @@ GM_addStyle(
     let messageId = undefined;
     let lastPatchTargetId = undefined;
     let skipped = false;
+    let phase = 0;
     for (let message of chattings) {
       if (!skipped && !message.isUser && messageId === undefined) {
         log("첫 메시지 무시됨 (초기에 어시스턴트 메시지 설정 불가)");
@@ -207,14 +208,15 @@ GM_addStyle(
         }
         if (message.isUser) {
           const result = await fetch(
-            `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message`,
+            `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message?platform=web&user=&model=SONNET`,
             {
               method: "post",
               body: JSON.stringify({
-                crackerModel: "normalchat",
+                crackerModel: "superchat",
                 images: [],
                 isSuperMode: false,
                 message: message.message,
+                reroll: false,
               }),
               headers: {
                 "Content-Type": "application/json",
@@ -224,11 +226,12 @@ GM_addStyle(
           );
           if (result.ok) {
             messageId = (await result.json()).data;
-            lastPatchTargetId = undefined;
+            phase = 1;
             break;
           }
         } else {
-          if (lastPatchTargetId === undefined) {
+          if (phase < 2) {
+            // Phase 1 - Append message text
             const result = await fetch(
               `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}/result`,
               {
@@ -239,14 +242,32 @@ GM_addStyle(
               }
             );
             if (result.ok) {
-              lastPatchTargetId = messageId;
-            } else {
-              lastPatchTargetId = undefined;
+              phase = 2;
             }
           }
-          if (lastPatchTargetId !== undefined) {
+          if (phase === 2) {
+            // Phase 2 - Consume event stream
             const result = await fetch(
-              `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${lastPatchTargetId}`,
+              `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}?model=SONNET&platform=web&user=`,
+              {
+                method: "get",
+                headers: {
+                  Authorization: `Bearer ${extractAccessToken()}`,
+                },
+              }
+            );
+            const reader = result.body.getReader();
+            while (true) {
+              const { value, done } = await reader.read();
+              if (done) break;
+              console.log("Received", value);
+            }
+            phase = 3;
+          }
+          if (phase === 3) {
+            // Phase 3 - Patch stream text
+            const result = await fetch(
+              `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}`,
               {
                 method: "PATCH",
                 body: JSON.stringify({
