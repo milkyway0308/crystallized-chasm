@@ -14,13 +14,14 @@
 GM_addStyle(
   "@keyframes chasm-rotate { from { transform: rotate(0deg); } to {  transform: rotate(360deg); }}" +
     "@keyframes chasm-blinker { 70% { opacity: 0;} }" +
+    ".chasm-altr-button { font-size: 16px; line-height: 110%; font-weight: 500; }" +
     'body[data-theme="light"] .chasm-altr-button { color: #1A1918; transition: color 0.1s ease;}' +
     'body[data-theme="dark"] .chasm-altr-button { color: #F0EFEB; transition: color 0.1s ease;}' +
     'body[data-theme="light"] .chasm-altr-button[disabled="true"] { color: #adadadff; transition: color 0.1s ease;}' +
     'body[data-theme="dark"] .chasm-altr-button[disabled="true"] { color: #6e6e6eff; transition: color 0.1s ease;}' +
-    ".chasm-altr-button .warning-icon { display: none; margin-left: 15px; animation: chasm-blinker 1s infinite;}" +
+    ".chasm-altr-button .warning-icon { display: none; margin-left: 40px; animation: chasm-blinker 1s infinite;}" +
     '.chasm-altr-button[warning="true"] .warning-icon { display: block; }' +
-    ".chasm-altr-button .loading-icon { display: none; margin-left: 15px; animation: chasm-rotate 1s infinite; }" +
+    ".chasm-altr-button .loading-icon { display: none; margin-left: 40px; animation: chasm-rotate 1s infinite; }" +
     '.chasm-altr-button[loading="true"] .loading-icon { display: block; }'
 );
 !(async function () {
@@ -191,7 +192,11 @@ GM_addStyle(
     let lastPatchTargetId = undefined;
     let skipped = false;
     let phase = 0;
+    let count = 0;
     for (let message of chattings) {
+      document.getElementsByClassName(
+        "chasm-altr-description"
+      )[0].textContent = `프롬프트 설정 (${++count} / ${chattings.length})`;
       if (!skipped && !message.isUser && messageId === undefined) {
         log("첫 메시지 무시됨 (초기에 어시스턴트 메시지 설정 불가)");
         // Skip, first message must be user message
@@ -231,6 +236,11 @@ GM_addStyle(
           }
         } else {
           if (phase < 2) {
+            document.getElementsByClassName(
+              "chasm-altr-description"
+            )[0].textContent = `패치 (${count} / ${
+              chattings.length
+            } | 페이즈 1)`;
             // Phase 1 - Append message text
             const result = await fetch(
               `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}/result`,
@@ -246,6 +256,11 @@ GM_addStyle(
             }
           }
           if (phase === 2) {
+            document.getElementsByClassName(
+              "chasm-altr-description"
+            )[0].textContent = `패치 (${count} / ${
+              chattings.length
+            } | 페이즈 2)`;
             // Phase 2 - Consume event stream
             const result = await fetch(
               `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}?model=SONNET&platform=web&user=`,
@@ -260,11 +275,15 @@ GM_addStyle(
             while (true) {
               const { value, done } = await reader.read();
               if (done) break;
-              console.log("Received", value);
             }
             phase = 3;
           }
           if (phase === 3) {
+            document.getElementsByClassName(
+              "chasm-altr-description"
+            )[0].textContent = `패치 (${count} / ${
+              chattings.length
+            } | 페이즈 3)`;
             // Phase 3 - Patch stream text
             const result = await fetch(
               `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}`,
@@ -343,6 +362,9 @@ GM_addStyle(
       alert("채팅방 데이터 가져오기에 실패하였습니다.");
       return;
     }
+    document.getElementsByClassName(
+      "chasm-altr-description"
+    )[0].textContent = `채팅 데이터 가져오는 중`;
     const createdChatRoomId = await createChat(
       characterId,
       result.baseSetId,
@@ -353,6 +375,10 @@ GM_addStyle(
       alert("생성에 실패하였습니다.");
       return;
     }
+
+    document.getElementsByClassName(
+      "chasm-altr-description"
+    )[0].textContent = `채팅 로그 추출중`;
     const extractedChats = await extractChattingLog(chatRoomId);
     if (!extractedChats) {
       alert("채팅 추출에 실패하였습니다.");
@@ -476,10 +502,35 @@ GM_addStyle(
 
     const button = menu.childNodes[1].cloneNode(true);
     button.childNodes[0].remove();
-    button.insertBefore(createTeleportSvg(), button.childNodes[0]);
-    button.appendChild(createWarningSvg());
-    button.appendChild(createLoadingIcon());
+    button.childNodes[0].remove();
+    button.childNodes[0].remove();
+    const topContainer = document.createElement("div");
+    topContainer.style.cssText =
+      "display: flex; flex-direction: row; align-items: center;";
+    topContainer.appendChild(createTeleportSvg());
+    // Text Container (Middle)
+    const textContainer = document.createElement("div");
+    textContainer.style.cssText =
+      "display: flex; flex-direction: column; margin-left: 12px;";
+    // Title
+    const titleElement = document.createElement("p");
+    titleElement.textContent = "평행세계로 이동";
+    textContainer.appendChild(titleElement);
 
+    const progressElement = document.createElement("p");
+    progressElement.textContent = "차원 이동 준비 원료";
+    progressElement.className = "chasm-altr-description";
+    progressElement.style.cssText =
+      "font-size: 11px; color: var(--text_tertiary);";
+    textContainer.appendChild(progressElement);
+
+    topContainer.append(textContainer);
+
+    topContainer.appendChild(createWarningSvg());
+
+    topContainer.appendChild(createLoadingIcon());
+
+    button.appendChild(topContainer);
     button.onclick = () => {};
     button.classList.add("chasm-altr-button");
 
@@ -507,8 +558,12 @@ GM_addStyle(
       document
         .getElementsByClassName("chasm-altr-button")[0]
         .setAttribute("disabled", "false");
+
+      document.getElementsByClassName(
+        "chasm-altr-description"
+      )[0].textContent = `차원 이동 준비료완료`;
     });
-    button.childNodes[1].textContent = "평행세계로 이동";
+    // button.childNodes[1].textContent = "평행세계로 이동";
     menu.appendChild(button);
   }
 
@@ -534,7 +589,7 @@ GM_addStyle(
     // https://www.svgrepo.com/svg/321565/teleport
     element.innerHTML =
       '<svg viewBox="0 0 512 512" width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="var(--icon_secondary)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path fill="var(--icon_secondary)" d="M249.334 22.717c-18.64 2.424-35.677 23.574-37.043 51.49v.02c-.057 1.186-.097 2.38-.097 3.59 0 16.362 5.658 30.827 13.942 40.818l10.127 12.213-15.592 2.933c-10.75 2.025-18.622 7.702-25.373 16.978-2.285 3.14-4.384 6.707-6.31 10.62-57.54-6.44-97.91-21.06-97.91-37.952 0-17.363 42.647-31.983 102.75-37.97-.213-2.51-.323-5.057-.323-7.636v-.002c0-.84.024-1.674.047-2.51-96.43 6.77-167.298 29.15-167.3 55.71-.002 25.33 64.462 46.86 154.074 54.67-.19.742-.394 1.465-.576 2.216-2.36 9.72-4.05 20.22-5.268 31.03-.01 0-.02 0-.03.002-.418 3.653-.78 7.34-1.095 11.046l.05-.005c-1.316 15.777-1.772 31.88-1.893 46.95h35.894l2.115 28.4c-68.24-4.994-118.444-21.004-118.444-39.843 0-13.243 24.83-24.89 63.27-32.33.3-4.056.66-8.115 1.076-12.162-76.42 9.353-129.17 29.168-129.172 52.086-.002 28.17 79.71 51.643 185.098 56.768l5.94 79.77c10.5 2.648 24.84 4.162 39.017 4.068 13.79-.092 27.235-1.71 36.45-4l5.263-79.846c105.308-5.14 184.935-28.605 184.935-56.76 0-23.013-53.196-42.895-130.13-52.2.304 4.02.557 8.047.755 12.07 38.883 7.43 63.965 19.17 63.965 32.536 0 18.84-49.804 34.85-117.908 39.844l1.87-28.402h34.18c-.012-15.113-.127-31.27-1.033-47.094.01 0 .02.002.032.004-.214-3.687-.472-7.352-.782-10.986l-.02-.002c-.94-11.157-2.367-21.984-4.546-31.967-.09-.405-.184-.803-.275-1.206 89.518-7.826 153.893-29.344 153.893-54.656 0-26.787-72.076-49.332-169.77-55.887.025.895.053 1.788.053 2.688 0 2.5-.104 4.97-.304 7.407 61.19 5.836 104.61 20.61 104.61 38.2 0 16.805-39.633 31.355-96.524 37.848-2.01-4.283-4.26-8.15-6.762-11.505-6.83-9.167-15.063-14.81-27.14-16.682l-15.913-2.47 10.037-12.59c6.928-8.69 11.912-20.715 13.057-34.268h.002c.163-1.95.25-3.93.25-5.938 0-.77-.022-1.532-.048-2.29-.015-.48-.033-.958-.057-1.434h-.002c-1.48-29.745-20.507-51.3-41.076-51.3-2.528 0-3.966-.087-4.03-.08h-.003zM194.54 355.822c-97.11 6.655-168.573 29.11-168.573 55.8 0 31.932 102.243 57.815 228.367 57.815S482.7 443.555 482.7 411.623c0-26.608-71.02-49.004-167.67-55.736l-.655 9.93c60.363 6.055 103.074 20.956 103.074 38.394 0 22.81-73.032 41.298-163.12 41.298-90.088 0-163.12-18.49-163.12-41.297 0-17.533 43.18-32.502 104.07-38.493l-.74-9.895z"></path></g></svg>';
-    element.style.cssText = "margin-top: 3px";
+    element.style.cssText = "margin-top: 2px;";
     return element;
   }
 
