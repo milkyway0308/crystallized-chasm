@@ -308,6 +308,8 @@ GM_addStyle(
    * @returns
    */
   async function doDimentionShift(characterId, chatRoomId) {
+    if (processing) return;
+    processing = true;
     if (
       !confirm(
         "차원 이동은 현재의 대화 기록을 강제로 새 캐릭터에 삽입하여 새로운 가능성을 만들어냅니다.\n이는 플레이에는 이상적이나, 서버에는 전혀 아닐 수 있습니다.\n결정화 캐즘 프로젝트의 개발자는 이 기능의 사용을 최소한으로 줄이기를 권장하고 있습니다.\n각 기능의 사용은 최소 5분의 간격이 권장됩니다.\n**경고: 차원 이동이 끝나기 전에는 이동하지 마세요.**\n**또한, 차원 이동 메뉴 옆의 경고 표시가 사라지기 전에는 채팅을 입력하지 마세요.**\n**AI 응답이 진행중일 경우에는 모든 생성이 완료되거나 중단된 후에 차원 이동을 수행하세요.**\n\n정말로 차원 이동을 수행하시겠습니까?"
@@ -459,17 +461,20 @@ GM_addStyle(
 
     button.onclick = () => {};
     button.classList.add("chasm-altr-button");
+
     button.addEventListener("click", async (event) => {
       if (processing) {
         return;
       }
-      processing = true;
       const split = window.location.pathname.substring(1).split("/");
       const characterId = split[1];
       const chatRoomId = split[3];
       document
         .getElementsByClassName("chasm-altr-button")[0]
         .setAttribute("warning", "true");
+      document
+        .getElementsByClassName("chasm-altr-button")[0]
+        .setAttribute("disabled", "true");
       await doDimentionShift(characterId, chatRoomId);
       processing = false;
       document
@@ -478,6 +483,9 @@ GM_addStyle(
       document
         .getElementsByClassName("chasm-altr-button")[0]
         .removeAttribute("loading");
+      document
+        .getElementsByClassName("chasm-altr-button")[0]
+        .setAttribute("disabled", "false");
     });
     button.childNodes[1].textContent = "평행세계로 이동";
     menu.appendChild(button);
