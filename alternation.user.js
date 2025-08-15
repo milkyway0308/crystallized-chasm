@@ -518,7 +518,7 @@ GM_addStyle(
     textContainer.appendChild(titleElement);
 
     const progressElement = document.createElement("p");
-    progressElement.textContent = "차원 이동 준비 원료";
+    progressElement.textContent = "차원 이동 준비 완료";
     progressElement.className = "chasm-altr-description";
     progressElement.style.cssText =
       "font-size: 11px; color: var(--text_tertiary);";
