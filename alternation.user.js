@@ -180,6 +180,34 @@ GM_addStyle(
   }
 
   /**
+   * 방 ID에서 마지막으로 입력된 채팅의 ID를 가져옵니다.
+   * @param {string} chatRoomId 채팅방 ID
+   * @returns {Promise<string|undefined>} 추출된 마지막 채팅 ID
+   */
+  async function fetchLastChatID(chatRoomId) {
+    let errorCount = 0;
+    while (errorCount < 5) {
+      const result = await fetch(
+        `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${chatRoomId}/messages?limit=20`,
+        {
+          headers: {
+            Authorization: `Bearer ${extractAccessToken()}`,
+          },
+        }
+      );
+      if (result.ok) {
+        const json = await result.json();
+        const chat = json.data.list[1];
+        return chat._id;
+      }
+      errorCount++;
+    }
+    logError("채팅 ID 가져오기 실패 (재시도 횟수 초과)");
+    alert("채팅 ID를 가져오는데에 실패하였습니다.");
+    return undefined;
+  }
+
+  /**
    * 지정한 채팅방에 유저 메시지를 전송하고, ID를 반환합니다.
    * @param {string} roomId
    * @param {string} chatting
@@ -203,10 +231,31 @@ GM_addStyle(
         },
       }
     );
+    const json = await result.json();
     if (result.ok) {
-      return (await result.json()).data;
+      return json.data;
     }
     return undefined;
+  }
+
+  /**
+   * 지정한 메시지를 채팅방에서 삭제합니다.
+   * @param {string} roomId 채팅방 ID
+   * @param {string} chattingId 메시지 ID
+   * @returns {Promise<boolean>} 성공 여부
+   */
+  async function deleteMessage(roomId, messageId) {
+    const result = await fetch(
+      `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}`,
+      {
+        method: "delete",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${extractAccessToken()}`,
+        },
+      }
+    );
+    return result.ok;
   }
 
   /**
@@ -220,6 +269,7 @@ GM_addStyle(
     let errorCount = 0;
     let messageId = undefined;
     let skipped = false;
+    let targetTempMessage = undefined;
     let phase = 0;
     let count = 0;
     for (let message of chattings) {
@@ -251,6 +301,7 @@ GM_addStyle(
           // If result is OK,
           if (result) {
             messageId = result;
+            targetTempMessage = undefined;
             phase = 1;
           } else {
             continue;
@@ -258,8 +309,14 @@ GM_addStyle(
           // ..If current loop is for user message, no need to continue message modification
           // If succeed, break loop, or continue loop - user message MUST NOT contains ai assistant logic so manually configure flow
           if (message.isUser) {
+            targetTempMessage = undefined;
             // So, just break here because error flow already configured with before if flow
             break;
+          } else {
+            targetTempMessage = await fetchLastChatID(roomId);
+            if (!targetTempMessage) {
+              return false;
+            }
           }
         }
 
@@ -322,8 +379,25 @@ GM_addStyle(
               }
             );
             if (result.ok) {
+              if (targetTempMessage) {
+                phase = 4;
+              } else {
+                messageId = undefined;
+                await new Promise((resolve) =>
+                  setTimeout(resolve, 10 * errorCount)
+                );
+                break;
+              }
+            }
+          }
+          if (phase === 4) {
+            document.getElementsByClassName(
+              "chasm-altr-description"
+            )[0].textContent = `패치 (${count} / ${chattings.length} | 페이즈 4)`;
+            // Phase 4 - Delete origin if required
+            if (await deleteMessage(roomId, targetTempMessage)) {
               messageId = undefined;
-              lastPatchTargetId = undefined;
+              targetTempMessage = undefined;
               await new Promise((resolve) =>
                 setTimeout(resolve, 10 * errorCount)
               );
@@ -386,8 +460,12 @@ GM_addStyle(
       return;
     }
     if (result.doesUserNoteExtended) {
-      if (!confirm("**경고: 유저 노트 확장이 활성화되어 있습니다.**\n유저노트 확장이 활성화된 채팅방은 삽입되는 대화당 10개의 크래커를 추가로 소모합니다.\n만약 이러한 지출을 원치 않으신다면, 유저노트 확장을 끄고 사용해주세요.\n\n정말로 이 상태로 차원 이동을 수행하시겠습니까?")) {
-        return
+      if (
+        !confirm(
+          "**경고: 유저 노트 확장이 활성화되어 있습니다.**\n유저노트 확장이 활성화된 채팅방은 삽입되는 대화당 10개의 크래커를 추가로 소모합니다.\n만약 이러한 지출을 원치 않으신다면, 유저노트 확장을 끄고 사용해주세요.\n\n정말로 이 상태로 차원 이동을 수행하시겠습니까?"
+        )
+      ) {
+        return;
       }
     }
     document.getElementsByClassName(
