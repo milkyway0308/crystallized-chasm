@@ -183,7 +183,7 @@ GM_addStyle(
    * 지정한 채팅방에 유저 메시지를 전송하고, ID를 반환합니다.
    * @param {string} roomId
    * @param {string} chatting
-   * @returns {string|undefined} 방 ID 혹은 undefined
+   * @returns {Promise<string|undefined>} 방 ID 혹은 undefined
    */
   async function emitUserMessage(roomId, chatting) {
     const result = await fetch(
@@ -244,7 +244,7 @@ GM_addStyle(
         // But we don't have stable way to generate assistant message, so go through detour with user message
         // User message and assistant generated message will share same logic but with empty message
         if (messageId === undefined) {
-          const result = emitUserMessage(
+          const result = await emitUserMessage(
             roomId,
             message.isUser ? message.message : "<PLACEHOLDER>"
           );
