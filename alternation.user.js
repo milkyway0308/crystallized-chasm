@@ -560,7 +560,7 @@ GM_addStyle(
 
       document.getElementsByClassName(
         "chasm-altr-description"
-      )[0].textContent = `차원 이동 준비료완료`;
+      )[0].textContent = `차원 이동 준비 완료`;
     });
     // button.childNodes[1].textContent = "평행세계로 이동";
     menu.appendChild(button);
