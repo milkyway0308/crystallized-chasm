@@ -149,11 +149,7 @@ GM_addStyle(
         cursor === undefined
           ? `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${chatRoomId}/messages?limit=20`
           : `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${chatRoomId}/messages?limit=20&cursorId=${cursor}`;
-      const result = await fetch(nextUrl, {
-        headers: {
-          Authorization: `Bearer ${extractAccessToken()}`,
-        },
-      });
+      const result = await fetchWithToken(nextUrl, "GET");
       if (result.ok) {
         const json = await result.json();
         for (let message of json.data.list) {
@@ -187,13 +183,9 @@ GM_addStyle(
   async function fetchLastChatID(chatRoomId) {
     let errorCount = 0;
     while (errorCount < 5) {
-      const result = await fetch(
+      const result = await fetchWithToken(
         `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${chatRoomId}/messages?limit=20`,
-        {
-          headers: {
-            Authorization: `Bearer ${extractAccessToken()}`,
-          },
-        }
+        "GET"
       );
       if (result.ok) {
         const json = await result.json();
@@ -245,15 +237,11 @@ GM_addStyle(
    * @returns {Promise<boolean>} 성공 여부
    */
   async function deleteMessage(roomId, messageId) {
-    const result = await fetch(
+    const result = await fetchWithToken(
       `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}`,
-      {
-        method: "delete",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${extractAccessToken()}`,
-        },
-      }
+      "DELETE",
+      undefined,
+      "application/json"
     );
     return result.ok;
   }
@@ -322,36 +310,26 @@ GM_addStyle(
 
         if (!message.isUser) {
           if (phase < 2) {
-            document.getElementsByClassName(
-              "chasm-altr-description"
-            )[0].textContent = `패치 (${count} / ${chattings.length} | 페이즈 1)`;
+            updateDescription(
+              `패치 (${count} / ${chattings.length} | 페이즈 1)`
+            );
             // Phase 1 - Append message text
-            const result = await fetch(
+            const result = await fetchWithToken(
               `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}/result`,
-              {
-                method: "get",
-                headers: {
-                  Authorization: `Bearer ${extractAccessToken()}`,
-                },
-              }
+              "GET"
             );
             if (result.ok) {
               phase = 2;
             }
           }
           if (phase === 2) {
-            document.getElementsByClassName(
-              "chasm-altr-description"
-            )[0].textContent = `패치 (${count} / ${chattings.length} | 페이즈 2)`;
+            updateDescription(
+              `패치 (${count} / ${chattings.length} | 페이즈 2)`
+            );
             // Phase 2 - Consume event stream
-            const result = await fetch(
+            const result = await fetchWithToken(
               `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}?model=SONNET&platform=web&user=`,
-              {
-                method: "get",
-                headers: {
-                  Authorization: `Bearer ${extractAccessToken()}`,
-                },
-              }
+              "GET"
             );
             const reader = result.body.getReader();
             while (true) {
@@ -361,22 +339,17 @@ GM_addStyle(
             phase = 3;
           }
           if (phase === 3) {
-            document.getElementsByClassName(
-              "chasm-altr-description"
-            )[0].textContent = `패치 (${count} / ${chattings.length} | 페이즈 3)`;
+            updateDescription(
+              `패치 (${count} / ${chattings.length} | 페이즈 3)`
+            );
             // Phase 3 - Patch stream text
-            const result = await fetch(
+            const result = await fetchWithToken(
               `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}`,
+              "PATCH",
               {
-                method: "PATCH",
-                body: JSON.stringify({
-                  message: message.message,
-                }),
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${extractAccessToken()}`,
-                },
-              }
+                message: message.message,
+              },
+              "application/json"
             );
             if (result.ok) {
               if (targetTempMessage) {
@@ -391,9 +364,9 @@ GM_addStyle(
             }
           }
           if (phase === 4) {
-            document.getElementsByClassName(
-              "chasm-altr-description"
-            )[0].textContent = `패치 (${count} / ${chattings.length} | 페이즈 4)`;
+            updateDescription(
+              `패치 (${count} / ${chattings.length} | 페이즈 4)`
+            );
             // Phase 4 - Delete origin if required
             if (await deleteMessage(roomId, targetTempMessage)) {
               messageId = undefined;
@@ -468,9 +441,7 @@ GM_addStyle(
         return;
       }
     }
-    document.getElementsByClassName(
-      "chasm-altr-description"
-    )[0].textContent = `채팅 데이터 가져오는 중`;
+    updateDescription("채팅 데이터 가져오는 중");
     const createdChatRoomId = await createChat(
       characterId,
       result.baseSetId,
@@ -481,10 +452,7 @@ GM_addStyle(
       alert("생성에 실패하였습니다.");
       return;
     }
-
-    document.getElementsByClassName(
-      "chasm-altr-description"
-    )[0].textContent = `채팅 로그 추출중`;
+    updateDescription("채팅 로그 추출중");
     const extractedChats = await extractChattingLog(chatRoomId);
     if (!extractedChats) {
       alert("채팅 추출에 실패하였습니다.");
@@ -513,7 +481,17 @@ GM_addStyle(
       alert("채팅 삽입에 실패하였습니다.");
     }
   }
-
+  // =================================================
+  //                 스크립트 종속성 유틸리티
+  // =================================================
+  /**
+   * 차원이동 표시 로그 메시지를 변경합니다.
+   * @param {string} message
+   */
+  function updateDescription(message) {
+    document.getElementsByClassName("chasm-altr-description")[0].textContent =
+      message;
+  }
   // =================================================
   //                  크랙 종속성 유틸리티
   // =================================================
@@ -527,9 +505,6 @@ GM_addStyle(
       : document.getElementsByClassName("css-uxwch2")[0];
   }
 
-  // =================================================
-  //                     유틸리티
-  // =================================================
   /**
    * 크랙 페이지의 테마가 다크 모드인지 확인합니다.
    * @returns {boolean} 다크 모드 여부
@@ -551,6 +526,52 @@ GM_addStyle(
     return null;
   }
 
+  /**
+   * 크랙 인증키를 통해 HTTP 요청을 보냅니다.
+   * @param {string} url URL
+   * @param {string} method 메서드
+   * @param {*|undefined} body 바디 데이터
+   * @param {string|undefined} contentsType 컨텐츠 타입 혹은 undefined
+   * @returns {Promise<Response>} 응답
+   */
+  function fetchWithToken(url, method, body, contentsType) {
+    return fetchWithAuth(
+      url,
+      method,
+      body,
+      `Bearer ${extractAccessToken()}`,
+      contentsType
+    );
+  }
+  // =================================================
+  //                     유틸리티
+  // =================================================
+  /**
+   * 인증키를 통해 HTTP 요청을 보냅니다.
+   * @param {string} url URL
+   * @param {string} method 메서드
+   * @param {*|undefined} body 바디 데이터
+   * @param {string|undefined} authKey 인증 키 혹은 undefined
+   * @param {string|undefined} contentsType 컨텐츠 타입 혹은 undefined
+   * @returns {Promise<Response>} 응답
+   */
+  function fetchWithAuth(url, method, body, authKey, contentsType) {
+    const init = {
+      method: method,
+      headers: {},
+    };
+    if (body) {
+      init.body = JSON.stringify(body);
+    }
+    if (authKey) {
+      init.headers.Authorization = authKey;
+    }
+    if (contentsType) {
+      init.headers["Content-Type"] = contentsType;
+    }
+    return fetch(url, init);
+  }
+
   function attachObserver(observeTarget, lambda) {
     const Observer = window.MutationObserver || window.WebKitMutationObserver;
     if (observeTarget && Observer) {
@@ -562,6 +583,7 @@ GM_addStyle(
       });
     }
   }
+
   function log(message) {
     console.log(
       "%cChasm Crystallized Alternation: %cInfo: %c" + message,
