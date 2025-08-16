@@ -180,6 +180,36 @@ GM_addStyle(
   }
 
   /**
+   * 지정한 채팅방에 유저 메시지를 전송하고, ID를 반환합니다.
+   * @param {string} roomId
+   * @param {string} chatting
+   * @returns {string|undefined} 방 ID 혹은 undefined
+   */
+  async function emitUserMessage(roomId, chatting) {
+    const result = await fetch(
+      `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message?platform=web&user=&model=SONNET`,
+      {
+        method: "post",
+        body: JSON.stringify({
+          crackerModel: "normalchat",
+          images: [],
+          isSuperMode: false,
+          message: chatting,
+          reroll: false,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${extractAccessToken()}`,
+        },
+      }
+    );
+    if (result.ok) {
+      return (await result.json()).data;
+    }
+    return undefined;
+  }
+
+  /**
    * 지정된 채팅방에 채팅을 강제로 설정합니다.
    * @param {string} roomId 채팅방 ID
    * @param {ChattingLog[]} chattings 채팅 목록
@@ -210,36 +240,34 @@ GM_addStyle(
           alert("패치 작업 수행중 오류가 발생하였습니다.");
           return false;
         }
-        if (message.isUser) {
-          const result = await fetch(
-            `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message?platform=web&user=&model=SONNET`,
-            {
-              method: "post",
-              body: JSON.stringify({
-                crackerModel: "normalchat",
-                images: [],
-                isSuperMode: false,
-                message: message.message,
-                reroll: false,
-              }),
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${extractAccessToken()}`,
-              },
-            }
+        // If message id is undefined, maybe assistant generated more content
+        // But we don't have stable way to generate assistant message, so go through detour with user message
+        // User message and assistant generated message will share same logic but with empty message
+        if (messageId === undefined) {
+          const result = emitUserMessage(
+            roomId,
+            message.isUser ? message.message : "<PLACEHOLDER>"
           );
-          if (result.ok) {
-            messageId = (await result.json()).data;
+          // If result is OK,
+          if (result) {
+            messageId = result;
             phase = 1;
+          } else {
+            continue;
+          }
+          // ..If current loop is for user message, no need to continue message modification
+          // If succeed, break loop, or continue loop - user message MUST NOT contains ai assistant logic so manually configure flow
+          if (message.isUser) {
+            // So, just break here because error flow already configured with before if flow
             break;
           }
-        } else {
+        }
+
+        if (!message.isUser) {
           if (phase < 2) {
             document.getElementsByClassName(
               "chasm-altr-description"
-            )[0].textContent = `패치 (${count} / ${
-              chattings.length
-            } | 페이즈 1)`;
+            )[0].textContent = `패치 (${count} / ${chattings.length} | 페이즈 1)`;
             // Phase 1 - Append message text
             const result = await fetch(
               `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}/result`,
@@ -257,9 +285,7 @@ GM_addStyle(
           if (phase === 2) {
             document.getElementsByClassName(
               "chasm-altr-description"
-            )[0].textContent = `패치 (${count} / ${
-              chattings.length
-            } | 페이즈 2)`;
+            )[0].textContent = `패치 (${count} / ${chattings.length} | 페이즈 2)`;
             // Phase 2 - Consume event stream
             const result = await fetch(
               `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}?model=SONNET&platform=web&user=`,
@@ -280,9 +306,7 @@ GM_addStyle(
           if (phase === 3) {
             document.getElementsByClassName(
               "chasm-altr-description"
-            )[0].textContent = `패치 (${count} / ${
-              chattings.length
-            } | 페이즈 3)`;
+            )[0].textContent = `패치 (${count} / ${chattings.length} | 페이즈 3)`;
             // Phase 3 - Patch stream text
             const result = await fetch(
               `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}`,
