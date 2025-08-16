@@ -385,6 +385,11 @@ GM_addStyle(
       alert("채팅방 데이터 가져오기에 실패하였습니다.");
       return;
     }
+    if (result.doesUserNoteExtended) {
+      if (!confirm("**경고: 유저 노트 확장이 활성화되어 있습니다.**\n유저노트 확장이 활성화된 채팅방은 삽입되는 대화당 10개의 크래커를 추가로 소모합니다.\n만약 이러한 지출을 원치 않으신다면, 유저노트 확장을 끄고 사용해주세요.\n\n정말로 이 상태로 차원 이동을 수행하시겠습니까?")) {
+        return
+      }
+    }
     document.getElementsByClassName(
       "chasm-altr-description"
     )[0].textContent = `채팅 데이터 가져오는 중`;
