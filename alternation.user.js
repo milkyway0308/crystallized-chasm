@@ -189,7 +189,6 @@ GM_addStyle(
     log("채팅방에 메시지 " + chattings.length + "개 설정 시작");
     let errorCount = 0;
     let messageId = undefined;
-    let lastPatchTargetId = undefined;
     let skipped = false;
     let phase = 0;
     let count = 0;
