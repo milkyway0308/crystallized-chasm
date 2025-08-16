@@ -85,7 +85,12 @@
     try {
       const n = await fetch(e, o);
       if (n.status == 503) {
-        throwError(n, new Error("LLM 서버에서 오류를 반환했거나 서버 과부하로 인해 요청이 거부되었습니다. 잠시 후에 다시 시도하세요."));
+        throwError(
+          n,
+          new Error(
+            "LLM 서버에서 오류를 반환했거나 서버 과부하로 인해 요청이 거부되었습니다. 잠시 후에 다시 시도하세요."
+          )
+        );
       }
       return 401 === n.status || 403 === n.status
         ? (throwError(new Error("Authentication error"), "인증 오류"), null)
@@ -199,7 +204,23 @@
         "GET",
         `${n}/character-chat/characters/chat/${this.json._id}/message/${a.data}/result`
       );
-      return r?.data ? new v(r.data, this.request) : null;
+      if (r?.data) {
+        // Phase 2 - Consume event stream
+        const result = await fetch(
+          `https://contents-api.wrtn.ai/character-chat/characters/chat/${this.json._id}/message/${a.data}?model=SONNET&platform=web&user=`,{
+            headers: {
+              Authorization: `Bearer ${extractCookie("access_token")}`
+            }
+          }
+        );
+        const reader = result.body.getReader();
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+        }
+        return new v(r.data, this.request);
+      }
+      return null;
     }
   }
   class v {
@@ -1128,21 +1149,21 @@
   async function injectButton() {
     const selected = document.getElementsByClassName("burner-test-button");
     if (selected && selected.length > 0) {
-        return;
+      return;
     }
     // Top element
     const data = document.getElementsByClassName("css-2j5iyq");
     if (data && data.length > 0) {
-        const top = data[0];
-        const buttonCloned = top.childNodes[0].cloneNode(true);
-        buttonCloned.className = "burner-test-button " + buttonCloned.className;
-        const textNode = buttonCloned.getElementsByTagName("p");
-        const imageNode = buttonCloned.getElementsByTagName("img");
-        top.insertBefore(buttonCloned, top.childNodes[0]);
-        textNode[0].innerText = "🔥  Chasm Burner";
-        imageNode[0].remove();
-        buttonCloned.removeAttribute("onClick");
-        buttonCloned.addEventListener("click", C);
+      const top = data[0];
+      const buttonCloned = top.childNodes[0].cloneNode(true);
+      buttonCloned.className = "burner-test-button " + buttonCloned.className;
+      const textNode = buttonCloned.getElementsByTagName("p");
+      const imageNode = buttonCloned.getElementsByTagName("img");
+      top.insertBefore(buttonCloned, top.childNodes[0]);
+      textNode[0].innerText = "🔥  Chasm Burner";
+      imageNode[0].remove();
+      buttonCloned.removeAttribute("onClick");
+      buttonCloned.addEventListener("click", C);
     }
   }
   async function addChasmButton() {
