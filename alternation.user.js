@@ -178,9 +178,10 @@ GM_addStyle(
   /**
    * 방 ID에서 마지막으로 입력된 채팅의 ID를 가져옵니다.
    * @param {string} chatRoomId 채팅방 ID
+   * @param {boolean} userMessage 유저 메시지를 가져올지의 여부. true일 경우 유저 메시지, false일 경우 봇 메시지를 가져옵니다.
    * @returns {Promise<string|undefined>} 추출된 마지막 채팅 ID
    */
-  async function fetchLastChatID(chatRoomId) {
+  async function fetchLastChatID(chatRoomId, userMessage) {
     let errorCount = 0;
     while (errorCount < 5) {
       const result = await fetchWithToken(
@@ -189,7 +190,7 @@ GM_addStyle(
       );
       if (result.ok) {
         const json = await result.json();
-        const chat = json.data.list[1];
+        const chat = json.data.list[userMessage ? 1 : 0];
         return chat._id;
       }
       errorCount++;
@@ -281,13 +282,28 @@ GM_addStyle(
         // If message id is undefined, maybe assistant generated more content
         // But we don't have stable way to generate assistant message, so go through detour with user message
         // User message and assistant generated message will share same logic but with empty message
-        if (messageId === undefined) {
+        if (message.isUser || messageId === undefined) {
+          if (messageId) {
+            // TODO: Add failsafe to delete user message
+            const messageToDelete = await fetchLastChatID(roomId, false);
+            if (messageToDelete) {
+              await deleteMessage(roomId, messageToDelete);
+            }
+          }
           const result = await emitUserMessage(
             roomId,
             message.isUser ? message.message : "<PLACEHOLDER>"
           );
           // If result is OK,
           if (result) {
+            // // Delete existing bot message if exists.
+            // if (messageId) {
+            //   // TODO: Add failsafe to delete user message
+            //   const messageToDelete = await fetchLastChatID(roomId, false);
+            //   if (messageToDelete) {
+            //     await deleteMessage(roomId, messageToDelete);
+            //   }
+            // }
             messageId = result;
             targetTempMessage = undefined;
             phase = 1;
@@ -301,7 +317,7 @@ GM_addStyle(
             // So, just break here because error flow already configured with before if flow
             break;
           } else {
-            targetTempMessage = await fetchLastChatID(roomId);
+            targetTempMessage = await fetchLastChatID(roomId, true);
             if (!targetTempMessage) {
               return false;
             }
@@ -380,6 +396,13 @@ GM_addStyle(
         }
         errorCount++;
         await new Promise((resolve) => setTimeout(resolve, 50 * errorCount));
+      }
+    }
+    // Final check - If messageId is set, last message is empty
+    if (messageId) {
+      const messageToDelete = await fetchLastChatID(roomId, false);
+      if (messageToDelete) {
+        await deleteMessage(roomId, messageToDelete);
       }
     }
     log("메시지 설정 작업 완료.");
