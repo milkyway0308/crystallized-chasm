@@ -427,11 +427,19 @@ GM_addStyle(
       return undefined;
     }
     const jsonResult = (await result.json()).data;
+    if (jsonResult.character.userNote) {
+      return new SimplifiedChatRoomData(
+        chatRoomId,
+        jsonResult.character.baseSetId,
+        jsonResult.character.userNote.content,
+        jsonResult.character.userNote.isExtend
+      );
+    }
     return new SimplifiedChatRoomData(
       chatRoomId,
       jsonResult.character.baseSetId,
-      jsonResult.character.userNote.content,
-      jsonResult.character.userNote.isExtend
+      "",
+      false
     );
   }
   /**
