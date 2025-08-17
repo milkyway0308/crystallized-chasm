@@ -18,7 +18,7 @@
 
   function updateCracker(cracker) {
     initialCracker = cracker;
-    updateCrackerText();
+    updateCrackerText(cracker);
     updateARPGRemainingText(cracker);
     updateRemainingText(cracker);
     updateModalText(cracker);
@@ -36,19 +36,19 @@
     return null;
   }
 
-  function updateCrackerText() {
+  function updateCrackerText(cracker) {
     const buttonElements = document.getElementsByClassName("css-1jrgdy");
     if (!buttonElements || buttonElements.length <= 0) {
       logWarning("No cracker button found; Does crack updated?");
       return;
     }
-    if (initialCracker === undefined) {
+    if (cracker === undefined) {
       return;
     }
-
     let elementsText = document.getElementsByClassName("chasm-cracker-text");
     if (!elementsText || elementsText.length <= 0) {
       const tag = document.createElement("p");
+      tag.id = "chasm-cracker-text";
       tag.className = "chasm-cracker-text";
       if (isDarkMode()) {
         tag.setAttribute("chasm-tmi-dark-mode", "true");
@@ -59,6 +59,12 @@
         tag.style.cssText =
           "margin-left: 5px; font-weight: bolder; font-size: 16px; color: #000000; transition: color 0.2s;";
       }
+      const nextText = cracker.toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      });
+      tag.textContent = nextText;
+      tag.setAttribute("chasm-tmi-current", cracker.toString());
       buttonElements[0].append(tag);
       elementsText = document.getElementsByClassName("chasm-cracker-text");
     }
@@ -74,34 +80,50 @@
           "margin-left: 5px; font-weight: bolder; font-size: 16px; color: #000000; transition: color 0.2s;";
       }
     }
-
-    let nextText = initialCracker.toLocaleString(undefined, {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    });
-    if (tag.textContent === nextText) {
-      return;
+    if (tag.getAttribute("chasm-tmi-target") !== cracker.toString()) {
+      tag.setAttribute("chasm-tmi-target", cracker.toString());
     }
-    tag.textContent = nextText;
   }
 
   function updateARPGRemainingText(cracker) {
-    const leftButton = document.getElementsByClassName("css-l2pvvz");
-    if (leftButton && leftButton.length > 0) {
-      if (leftButton[0].getAttribute("last-cracker") !== cracker.toString()) {
-        leftButton[0].setAttribute("last-cracker", cracker.toString());
-        leftButton[0].childNodes[0].childNodes[1].childNodes[1].textContent =
-          "110 | " + parseInt(cracker / 110) + "회";
+    if (isARPGPath()) {
+      const leftButton = document.getElementsByClassName(
+        isDarkMode() ? "css-l2pvvz" : "css-mxh4ma"
+      );
+      if (leftButton && leftButton.length > 0) {
+        if (leftButton[0].getAttribute("last-cracker") !== cracker.toString()) {
+          leftButton[0].setAttribute("last-cracker", cracker.toString());
+          leftButton[0].childNodes[0].childNodes[1].childNodes[1].textContent =
+            "110 | " + parseInt(cracker / 110) + "회";
+        }
+      } else {
+        return;
       }
-    } else {
-      return;
+      const rightButton = leftButton[0].parentElement.childNodes[1];
+      if (rightButton.getAttribute("last-cracker") !== cracker.toString()) {
+        rightButton.setAttribute("last-cracker", cracker.toString());
+        rightButton.childNodes[0].childNodes[1].childNodes[1].textContent =
+          "55 | " + parseInt(cracker / 55) + "회";
+      }
     }
-    const rightButton = leftButton[0].parentElement.childNodes[1];
-    if (rightButton.getAttribute("last-cracker") !== cracker.toString()) {
-      console.log("A2");
-      rightButton.setAttribute("last-cracker", cracker.toString());
-      rightButton.childNodes[0].childNodes[1].childNodes[1].textContent =
-        "55 | " + parseInt(cracker / 55) + "회";
+    if (isARPGBuilderPath()) {
+      const confirmButton = document.getElementsByClassName(
+        isDarkMode() ? "css-l2pvvz" : "css-mxh4ma"
+      );
+      if (confirmButton && confirmButton.length > 0) {
+        if (
+          confirmButton[0].childNodes[0].childNodes[0].textContent ===
+          "캐릭터 생성"
+        ) {
+          if (
+            confirmButton[0].getAttribute("last-cracker") !== cracker.toString()
+          ) {
+            confirmButton[0].setAttribute("last-cracker", cracker.toString());
+            confirmButton[0].childNodes[0].childNodes[1].childNodes[1].textContent =
+              "50 | " + parseInt(cracker / 50) + "회";
+          }
+        }
+      }
     }
   }
 
@@ -283,8 +305,8 @@
       attachObserver(document.body, doInitialize);
       runSchedule();
     }
-    updating = true;
     if (initialCracker === undefined) {
+      updating = true;
       const lastCracker = await getCrackerFromServer();
       if (lastCracker !== undefined) {
         updateCracker(lastCracker);
@@ -297,6 +319,10 @@
       updateStoppedAt = new Date();
       updating = false;
       fetched = false;
+    } else if (isARPGBuilderPath()) {
+      if (initialCracker !== undefined) {
+        updateARPGRemainingText(initialCracker);
+      }
     } else {
       let nextCracker = await extractCracker();
       if (nextCracker !== undefined) {
@@ -307,6 +333,10 @@
 
   function isARPGPath() {
     return /\/arpg\/[a-f0-9]+\/play\/[a-f0-9]+/.test(location.pathname);
+  }
+
+  function isARPGBuilderPath() {
+    return /\/arpg\/[a-f0-9]+\/builder/.test(location.pathname);
   }
 
   function runSchedule() {
@@ -322,6 +352,31 @@
         }
       }
     }, 50);
+    // Text delta movement
+    setInterval(() => {
+      const element = document.getElementById("chasm-cracker-text");
+      if (element) {
+        const objective = parseInt(element.getAttribute("chasm-tmi-target"));
+        const current = parseInt(element.getAttribute("chasm-tmi-current"));
+        const abs = Math.abs(current - objective);
+        const delta = abs > 300 ? 16 : abs > 100 ? 8 : abs > 50 ? 2 : 1;
+        if (current > objective) {
+          const next = current - delta;
+          element.setAttribute("chasm-tmi-current", next);
+          element.textContent = next.toLocaleString(undefined, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+          });
+        } else if (current < objective) {
+          const next = current + delta;
+          element.setAttribute("chasm-tmi-current", next);
+          element.textContent = next.toLocaleString(undefined, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+          });
+        }
+      }
+    }, 7);
   }
 
   function attachObserver(observeTarget, lambda) {
