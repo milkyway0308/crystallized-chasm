@@ -13,11 +13,13 @@
   let initialCracker = undefined;
   let doesInitialized = false;
   let updating = false;
-  let refetchAt = new Date();
+  let updateStoppedAt = new Date();
+  let fetched = false;
 
   function updateCracker(cracker) {
     initialCracker = cracker;
     updateCrackerText();
+    updateARPGRemainingText(cracker);
     updateRemainingText(cracker);
     updateModalText(cracker);
   }
@@ -81,6 +83,26 @@
       return;
     }
     tag.textContent = nextText;
+  }
+
+  function updateARPGRemainingText(cracker) {
+    const leftButton = document.getElementsByClassName("css-l2pvvz");
+    if (leftButton && leftButton.length > 0) {
+      if (leftButton[0].getAttribute("last-cracker") !== cracker.toString()) {
+        leftButton[0].setAttribute("last-cracker", cracker.toString());
+        leftButton[0].childNodes[0].childNodes[1].childNodes[1].textContent =
+          "110 | " + parseInt(cracker / 110) + "회";
+      }
+    } else {
+      return;
+    }
+    const rightButton = leftButton[0].parentElement.childNodes[1];
+    if (rightButton.getAttribute("last-cracker") !== cracker.toString()) {
+      console.log("A2");
+      rightButton.setAttribute("last-cracker", cracker.toString());
+      rightButton.childNodes[0].childNodes[1].childNodes[1].textContent =
+        "55 | " + parseInt(cracker / 55) + "회";
+    }
   }
 
   function updateRemainingText(cracker) {
@@ -153,7 +175,7 @@
     }
     return nextText;
   }
-  async function extractCracker() {
+  async function extractCharacterCracker() {
     const root = document.getElementsByClassName("css-uxwch2");
     if (!root || root.length <= 0) {
       return undefined;
@@ -174,6 +196,32 @@
             .textContent.replace(",", "")
         );
       }
+    }
+    return undefined;
+  }
+
+  async function extractARPGCracker() {
+    const root = document.getElementsByClassName(
+      isDarkMode() ? "css-ywu28u" : "css-1akfzan"
+    );
+    if (!root || root.length <= 0) {
+      return undefined;
+    }
+    const expectedCrackerNodes = root[0].getElementsByTagName("p");
+    if (expectedCrackerNodes.length > 1) {
+      return parseInt(expectedCrackerNodes[1].textContent.replace(",", ""));
+    }
+    return undefined;
+  }
+
+  async function extractCracker() {
+    // let cracker = extractARPGCracker();
+    // if (cracker && cracker !== NaN) {
+    //   return cracker;
+    // }
+    cracker = extractCharacterCracker();
+    if (cracker && cracker !== NaN) {
+      return cracker;
     }
     return undefined;
   }
@@ -233,6 +281,7 @@
     if (!doesInitialized) {
       doesInitialized = true;
       attachObserver(document.body, doInitialize);
+      runSchedule();
     }
     updating = true;
     if (initialCracker === undefined) {
@@ -243,11 +292,36 @@
         return;
       }
     }
-    let nextCracker = await extractCracker();
-    if (nextCracker !== undefined) {
-      updateCracker(await extractCracker());
+    if (isARPGPath()) {
+      // Let's use more modern and solid solution
+      updateStoppedAt = new Date();
+      updating = false;
+      fetched = false;
+    } else {
+      let nextCracker = await extractCracker();
+      if (nextCracker !== undefined) {
+        updateCracker(await extractCracker());
+      }
     }
-    updating = false;
+  }
+
+  function isARPGPath() {
+    return /\/arpg\/[a-f0-9]+\/play\/[a-f0-9]+/.test(location.pathname);
+  }
+
+  function runSchedule() {
+    setInterval(async () => {
+      if (!isARPGPath()) return;
+      if (updating) return;
+      if (!fetched && new Date() - updateStoppedAt > 500) {
+        fetched = true;
+        const lastCracker = await getCrackerFromServer();
+        if (lastCracker !== undefined) {
+          updateCracker(lastCracker);
+          updating = false;
+        }
+      }
+    }, 50);
   }
 
   function attachObserver(observeTarget, lambda) {
@@ -262,8 +336,8 @@
     }
   }
   "loading" === document.readyState
-    ? (document.addEventListener("DOMContentLoaded", B),
-      window.addEventListener("load", B))
+    ? (document.addEventListener("DOMContentLoaded", doInitialize),
+      window.addEventListener("load", doInitialize))
     : "interactive" === document.readyState ||
       "complete" === document.readyState
     ? await doInitialize()
