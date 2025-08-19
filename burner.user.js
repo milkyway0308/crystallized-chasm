@@ -509,7 +509,7 @@
         o.modalBg
       }; color: ${
         o.textColor
-      };">\n                                    <option value="gemini-2.5-flash">gemini-2.5-flash (무료, 제한적)</option>\n                                    <option value="gemini-2.0-flash">gemini-2.0-flash (무료, 제한적)</option>\n                                    <option value="gemini-2.5-pro">gemini-2.5-pro (유료)</option>\n                                    <option value="gemini-2.5-pro">gemini-2.5-pro (유료)</option>\n                                    <option value="custom">직접 입력</option>\n                                </select>\n                                <input id="cb-gemini-model-custom" type="text" placeholder="커스텀 Gemini 모델 입력" value="${
+      };">\n<optgroup label="무료 사용 가능 / 제한적"><option value="gemini-2.5-flash">Gemini 2.5 Flash</option><option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>\n<option value="gemini-2.0-flash">Gemini 2.0 Flash</option><option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite</option></optgroup><optgroup label = "유료 모델">\n<option value="gemini-2.5-pro">Gemini 2.5 Pro</option></optgroup><optgroup label = "프리뷰 모델">\n<option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash Preview (05.20) </option></optgroup><optgroup label = "직접 입력">\n<option value="custom">직접 입력</option></optgroup>\n                                </select>\n                                <input id="cb-gemini-model-custom" type="text" placeholder="커스텀 Gemini 모델 입력" value="${
         t.geminiModel || ""
       }" style="width: 100%; padding: 10px; border: 1px solid ${
         o.borderColor
