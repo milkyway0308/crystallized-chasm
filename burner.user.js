@@ -68,7 +68,7 @@
     throw (
       (prompt(
         "구동 중 예상치 못한 오류가 발생하였습니다. 다음 내용을 복사하여 결정화 캐즘 프로젝트 게시물, 혹은 IGX 지원 센터에 문의해주세요.",
-        `[Chasm Crystallized Burner+ Error]\n${a}\n\n오류 내용을 복사하여 https://gall.dcinside.com/mini/chasm 에 문의해주세요.`
+        `[Chasm Crystallized Burner+ Error]\n${a}\n\n오류 내용을 복사하여 https://discord.gg/hEb44bUFgu 에 문의해주세요.`
       ),
       n)
     );
@@ -595,7 +595,7 @@
         o.modalBg
       }; color: ${
         o.textColor
-      };">\n                            </div>\n                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">\n                                <a href="https://gall.dcinside.com/mini/chasm" target="_blank" style="font-size: 0.9em; color: ${
+      };">\n                            </div>\n                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">\n                                <a href="https://discord.com/channels/1372949645436915844/1372949645990432911" target="_blank" style="font-size: 0.9em; color: ${
         o.buttonText
       }; text-decoration: none; padding: 5px 10px; background: ${
         o.buttonBg
