@@ -6,12 +6,15 @@
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
 // @grant       GM.xmlHttpRequest
-// @grant       GM_xmlhttpRequest
+// @grant       GM_addStyle
 // @connect     *
 // @downloadURL https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/burner.user.js
 // @updateURL   https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/burner.user.js
 // ==/UserScript==
 
+GM_addStyle(
+  "@media screen and (max-width:500px) { .burner-test-button { display: none; } }"
+);
 !(async function () {
   "use strict";
   const n = "https://contents-api.wrtn.ai",
@@ -1169,7 +1172,11 @@
   async function addChasmButton() {
     if (!/\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)) return;
     const n = document.querySelector(".css-uxwch2");
+    console.log(n);
     await injectButton();
+    console.log("Try to inject");
+    console.log(document.getElementById("chasmMenu"));
+    console.log(document.getElementById("chasmBurner"));
     if (
       n &&
       !document.getElementById("chasmMenu") &&
@@ -1186,12 +1193,12 @@
         (i.id = "chasmMenu"),
           (i.className = t),
           (i.style.display = "flex"),
-          (i.innerHTML = `\n                <p color="text_tertiary" class="${o}">\n                    <span style="font-weight:800; letter-spacing: -1px;">⌘ C2 Burner</span> — 캐즘\n                    <span style="margin-left: 4px; font-size: 0.8rem; opacity: 0.5;">v1.2.2</span>\n                </p>\n            `);
+          (i.innerHTML = `\n                <p color="text_tertiary" class="${o}" style="color: var(--text_primary);">\n                    <span style="font-weight:800; letter-spacing: -1px;">⌘ C2 Burner</span> — 캐즘\n                    <span style="margin-left: 4px; font-size: 0.8rem; opacity: 0.5;">v1.2.2</span>\n                </p>\n            `);
         const s = document.createElement("div");
         (s.id = "chasmBurner"),
           (s.className = a),
           (s.style.display = "flex"),
-          (s.innerHTML = `\n                <p color="text_primary" class="${r}">\n                    <span style="padding-right: 6px;">🔥</span>캐즘 버너\n                </p>\n                <div class="${l}" style="display: flex;"></div>\n            `),
+          (s.innerHTML = `\n                <p color="text_primary" class="${r}">\n                    <span style="padding-right: 6px; color: var(--text_primary);">🔥</span>캐즘 버너\n                </p>\n                <div class="${l}" style="display: flex;"></div>\n            `),
           (s.style.cursor = "pointer"),
           s.addEventListener("click", C),
           e.appendChild(i),
