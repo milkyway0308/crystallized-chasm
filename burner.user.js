@@ -692,7 +692,8 @@ GM_addStyle(
       N = document.getElementById("cb-advanced-toggle"),
       U = document.getElementById("cb-advanced-content"),
       j = document.getElementById("cb-close"),
-      q = document.getElementById("cb-attach-usernote");
+      q = document.getElementById("cb-attach-usernote"),
+      retry = document.getElementById("cb-auto-retry");
     function G(n, e) {
       const t = [
           d,
@@ -717,6 +718,7 @@ GM_addStyle(
           });
     }
     (q.checked = t.attachUsernote),
+    (retry.checked = t.autoRetry),
       (S.value = t.provider),
       d.addEventListener("click", () => G(d, b)),
       m.addEventListener("click", () => G(m, x)),
@@ -754,6 +756,7 @@ GM_addStyle(
         (t.prependText = L.value),
         (t.appendText = P.value),
         (t.attachUsernote = q.checked),
+        (t.autoRetry = retry.checked),
         $.setConfig(t),
         n && alert("설정이 저장되었습니다.");
     }
