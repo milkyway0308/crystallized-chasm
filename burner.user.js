@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Burner+ (결정화 캐즘 버너+)
 // @namespace   https://github.com/chasm-js
-// @version     CRYS-BURN-v1.3.0
+// @version     CRYS-BURN-v1.3.1
 // @description 크랙 캐릭터 채팅 요약 및 반영. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -90,7 +90,7 @@ GM_addStyle(
     t && (o.body = JSON.stringify(t));
     try {
       const n = await fetch(e, o);
-      if (n.status == 503) {
+      if (n.status === 503) {
         throwError(
           n,
           new Error(
@@ -480,7 +480,7 @@ GM_addStyle(
         o.textColor
       }; padding: 20px; border-radius: 8px; width: ${l}px; min-height: 500px; display: flex; flex-direction: column;">\n                    <style>\n                        .cb-spinner {\n                            display: inline-block;\n                            width: 16px;\n                            height: 16px;\n                            border: 2px solid ${
         o.buttonText
-      };\n                            border-radius: 50%;\n                            border-top-color: transparent;\n                            animation: cb-spin 1s linear infinite;\n                            margin-left: 5px;\n                            vertical-align: middle;\n                        }\n                        @keyframes cb-spin {\n                            to { transform: rotate(360deg); }\n                        }\n                    </style>\n                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">\n                        <h2 id="cb-title" style="margin: 0; font-family: Pretendard; display: flex; align-items: baseline; flex-shrink: 0; letter-spacing: -1px;">\n                            <span style="font-weight:800; letter-spacing: -1px;">⌘ C2</span>\n                            <span style="font-weight:600; margin-left: 5px;">burner+</span>\n                            <span style="font-weight:500; font-size: 0.7em; color: #999; margin-left: 8px;">v1.3.0</span>\n                        </h2>\n                        <button id="cb-close" style="background: none; border: none; color: ${
+      };\n                            border-radius: 50%;\n                            border-top-color: transparent;\n                            animation: cb-spin 1s linear infinite;\n                            margin-left: 5px;\n                            vertical-align: middle;\n                        }\n                        @keyframes cb-spin {\n                            to { transform: rotate(360deg); }\n                        }\n                    </style>\n                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">\n                        <h2 id="cb-title" style="margin: 0; font-family: Pretendard; display: flex; align-items: baseline; flex-shrink: 0; letter-spacing: -1px;">\n                            <span style="font-weight:800; letter-spacing: -1px;">⌘ C2</span>\n                            <span style="font-weight:600; margin-left: 5px;">burner+</span>\n                            <span style="font-weight:500; font-size: 0.7em; color: #999; margin-left: 8px;">v1.3.1</span>\n                        </h2>\n                        <button id="cb-close" style="background: none; border: none; color: ${
         o.textColor
       }; font-size: 1.2em; cursor: pointer; padding: 0;">✕</button>\n                    </div>\n                    <div id="cb-tabs" style="display: flex; gap: 10px; flex-shrink: 0; margin-bottom: 10px;">\n                        <button id="cb-tab-burner" style="padding: 8px 16px; border: none; background: ${
         o.tabActiveBg
@@ -560,7 +560,7 @@ GM_addStyle(
         o.modalBg
       }; color: ${
         o.textColor
-      };">\n                                <span>과부하시 자동 재시도</span>\n                            </label></div>\n                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">\n                                <label style="font-size: 0.9em; color: ${
+      };">\n                                <span>서버 오류 발생시 자동 재시도</span>\n                            </label></div>\n                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">\n                                <label style="font-size: 0.9em; color: ${
         o.textColor
       };">실행 로그</label>\n                                <div id="cb_timer" style="font-size: 0.9em; color: ${
         o.textColor
@@ -953,27 +953,50 @@ GM_addStyle(
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify(a),
                 });
+                let json = {};
                 let retryCount = 0;
+                let additionalSleep = 0;
                 while (
-                  !geminiResponse.ok &&
                   document.getElementById("cb-auto-retry") &&
                   document.getElementById("cb-auto-retry").checked
                 ) {
-                  if (geminiResponse.status !== 503) {
+                  additionalSleep = 0;
+                  console.log(geminiResponse.status);
+                  if (geminiResponse.status === 429) {
+                    console.log("Ratelimit!");
+                    T.value = `[${p()}] Gemini API의 레이트리밋에 도달하였습니다 - 10초 후 재시도합니다. \n${T.value}`;
+                    additionalSleep = 10_000;
+                  } else if (geminiResponse.status === 500) {
+                    let result = await geminiResponse.json();
+                    T.value = `[${p()}] 서버 오류로 Gemini API 요청이 실패하였습니다 - 잠시 후 재시도합니다. (${
+                      result?.error?.message ?? "알 수 없음"
+                    }) \n${T.value}`;
+                  } else if (geminiResponse.status === 503) {
+                    T.value = `[${p()}] Gemini API 과부하 - 잠시 후 재시도합니다. 자동 재시도를 중단하려면 체크박스를 해제하세요. \n${
+                      T.value
+                    }`;
+                  } else if (!geminiResponse.ok) {
                     T.value = `[${p()}] 과부하 이외의 문제로 Gemini API 요청이 실패하였습니다. \n${
                       T.value
                     }`;
                     break;
+                  } else {
+                    json = await geminiResponse.json();
+                    if (!json?.candidates?.[0]?.content?.parts?.[0]?.text) {
+                      T.value = `[${p()}] Gemini API 오류 - LLM이 응답을 전송하지 않았습니다. 자동 재시도를 중단하려면 체크박스를 해제하세요. \n${
+                        T.value
+                      }`;
+                    } else {
+                      console.log("Why break..?");
+                      break;
+                    }
                   }
-                  T.value = `[${p()}] Gemini API 과부하 - 잠시 후 재시도합니다. 자동 재시도를 중단하려면 체크박스를 해제하세요. \n${
-                    T.value
-                  }`;
                   await new Promise((resolve) =>
                     setTimeout(
                       resolve,
-                      500 +
+                      300 +
                         100 * Math.min(++retryCount, 10) +
-                        Math.random() * 1000
+                        Math.random() * 300 + additionalSleep
                     )
                   );
 
@@ -985,9 +1008,8 @@ GM_addStyle(
                   });
                 }
 
-                e = await geminiResponse.json();
                 return geminiResponse.ok
-                  ? e?.candidates?.[0]?.content?.parts?.[0]?.text || null
+                  ? json?.candidates?.[0]?.content?.parts?.[0]?.text || null
                   : (throwError(
                       new Error("Gemini API request failed"),
                       "Gemini API 요청 실패",
@@ -1266,7 +1288,7 @@ GM_addStyle(
         (i.id = "chasmMenu"),
           (i.className = t),
           (i.style.display = "flex"),
-          (i.innerHTML = `\n                <p color="text_tertiary" class="${o}" style="color: var(--text_primary);">\n                    <span style="font-weight:800; letter-spacing: -1px;">⌘ C2 Burner</span> — 캐즘\n                    <span style="margin-left: 4px; font-size: 0.8rem; opacity: 0.5;">v1.3.0</span>\n                </p>\n            `);
+          (i.innerHTML = `\n                <p color="text_tertiary" class="${o}" style="color: var(--text_primary);">\n                    <span style="font-weight:800; letter-spacing: -1px;">⌘ C2 Burner</span> — 캐즘\n                    <span style="margin-left: 4px; font-size: 0.8rem; opacity: 0.5;">v1.3.1</span>\n                </p>\n            `);
         const s = document.createElement("div");
         (s.id = "chasmBurner"),
           (s.className = a),
