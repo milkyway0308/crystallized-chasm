@@ -16,10 +16,16 @@ GM_addStyle(
   ".burner-test-button { display: block; } " +
     ".burner-input-button { display: none; } " +
     "@media screen and (max-width:500px) { .burner-test-button { display: none; } }" +
-    "@media screen and (max-width:500px) { .burner-input-button { display: block; } }"
+    "@media screen and (max-width:500px) { .burner-input-button { display: block; } }" +
+    "@keyframes rotate { from { transform: rotate(0deg); } to {  transform: rotate(360deg); }}" +
+    ".hourglass-container { width: 16px; height: 16px;}" +
+    '.hourglass-container[rotate="true"] { animation: 2s rotate infinite;}'
 );
 !(async function () {
   "use strict";
+  // https://www.svgrepo.com/svg/535448/hourglass-half-bottom
+  const HOURGLASS_SVG =
+    '<svg width="16px" height="16px" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M13 2H14V0H2V2H3V4.41421L6.58579 8L3 11.5858V14H2V16H14V14H13V11.5858L9.41421 8L13 4.41421V2ZM5 3.58579V2H11V3.58579L8 6.58579L5 3.58579Z" fill="#e0e0e0"></path> </g></svg>';
   const n = "https://contents-api.wrtn.ai",
     e = 5e3,
     t = "css-j7qwjs",
@@ -562,9 +568,9 @@ GM_addStyle(
         o.textColor
       };">\n                                <span>서버 오류 발생시 자동 재시도</span>\n                            </label></div>\n                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">\n                                <label style="font-size: 0.9em; color: ${
         o.textColor
-      };">실행 로그</label>\n                                <div id="cb_timer" style="font-size: 0.9em; color: ${
+      };">실행 로그</label>\n                                <div style = "display: flex; flex-direction: row;"><div class = "hourglass-container" style="margin-right: 10px;"> ${HOURGLASS_SVG} </div><div id="cb_timer" style="font-size: 0.9em; color: ${
         o.textColor
-      };">00:00</div>\n                            </div>\n                            <textarea id="cb-log" readonly style="width: 100%; padding: 10px; border: 1px solid ${
+      };">00:00</div>\n                            </div></div>\n                            <textarea id="cb-log" readonly style="width: 100%; padding: 10px; border: 1px solid ${
         o.borderColor
       }; border-radius: 4px; height: 100px; resize: none; margin-bottom: 15px; background: ${
         o.modalBg
@@ -816,6 +822,9 @@ GM_addStyle(
           const i = A.textContent,
             s = Date.now(),
             d = () => {
+              document
+                .getElementsByClassName("hourglass-container")[0]
+                .setAttribute("rotate", "true");
               const n = Math.floor((Date.now() - s) / 1e3),
                 e = String(Math.floor(n / 60)).padStart(2, "0"),
                 t = String(n % 60).padStart(2, "0");
@@ -827,6 +836,9 @@ GM_addStyle(
                 l && clearInterval(l),
                 (I.textContent = "00:00"),
                 (A.disabled = !1),
+                document
+                  .getElementsByClassName("hourglass-container")[0]
+                  .removeAttribute("rotate"),
                 (A.textContent = i);
             },
             $ = S.value,
@@ -964,7 +976,9 @@ GM_addStyle(
                   console.log(geminiResponse.status);
                   if (geminiResponse.status === 429) {
                     console.log("Ratelimit!");
-                    T.value = `[${p()}] Gemini API의 레이트리밋에 도달하였습니다 - 10초 후 재시도합니다. \n${T.value}`;
+                    T.value = `[${p()}] Gemini API의 레이트리밋에 도달하였습니다 - 10초 후 재시도합니다. \n${
+                      T.value
+                    }`;
                     additionalSleep = 10_000;
                   } else if (geminiResponse.status === 500) {
                     let result = await geminiResponse.json();
@@ -996,7 +1010,8 @@ GM_addStyle(
                       resolve,
                       300 +
                         100 * Math.min(++retryCount, 10) +
-                        Math.random() * 300 + additionalSleep
+                        Math.random() * 300 +
+                        additionalSleep
                     )
                   );
 
