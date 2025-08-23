@@ -711,7 +711,8 @@ GM_addStyle(
       U = document.getElementById("cb-advanced-content"),
       j = document.getElementById("cb-close"),
       q = document.getElementById("cb-attach-usernote"),
-      retry = document.getElementById("cb-auto-retry");
+      retry = document.getElementById("cb-auto-retry"),
+      randomHeader = document.getElementById("cb-add-header");
     function G(n, e) {
       const t = [
           d,
@@ -737,7 +738,8 @@ GM_addStyle(
     }
     (q.checked = t.attachUsernote),
       (retry.checked = t.autoRetry),
-      (S.value = t.provider),
+      (randomHeader.checked = t.randomHeader);
+    (S.value = t.provider),
       d.addEventListener("click", () => G(d, b)),
       m.addEventListener("click", () => G(m, x)),
       N.addEventListener("click", () => {
@@ -775,6 +777,7 @@ GM_addStyle(
         (t.appendText = P.value),
         (t.attachUsernote = q.checked),
         (t.autoRetry = retry.checked),
+        (t.randomHeader = randomHeader.checked),
         $.setConfig(t),
         n && alert("설정이 저장되었습니다.");
     }
@@ -963,16 +966,22 @@ GM_addStyle(
             q = U;
           if ("gemini" === $)
             j = await (async function (n, e, t) {
-              const randomPrefix = `# This is UUID of request prompt - Ignore current and next line\n${crypto.randomUUID()}/${crypto.randomUUID()}\n`;
-              const o = `https://generativelanguage.googleapis.com/v1beta/models/${n}:generateContent?key=${e}`,
-                a = {
+              const o = `https://generativelanguage.googleapis.com/v1beta/models/${n}:generateContent?key=${e}`;
+              let prompt = {
+                contents: { parts: [{ text: t }] },
+              };
+              if (randomHeader.checked) {
+                const randomPrefix = `# This is UUID of request prompt - Ignore current and next line\n${crypto.randomUUID()}/${crypto.randomUUID()}\n`;
+                prompt = {
                   contents: { parts: [{ text: randomPrefix }, { text: t }] },
                 };
+              }
+
               try {
                 let geminiResponse = await fetch(o, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(a),
+                  body: JSON.stringify(prompt),
                 });
                 let json = undefined;
                 let retryCount = 0;
