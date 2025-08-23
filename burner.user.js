@@ -1034,10 +1034,18 @@ GM_addStyle(
                   );
 
                   T.value = `[${p()}] 다시 시도하는 중.. \n${T.value}`;
+                  if (randomHeader.checked) {
+                    const randomPrefix = `# This is UUID of request prompt - Ignore current and next line\n${crypto.randomUUID()}/${crypto.randomUUID()}\n`;
+                    prompt = {
+                      contents: {
+                        parts: [{ text: randomPrefix }, { text: t }],
+                      },
+                    };
+                  }
                   geminiResponse = await fetch(o, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(a),
+                    body: JSON.stringify(prompt),
                   });
                 }
                 if (!geminiResponse.ok) {
