@@ -528,7 +528,7 @@ GM_addStyle(
         o.modalBg
       }; color: ${
         o.textColor
-      };">\n<optgroup label="무료 사용 가능 / 제한적"><option value="gemini-2.5-flash">Gemini 2.5 Flash</option><option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>\n<option value="gemini-2.0-flash">Gemini 2.0 Flash</option><option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite</option></optgroup><optgroup label = "유료 모델">\n<option value="gemini-2.5-pro">Gemini 2.5 Pro</option></optgroup><optgroup label = "프리뷰 모델">\n<option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash Preview (05.20) </option></optgroup><optgroup label = "직접 입력">\n<option value="custom">직접 입력</option></optgroup>\n                                </select>\n                                <input id="cb-gemini-model-custom" type="text" placeholder="커스텀 Gemini 모델 입력" value="${
+      };">\n<optgroup label="무료 사용 가능 / 제한적"><option value="gemini-2.5-flash">Gemini 2.5 Flash</option><option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>\n<option value="gemini-2.0-flash">Gemini 2.0 Flash</option><option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite</option></optgroup><optgroup label = "유료 모델">\n<option value="gemini-2.5-pro">Gemini 2.5 Pro</option><option value="gemini-1.5-pro">Gemini 1.5 Pro</option></optgroup><optgroup label = "프리뷰 모델">\n<option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash Preview (05.20) </option></optgroup><optgroup label = "직접 입력">\n<option value="custom">직접 입력</option></optgroup>\n                                </select>\n                                <input id="cb-gemini-model-custom" type="text" placeholder="커스텀 Gemini 모델 입력" value="${
         t.geminiModel || ""
       }" style="width: 100%; padding: 10px; border: 1px solid ${
         o.borderColor
@@ -957,15 +957,18 @@ GM_addStyle(
             q = U;
           if ("gemini" === $)
             j = await (async function (n, e, t) {
+              const randomPrefix = `# This is UUID of request prompt - Ignore current and next line\n${crypto.randomUUID()}/${crypto.randomUUID()}\n`;
               const o = `https://generativelanguage.googleapis.com/v1beta/models/${n}:generateContent?key=${e}`,
-                a = { contents: { parts: [{ text: t }] } };
+                a = {
+                  contents: { parts: [{ text: randomPrefix }, { text: t }] },
+                };
               try {
                 let geminiResponse = await fetch(o, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify(a),
                 });
-                let json = {};
+                let json = undefined;
                 let retryCount = 0;
                 let additionalSleep = 0;
                 while (
@@ -1022,7 +1025,9 @@ GM_addStyle(
                     body: JSON.stringify(a),
                   });
                 }
-
+                if (geminiResponse.ok && json === undefined) {
+                  json = await geminiResponse.json();
+                }
                 return geminiResponse.ok
                   ? json?.candidates?.[0]?.content?.parts?.[0]?.text || null
                   : (throwError(
@@ -1033,6 +1038,7 @@ GM_addStyle(
                     ),
                     e);
               } catch (n) {
+                console.error(n);
                 return null;
               }
             })(U, f, N);
