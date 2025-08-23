@@ -528,7 +528,7 @@ GM_addStyle(
         o.modalBg
       }; color: ${
         o.textColor
-      };">\n<optgroup label="무료 사용 가능 / 제한적"><option value="gemini-2.5-flash">Gemini 2.5 Flash</option><option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>\n<option value="gemini-2.0-flash">Gemini 2.0 Flash</option><option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite</option></optgroup><optgroup label = "유료 모델">\n<option value="gemini-2.5-pro">Gemini 2.5 Pro</option><option value="gemini-1.5-pro">Gemini 1.5 Pro</option></optgroup><optgroup label = "프리뷰 모델">\n<option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash Preview (05.20) </option></optgroup><optgroup label = "직접 입력">\n<option value="custom">직접 입력</option></optgroup>\n                                </select>\n                                <input id="cb-gemini-model-custom" type="text" placeholder="커스텀 Gemini 모델 입력" value="${
+      };">\n<optgroup label="무료 사용 가능 / 제한적"><option value="gemini-2.5-flash">Gemini 2.5 Flash</option><option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>\n<option value="gemini-2.0-flash">Gemini 2.0 Flash</option><option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite</option></optgroup><optgroup label = "유료 모델">\n<option value="gemini-2.5-pro">Gemini 2.5 Pro</option></optgroup><optgroup label = "프리뷰 모델">\n<option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash Preview (05.20) </option></optgroup><optgroup label = "직접 입력">\n<option value="custom">직접 입력</option></optgroup>\n                                </select>\n                                <input id="cb-gemini-model-custom" type="text" placeholder="커스텀 Gemini 모델 입력" value="${
         t.geminiModel || ""
       }" style="width: 100%; padding: 10px; border: 1px solid ${
         o.borderColor
@@ -1040,18 +1040,44 @@ GM_addStyle(
                     body: JSON.stringify(a),
                   });
                 }
-                if (geminiResponse.ok && json === undefined) {
-                  json = await geminiResponse.json();
-                }
-                return geminiResponse.ok
-                  ? json?.candidates?.[0]?.content?.parts?.[0]?.text || null
-                  : (throwError(
+                if (!geminiResponse.ok) {
+                  if (geminiResponse.status === 403) {
+                    alert(
+                      "Gemini API키가 올바르지 않습니다.\nAPI 키를 확인하고 다시 시도해주세요."
+                    );
+                  } else if (geminiResponse.status === 429) {
+                    alert(
+                      "Gemini API의 레이트리밋에 도달하여 요청에 실패하였습니다.\n잠시 후 다시 시도하거나, 자동 재시도 옵션을 사용하세요."
+                    );
+                  } else if (geminiResponse.status === 500) {
+                    alert(
+                      "Gemini API에서 서버 오류가 발생하였습니다.\n잠시 후 다시 시도하거나, 자동 재시도 옵션을 사용하세요."
+                    );
+                  } else if (geminiResponse.status === 503) {
+                    alert(
+                      "Gemini API의 레이트리밋에 도달하여 요청에 실패하였습니다.\n잠시 후 다시 시도하거나, 자동 재시도 옵션을 사용하세요."
+                    );
+                  } else {
+                    throwError(
                       new Error("Gemini API request failed"),
                       "Gemini API 요청 실패",
                       null,
                       e
-                    ),
-                    e);
+                    );
+                    return e;
+                  }
+
+                  return null;
+                } else {
+                  if (!json) {
+                    json = await geminiResponse.json();
+                  }
+                  const result = json?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+                  if (!result) {
+                    alert("Gemini API에서 빈 응답을 보냈습니다.\n잠시 후 다시 시도하거나, 자동 재시도 옵션을 사용하세요.")
+                  }
+                  return result;
+                }
               } catch (n) {
                 console.error(n);
                 return null;
