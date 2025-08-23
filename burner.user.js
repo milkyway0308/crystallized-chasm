@@ -77,10 +77,11 @@ GM_addStyle(
     ]
       .filter(Boolean)
       .join("\n");
+      const errorText = response ? `HTTP ${response.status}` : "알 수 없는 오류 발생"; 
     throw (
       (prompt(
         "구동 중 예상치 못한 오류가 발생하였습니다. 다음 내용을 복사하여 결정화 캐즘 프로젝트 게시물, 혹은 IGX 지원 센터에 문의해주세요.",
-        `[Chasm Crystallized Burner+ Error]\n${n.message || "알 수 없음"}\n\n오류 내용을 복사하여 https://discord.gg/hEb44bUFgu 에 문의해주세요.`
+        `[Chasm Crystallized Burner+ Error]\n${errorText}\n\n오류 내용을 복사하여 https://discord.gg/hEb44bUFgu 에 문의해주세요.`
       ),
       n)
     );
