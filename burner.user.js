@@ -562,6 +562,12 @@ GM_addStyle(
         o.textColor
       };">\n                                <span>유저노트 첨부</span>\n                            </label><label style="display: flex; align-items: center; gap: 5px; font-size: 0.9em; margin-left: 8px; color: ${
         o.textColor
+      }; margin-bottom: 15px;">\n                                <input id="cb-add-header" type="checkbox" style="background: ${
+        o.modalBg
+      }; color: ${
+        o.textColor
+      };">\n                                <span>무작위 헤더 추가</span>\n                            </label><label style="display: flex; align-items: center; gap: 5px; font-size: 0.9em; margin-left: 8px; color: ${
+        o.textColor
       }; margin-bottom: 15px;">\n                                <input id="cb-auto-retry" type="checkbox" style="background: ${
         o.modalBg
       }; color: ${
