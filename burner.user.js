@@ -970,14 +970,14 @@ GM_addStyle(
               let prompt = {
                 contents: { parts: [{ text: t }] },
               };
-              if (randomHeader.checked) {
-                const randomPrefix = `# This is UUID of request prompt - Ignore current and next line\n${crypto.randomUUID()}/${crypto.randomUUID()}\n`;
-                prompt = {
-                  contents: { parts: [{ text: randomPrefix }, { text: t }] },
-                };
-              }
 
               try {
+                if (randomHeader.checked) {
+                  const randomPrefix = `# This is UUID of request prompt - Ignore current and next line\n${crypto.randomUUID()}/${crypto.randomUUID()}\n`;
+                  prompt = {
+                    contents: { parts: [{ text: randomPrefix }, { text: t }] },
+                  };
+                }
                 let geminiResponse = await fetch(o, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -1072,9 +1072,12 @@ GM_addStyle(
                   if (!json) {
                     json = await geminiResponse.json();
                   }
-                  const result = json?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+                  const result =
+                    json?.candidates?.[0]?.content?.parts?.[0]?.text || null;
                   if (!result) {
-                    alert("Gemini API에서 빈 응답을 보냈습니다.\n잠시 후 다시 시도하거나, 자동 재시도 옵션을 사용하세요.")
+                    alert(
+                      "Gemini API에서 빈 응답을 보냈습니다.\n잠시 후 다시 시도하거나, 자동 재시도 옵션을 사용하세요."
+                    );
                   }
                   return result;
                 }
