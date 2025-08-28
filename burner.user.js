@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Burner+ (결정화 캐즘 버너+)
 // @namespace   https://github.com/chasm-js
-// @version     CRYS-BURN-v1.4.2
+// @version     CRYS-BURN-v1.5.0
 // @description 크랙 캐릭터 채팅 요약 및 반영. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -23,6 +23,15 @@ GM_addStyle(
 );
 !(async function () {
   "use strict";
+
+  const { initializeApp } = await import(
+    "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
+  );
+  const { getAI, getGenerativeModel, VertexAIBackend } = await import(
+    "https://www.gstatic.com/firebasejs/12.1.0/firebase-ai.js"
+  );
+
+  // TODO: Add SDKs for Firebase products that you want to use
   // https://www.svgrepo.com/svg/535448/hourglass-half-bottom
   const HOURGLASS_SVG =
     '<svg width="16px" height="16px" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M13 2H14V0H2V2H3V4.41421L6.58579 8L3 11.5858V14H2V16H14V14H13V11.5858L9.41421 8L13 4.41421V2ZM5 3.58579V2H11V3.58579L8 6.58579L5 3.58579Z" fill="#e0e0e0"></path> </g></svg>';
@@ -67,21 +76,22 @@ GM_addStyle(
     n,
     context = "알 수 없는 오류",
     request = null,
-    response = null
+    response = null,
+    statusCode = undefined
   ) {
     const a = [
       `컨텍스트: ${context}`,
       `오류 메시지: ${n.message || n}`,
       request ? `요청: ${JSON.stringify(request, null, 2)}` : "",
       response ? `응답: ${JSON.stringify(response, null, 2)}` : "",
+      statusCode ? `HTTP 코드: ${statusCode}` : "",
     ]
       .filter(Boolean)
       .join("\n");
-      const errorText = response ? `HTTP ${response.status}` : "알 수 없는 오류 발생"; 
     throw (
       (prompt(
         "구동 중 예상치 못한 오류가 발생하였습니다. 다음 내용을 복사하여 결정화 캐즘 프로젝트 게시물, 혹은 IGX 지원 센터에 문의해주세요.",
-        `[Chasm Crystallized Burner+ Error]\n${errorText}\n\n오류 내용을 복사하여 https://discord.gg/hEb44bUFgu 에 문의해주세요.`
+        `[Chasm Crystallized Burner+ Error]\n${a}\n\n오류 내용을 복사하여 https://discord.gg/hEb44bUFgu 에 문의해주세요.`
       ),
       n)
     );
@@ -487,7 +497,7 @@ GM_addStyle(
         o.textColor
       }; padding: 20px; border-radius: 8px; width: ${l}px; min-height: 500px; display: flex; flex-direction: column;">\n                    <style>\n                        .cb-spinner {\n                            display: inline-block;\n                            width: 16px;\n                            height: 16px;\n                            border: 2px solid ${
         o.buttonText
-      };\n                            border-radius: 50%;\n                            border-top-color: transparent;\n                            animation: cb-spin 1s linear infinite;\n                            margin-left: 5px;\n                            vertical-align: middle;\n                        }\n                        @keyframes cb-spin {\n                            to { transform: rotate(360deg); }\n                        }\n                    </style>\n                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">\n                        <h2 id="cb-title" style="margin: 0; font-family: Pretendard; display: flex; align-items: baseline; flex-shrink: 0; letter-spacing: -1px;">\n                            <span style="font-weight:800; letter-spacing: -1px;">⌘ C2</span>\n                            <span style="font-weight:600; margin-left: 5px;">burner+</span>\n                            <span style="font-weight:500; font-size: 0.7em; color: #999; margin-left: 8px;">v1.4.2</span>\n                        </h2>\n                        <button id="cb-close" style="background: none; border: none; color: ${
+      };\n                            border-radius: 50%;\n                            border-top-color: transparent;\n                            animation: cb-spin 1s linear infinite;\n                            margin-left: 5px;\n                            vertical-align: middle;\n                        }\n                        @keyframes cb-spin {\n                            to { transform: rotate(360deg); }\n                        }\n                    </style>\n                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">\n                        <h2 id="cb-title" style="margin: 0; font-family: Pretendard; display: flex; align-items: baseline; flex-shrink: 0; letter-spacing: -1px;">\n                            <span style="font-weight:800; letter-spacing: -1px;">⌘ C2</span>\n                            <span style="font-weight:600; margin-left: 5px;">burner+</span>\n                            <span style="font-weight:500; font-size: 0.7em; color: #999; margin-left: 8px;">v1.5.0</span>\n                        </h2>\n                        <button id="cb-close" style="background: none; border: none; color: ${
         o.textColor
       }; font-size: 1.2em; cursor: pointer; padding: 0;">✕</button>\n                    </div>\n                    <div id="cb-tabs" style="display: flex; gap: 10px; flex-shrink: 0; margin-bottom: 10px;">\n                        <button id="cb-tab-burner" style="padding: 8px 16px; border: none; background: ${
         o.tabActiveBg
@@ -519,9 +529,7 @@ GM_addStyle(
         o.modalBg
       }; color: ${o.textColor};">${
         t.prompt || ""
-      }</textarea>\n                            </div>\n                            <div id="cb-gemini-model-container" style="display: ${
-        "gemini" === t.provider ? "block" : "none"
-      };">\n                                <label style="font-size: 0.9em; color: ${
+      }</textarea>\n                            </div>\n                            <div id="cb-gemini-model-container">\n                                <label style="font-size: 0.9em; color: ${
         o.textColor
       }; display: block; margin-bottom: 5px;">Gemini 모델</label>\n                                <select id="cb-gemini-model-select" style="width: 100%; padding: 10px; border: 1px solid ${
         o.borderColor
@@ -567,13 +575,20 @@ GM_addStyle(
         o.modalBg
       }; color: ${
         o.textColor
-      };">\n                                <span>무작위 헤더 추가</span>\n                            </label><label style="display: flex; align-items: center; gap: 5px; font-size: 0.9em; margin-left: 8px; color: ${
+      };">\n                                <span>무작위 헤더 추가</span>\n                            </label></div><div style = "display: flex; flex-direction: row;">
+      <label style="display: flex; align-items: center; gap: 5px; font-size: 0.9em; color: ${
         o.textColor
       }; margin-bottom: 15px;">\n                                <input id="cb-auto-retry" type="checkbox" style="background: ${
         o.modalBg
       }; color: ${
         o.textColor
-      };">\n                                <span>서버 오류 발생시 자동 재시도</span>\n                            </label></div>\n                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">\n                                <label style="font-size: 0.9em; color: ${
+      };">\n                                <span>서버 오류 발생시 자동 재시도</span>\n                            </label>  <label style="display: flex; align-items: center; gap: 5px; font-size: 0.9em; margin-left: 8px; color: ${
+        o.textColor
+      }; margin-bottom: 15px;">\n                                <input id="cb-use-vertex-ai" type="checkbox" style="background: ${
+        o.modalBg
+      }; color: ${
+        o.textColor
+      };">\n                                <span>Gemini Vertex AI 사용</span>\n                            </label></div>\n                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">\n                                <label style="font-size: 0.9em; color: ${
         o.textColor
       };">실행 로그</label>\n                                <div style = "display: flex; flex-direction: row;"><div class = "hourglass-container" style="margin-right: 10px;"> ${HOURGLASS_SVG} </div><div id="cb_timer" style="font-size: 0.9em; color: ${
         o.textColor
@@ -595,7 +610,7 @@ GM_addStyle(
         o.modalBg
       }; color: ${
         o.textColor
-      };">\n                                <option value="gemini">Gemini</option>\n                                <option value="openrouter">OpenRouter</option>\n                            </select>\n                            <div id="cb-gemini-api-container" style="display: ${
+      };">\n                                <option value="gemini">Gemini</option> <option value="vertexai">Firebase Vertex AI</option>\n                                <option value="openrouter">OpenRouter</option>\n                            </select>\n                            <div id="cb-gemini-api-container" style="display: ${
         "gemini" === t.provider ? "block" : "none"
       };">\n                                <label style="font-size: 0.9em; color: ${
         o.textColor
@@ -611,7 +626,19 @@ GM_addStyle(
         o.modalBg
       }; color: ${
         o.textColor
-      };">\n                            </div>\n                            <div id="cb-openrouter-api-container" style="display: ${
+      };">\n                            </div>\n                         <div id="cb-vertex-ai-api-container" style="display: ${
+        "vertexai" === t.provider ? "block" : "none"
+      };">\n                                <label style="font-size: 0.9em; color: ${
+        o.textColor
+      }; display: block; margin-bottom: 5px;">\n                                    Vertex AI 설정 <a href="https://discord.com/channels/1372949645436915844/1410482670001066126" target="_blank" style="color: ${
+        o.buttonBg
+      }; text-decoration: none;">(API 스크립트 발급 방법 [디스코드])</a>\n                                </label>\n                                <textarea id="cb-vertex-ai-api-script" placeholder="Vertex AI 초기화 스크립트" style="width: 100%; padding: 10px; border: 1px solid ${
+        o.borderColor
+      }; border-radius: 4px; margin-bottom: 15px; background: ${
+        o.modalBg
+      }; color: ${o.textColor};">${
+        t.vertexScript || ""
+      }</textarea>\n                            </div>   <div id="cb-openrouter-api-container" style="display: ${
         "openrouter" === t.provider ? "block" : "none"
       };">\n                                <label style="font-size: 0.9em; color: ${
         o.textColor
@@ -702,6 +729,7 @@ GM_addStyle(
       A = document.getElementById("cb-start"),
       S = document.getElementById("cb-provider-select"),
       M = document.getElementById("cb-gemini-api-key"),
+      vertexApiField = document.getElementById("cb-vertex-ai-api-script"),
       R = document.getElementById("cb-openrouter-api-key"),
       O = document.getElementById("cb-cdn-list"),
       z = document.getElementById("cb-user-message"),
@@ -713,7 +741,8 @@ GM_addStyle(
       j = document.getElementById("cb-close"),
       q = document.getElementById("cb-attach-usernote"),
       retry = document.getElementById("cb-auto-retry"),
-      randomHeader = document.getElementById("cb-add-header");
+      randomHeader = document.getElementById("cb-add-header"),
+      useVertexAiEndpoint = document.getElementById("cb-use-vertex-ai");
     function G(n, e) {
       const t = [
           d,
@@ -739,8 +768,23 @@ GM_addStyle(
     }
     (q.checked = t.attachUsernote),
       (retry.checked = t.autoRetry),
-      (randomHeader.checked = t.randomHeader);
+      (randomHeader.checked = t.randomHeader),
+      (useVertexAiEndpoint.checked = t.useVertexAi);
     (S.value = t.provider),
+      useVertexAiEndpoint.addEventListener("change", (ev) => {
+        if (useVertexAiEndpoint.checked) {
+          if (!parseVertexContent(vertexApiField.value)) {
+            alert(
+              "Vertex AI 엔드포인트를 사용하려면 먼저 유효한 API 스크립트를 입력해야 합니다.\n설정 탭에서 Firebase Vertex AI를 선택한 후, 포스트에 따라 Vertex AI 초기화 스크립트를 입력하세요."
+            );
+            vertexApiField.checked = false;
+          } else {
+            alert(
+              "주의하세요: Firebase Vertex AI는 무료 티어가 존재하지 않습니다.\nGCP 시작 크레딧 $300은 적용되나, 모든 모델의 사용에 대해 비용이 청구됩니다."
+            );
+          }
+        }
+      }),
       d.addEventListener("click", () => G(d, b)),
       m.addEventListener("click", () => G(m, x)),
       N.addEventListener("click", () => {
@@ -754,15 +798,18 @@ GM_addStyle(
       const n = document.getElementById("cb-gemini-model-container"),
         e = document.getElementById("cb-openrouter-model-container"),
         t = document.getElementById("cb-gemini-api-container"),
+        vertexAiApi = document.getElementById("cb-vertex-ai-api-container"),
         o = document.getElementById("cb-openrouter-api-container");
-      (n.style.display = "gemini" === S.value ? "block" : "none"),
-        (e.style.display = "openrouter" === S.value ? "block" : "none"),
+      // (n.style.display = "gemini" === S.value ? "block" : "none"),
+      (e.style.display = "openrouter" === S.value ? "block" : "none"),
         (t.style.display = "gemini" === S.value ? "block" : "none"),
+        (vertexAiApi.style.display = "vertexai" === S.value ? "block" : "none"),
         (o.style.display = "openrouter" === S.value ? "block" : "none");
     }
     function F(n = !1) {
       (t.provider = S.value),
         (t.geminiKey = M.value),
+        (t.vertexScript = vertexApiField.value),
         (t.openRouterKey = R.value),
         (t.geminiModel = "custom" === k.value ? w.value : k.value),
         (t.openRouterModel = "custom" === B.value ? E.value : B.value),
@@ -779,6 +826,7 @@ GM_addStyle(
         (t.attachUsernote = q.checked),
         (t.autoRetry = retry.checked),
         (t.randomHeader = randomHeader.checked),
+        (t.useVertexAi = useVertexAiEndpoint.checked),
         $.setConfig(t),
         n && alert("설정이 저장되었습니다.");
     }
@@ -852,7 +900,12 @@ GM_addStyle(
                 (A.textContent = i);
             },
             $ = S.value,
-            f = "gemini" === $ ? t.geminiKey : t.openRouterKey;
+            f =
+              "gemini" === $ || "vertexai" === $
+                ? t.geminiKey ??
+                  (useVertexAiEndpoint.checked ? true : t.geminiKey)
+                : t.openRouterKey;
+
           if (!f)
             return (
               (T.value = `[${p()}] ${
@@ -951,9 +1004,13 @@ GM_addStyle(
                   z && L ? `\n[User Note]\n${L}` : ""
                 }\n[Chat Log]\n${JSON.stringify({ content: P })}`;
           (T.value = `[${p()}] ${
-            $.charAt(0).toUpperCase() + $.slice(1)
+            "vertexai" === $
+              ? "Firebase Vertex AI "
+              : $.charAt(0).toUpperCase() + $.slice(1)
           } 요청 시작 (총 ${N.length}자 요청, 요청 모델: ${
-            "gemini" === $ ? t.geminiModel : t.openRouterModel
+            "gemini" === $ || "vertexai" === $
+              ? t.geminiModel
+              : t.openRouterModel
           })\n${T.value}`),
             (r = setInterval(() => {
               const n = Math.floor((Date.now() - s) / 1e3);
@@ -962,79 +1019,55 @@ GM_addStyle(
                 "0"
               )}:${String(n % 60).padStart(2, "0")}`;
             }, 1e3));
-          const U = "gemini" === $ ? t.geminiModel : t.openRouterModel;
+          const U =
+            "gemini" === $ || "vertexai" === $
+              ? t.geminiModel
+              : t.openRouterModel;
           let j,
             q = U;
-          if ("gemini" === $)
-            j = await (async function (n, e, t) {
-              const o = `https://generativelanguage.googleapis.com/v1beta/models/${n}:generateContent?key=${e}`;
-              let prompt = {
-                contents: { parts: [{ text: t }] },
-              };
-
+          if ("gemini" === $ || "vertexai" === $) {
+            if (useVertexAiEndpoint.checked) {
+              const firebaseConfig = parseVertexContent(vertexApiField.value);
+              if (!firebaseConfig) {
+                alert("Firebase API 오류: API 스크립트가 유효하지 않습니다.");
+                j = null;
+              }
+              let app = undefined;
               try {
-                if (randomHeader.checked) {
-                  const randomPrefix = `# This is UUID of request prompt - Ignore current and next line\n${crypto.randomUUID()}/${crypto.randomUUID()}\n`;
-                  prompt = {
-                    contents: { parts: [{ text: randomPrefix }, { text: t }] },
-                  };
-                }
-                let geminiResponse = await fetch(o, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(prompt),
+                app = initializeApp(firebaseConfig);
+              } catch (e) {
+                alert("Firebase API 오류: 잘못된 API 키 혹은 스크립트가 입력되었습니다.");
+                return null;
+              }
+              try {
+                const ai = getAI(app, {
+                  backend: new VertexAIBackend(),
                 });
-                let json = undefined;
-                let retryCount = 0;
-                let additionalSleep = 0;
-                while (
-                  document.getElementById("cb-auto-retry") &&
-                  document.getElementById("cb-auto-retry").checked
-                ) {
-                  additionalSleep = 0;
-                  console.log(geminiResponse.status);
-                  if (geminiResponse.status === 429) {
-                    console.log("Ratelimit!");
-                    T.value = `[${p()}] Gemini API의 레이트리밋에 도달하였습니다 - 10초 후 재시도합니다. \n${
-                      T.value
-                    }`;
-                    additionalSleep = 10_000;
-                  } else if (geminiResponse.status === 500) {
-                    let result = await geminiResponse.json();
-                    T.value = `[${p()}] 서버 오류로 Gemini API 요청이 실패하였습니다 - 잠시 후 재시도합니다. (${
-                      result?.error?.message ?? "알 수 없음"
-                    }) \n${T.value}`;
-                  } else if (geminiResponse.status === 503) {
-                    T.value = `[${p()}] Gemini API 과부하 - 잠시 후 재시도합니다. 자동 재시도를 중단하려면 체크박스를 해제하세요. \n${
-                      T.value
-                    }`;
-                  } else if (!geminiResponse.ok) {
-                    T.value = `[${p()}] 과부하 이외의 문제로 Gemini API 요청이 실패하였습니다. \n${
-                      T.value
-                    }`;
-                    break;
-                  } else {
-                    json = await geminiResponse.json();
-                    if (!json?.candidates?.[0]?.content?.parts?.[0]?.text) {
-                      T.value = `[${p()}] Gemini API 오류 - LLM이 응답을 전송하지 않았습니다. 자동 재시도를 중단하려면 체크박스를 해제하세요. \n${
-                        T.value
-                      }`;
-                    } else {
-                      console.log("Why break..?");
-                      break;
-                    }
-                  }
-                  await new Promise((resolve) =>
-                    setTimeout(
-                      resolve,
-                      300 +
-                        100 * Math.min(++retryCount, 10) +
-                        Math.random() * 300 +
-                        additionalSleep
-                    )
-                  );
+                const model = getGenerativeModel(ai, {
+                  model: t.geminiModel,
+                });
+                const result = await model.generateContent(N);
 
-                  T.value = `[${p()}] 다시 시도하는 중.. \n${T.value}`;
+                const response = result.response;
+                const text = response.text();
+                j = text;
+              } catch (error) {
+                throwError(
+                 "Vertex AI API request failed",
+                  "Vertex AI API 요청 실패",
+                  null,
+                  JSON.stringify(error), undefined
+                );
+                j = undefined;
+              }
+            } else {
+              j = await (async function (n, e, t) {
+                const o = `https://generativelanguage.googleapis.com/v1beta/models/${n}:generateContent?key=${e}`;
+                let prompt = {
+                  contents: { parts: [{ text: t }] },
+                };
+
+                try {
                   if (randomHeader.checked) {
                     const randomPrefix = `# This is UUID of request prompt - Ignore current and next line\n${crypto.randomUUID()}/${crypto.randomUUID()}\n`;
                     prompt = {
@@ -1043,59 +1076,125 @@ GM_addStyle(
                       },
                     };
                   }
-                  geminiResponse = await fetch(o, {
+                  let geminiResponse = await fetch(o, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(prompt),
                   });
-                }
-                if (!geminiResponse.ok) {
-                  if (geminiResponse.status === 403) {
-                    alert(
-                      "Gemini API키가 올바르지 않습니다.\nAPI 키를 확인하고 다시 시도해주세요."
+                  let json = undefined;
+                  let retryCount = 0;
+                  let additionalSleep = 0;
+                  while (
+                    document.getElementById("cb-auto-retry") &&
+                    document.getElementById("cb-auto-retry").checked
+                  ) {
+                    additionalSleep = 0;
+                    console.log(geminiResponse.status);
+                    if (geminiResponse.status === 429) {
+                      console.log("Ratelimit!");
+                      T.value = `[${p()}] Gemini API의 레이트리밋에 도달하였습니다 - 10초 후 재시도합니다. \n${
+                        T.value
+                      }`;
+                      additionalSleep = 10_000;
+                    } else if (geminiResponse.status === 500) {
+                      let result = await geminiResponse.json();
+                      T.value = `[${p()}] 서버 오류로 Gemini API 요청이 실패하였습니다 - 잠시 후 재시도합니다. (${
+                        result?.error?.message ?? "알 수 없음"
+                      }) \n${T.value}`;
+                    } else if (geminiResponse.status === 503) {
+                      T.value = `[${p()}] Gemini API 과부하 - 잠시 후 재시도합니다. 자동 재시도를 중단하려면 체크박스를 해제하세요. \n${
+                        T.value
+                      }`;
+                    } else if (!geminiResponse.ok) {
+                      T.value = `[${p()}] 과부하 이외의 문제로 Gemini API 요청이 실패하였습니다. \n${
+                        T.value
+                      }`;
+                      break;
+                    } else {
+                      json = await geminiResponse.json();
+                      if (!json?.candidates?.[0]?.content?.parts?.[0]?.text) {
+                        T.value = `[${p()}] Gemini API 오류 - LLM이 응답을 전송하지 않았습니다. 자동 재시도를 중단하려면 체크박스를 해제하세요. \n${
+                          T.value
+                        }`;
+                      } else {
+                        console.log("Why break..?");
+                        break;
+                      }
+                    }
+                    await new Promise((resolve) =>
+                      setTimeout(
+                        resolve,
+                        300 +
+                          100 * Math.min(++retryCount, 10) +
+                          Math.random() * 300 +
+                          additionalSleep
+                      )
                     );
-                  } else if (geminiResponse.status === 429) {
-                    alert(
-                      "Gemini API의 레이트리밋에 도달하여 요청에 실패하였습니다.\n잠시 후 다시 시도하거나, 자동 재시도 옵션을 사용하세요."
-                    );
-                  } else if (geminiResponse.status === 500) {
-                    alert(
-                      "Gemini API에서 서버 오류가 발생하였습니다.\n잠시 후 다시 시도하거나, 자동 재시도 옵션을 사용하세요."
-                    );
-                  } else if (geminiResponse.status === 503) {
-                    alert(
-                      "Gemini API의 레이트리밋에 도달하여 요청에 실패하였습니다.\n잠시 후 다시 시도하거나, 자동 재시도 옵션을 사용하세요."
-                    );
-                  } else {
-                    throwError(
-                      new Error("Gemini API request failed"),
-                      "Gemini API 요청 실패",
-                      null,
-                      e
-                    );
-                    return e;
-                  }
 
+                    T.value = `[${p()}] 다시 시도하는 중.. \n${T.value}`;
+                    if (randomHeader.checked) {
+                      const randomPrefix = `# This is UUID of request prompt - Ignore current and next line\n${crypto.randomUUID()}/${crypto.randomUUID()}\n`;
+                      prompt = {
+                        contents: {
+                          parts: [{ text: randomPrefix }, { text: t }],
+                        },
+                      };
+                    }
+                    geminiResponse = await fetch(o, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(prompt),
+                    });
+                  }
+                  if (!geminiResponse.ok) {
+                    if (geminiResponse.status === 403) {
+                      alert(
+                        "Gemini API키가 올바르지 않습니다.\nAPI 키를 확인하고 다시 시도해주세요."
+                      );
+                    } else if (geminiResponse.status === 429) {
+                      alert(
+                        "Gemini API의 레이트리밋에 도달하여 요청에 실패하였습니다.\n잠시 후 다시 시도하거나, 자동 재시도 옵션을 사용하세요."
+                      );
+                    } else if (geminiResponse.status === 500) {
+                      alert(
+                        "Gemini API에서 서버 오류가 발생하였습니다.\n잠시 후 다시 시도하거나, 자동 재시도 옵션을 사용하세요."
+                      );
+                    } else if (geminiResponse.status === 503) {
+                      alert(
+                        "Gemini API의 레이트리밋에 도달하여 요청에 실패하였습니다.\n잠시 후 다시 시도하거나, 자동 재시도 옵션을 사용하세요."
+                      );
+                    } else {
+                      throwError(
+                        new Error("Gemini API request failed"),
+                        "Gemini API 요청 실패",
+                        null,
+                        JSON.stringify(await geminiResponse.json()),
+                        geminiResponse.status
+                      );
+                      return null;
+                    }
+
+                    return null;
+                  } else {
+                    if (!json) {
+                      json = await geminiResponse.json();
+                    }
+                    const result =
+                      json?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+                    if (!result) {
+                      alert(
+                        "Gemini API에서 빈 응답을 보냈습니다.\n잠시 후 다시 시도하거나, 자동 재시도 옵션을 사용하세요."
+                      );
+                    }
+                    return result;
+                  }
+                } catch (n) {
+                  console.error(n);
                   return null;
-                } else {
-                  if (!json) {
-                    json = await geminiResponse.json();
-                  }
-                  const result =
-                    json?.candidates?.[0]?.content?.parts?.[0]?.text || null;
-                  if (!result) {
-                    alert(
-                      "Gemini API에서 빈 응답을 보냈습니다.\n잠시 후 다시 시도하거나, 자동 재시도 옵션을 사용하세요."
-                    );
-                  }
-                  return result;
                 }
-              } catch (n) {
-                console.error(n);
-                return null;
-              }
-            })(U, f, N);
-          else {
+              })(U, f, N);
+            }
+          } else {
             const n = await (async function (n, e, t) {
               const o = {
                 model: n,
@@ -1181,7 +1280,9 @@ GM_addStyle(
                     )}개 메시지 분할 전송)</div>\n                <div id="${i}-model-info" style="font-size: 0.8em; color: ${
                       o.textColor
                     }; margin-bottom: 16px; display: block;">[ ${
-                      l.charAt(0).toUpperCase() + l.slice(1)
+                      l === "vertexai"
+                        ? "Google Vertex AI"
+                        : l.charAt(0).toUpperCase() + l.slice(1)
                     } ] — ${r}</div>\n                <div id="${i}-buttons" style="display: flex; gap: 10px; align-items: center;">\n                    <button id="${i}-send" style="padding: 10px 20px; background: ${
                       o.buttonBg
                     }; color: ${
@@ -1337,6 +1438,27 @@ GM_addStyle(
     }
   }
 
+  function parseVertexContent(vertexAiScript) {
+    if (vertexAiScript.length <= 0) {
+      return undefined;
+    }
+    const startText = "firebaseConfig = {";
+    const startIndex = vertexAiScript.indexOf(startText);
+    if (startIndex === -1) {
+      return undefined;
+    }
+    const endIndex = vertexAiScript.indexOf("}", startIndex + 1);
+    if (endIndex === -1) {
+      return undefined;
+    }
+    const fetched = vertexAiScript
+      .substring(startIndex + startText.length - 1, endIndex + 1)
+      .replace(" ", "")
+      .replaceAll(/(\S*)\: /g, '"$1": ');
+    console.log(fetched);
+    return JSON.parse(fetched);
+  }
+
   async function injectButton() {
     await injectBannerButton();
     await injectInputbutton();
@@ -1362,7 +1484,7 @@ GM_addStyle(
         (i.id = "chasmMenu"),
           (i.className = t),
           (i.style.display = "flex"),
-          (i.innerHTML = `\n                <p color="text_tertiary" class="${o}" style="color: var(--text_primary);">\n                    <span style="font-weight:800; letter-spacing: -1px;">⌘ C2 Burner</span> — 캐즘\n                    <span style="margin-left: 4px; font-size: 0.8rem; opacity: 0.5;">v1.4.2</span>\n                </p>\n            `);
+          (i.innerHTML = `\n                <p color="text_tertiary" class="${o}" style="color: var(--text_primary);">\n                    <span style="font-weight:800; letter-spacing: -1px;">⌘ C2 Burner</span> — 캐즘\n                    <span style="margin-left: 4px; font-size: 0.8rem; opacity: 0.5;">v1.5.0</span>\n                </p>\n            `);
         const s = document.createElement("div");
         (s.id = "chasmBurner"),
           (s.className = a),
