@@ -27,7 +27,7 @@ GM_addStyle(
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
   );
-  const { getAI, getGenerativeModel, VertexAIBackend } = await import(
+  const { HarmBlockThreshold, HarmCategory, getAI, getGenerativeModel, VertexAIBackend } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-ai.js"
   );
 
@@ -904,18 +904,21 @@ GM_addStyle(
               "gemini" === $ || "vertexai" === $
                 ? t.geminiKey ??
                   (useVertexAiEndpoint.checked ? true : t.geminiKey)
-                : t.openRouterKey;
-
+                : t.openRouterKey,
+            providerDisplay =
+              "gemini" === $
+                ? "Gemini"
+                : "vertexai" === $
+                ? useVertexAiEndpoint.checked
+                  ? "Firebase Vertex AI"
+                  : "Gemini"
+                : $.charAt(0).toUpperCase() + $.slice(1);
           if (!f)
             return (
-              (T.value = `[${p()}] ${
-                $.charAt(0).toUpperCase() + $.slice(1)
-              } API 키가 없습니다.\n${T.value}`),
-              alert(
-                `${
-                  $.charAt(0).toUpperCase() + $.slice(1)
-                } API 키를 설정 탭에서 입력해주세요.`
-              ),
+              (T.value = `[${p()}] ${providerDisplay} API 키가 없습니다.\n${
+                T.value
+              }`),
+              alert(`${providerDisplay} API 키를 설정 탭에서 입력해주세요.`),
               G(m, x),
               void b()
             );
@@ -1036,15 +1039,36 @@ GM_addStyle(
               try {
                 app = initializeApp(firebaseConfig);
               } catch (e) {
-                alert("Firebase API 오류: 잘못된 API 키 혹은 스크립트가 입력되었습니다.");
+                alert(
+                  "Firebase API 오류: 잘못된 API 키 혹은 스크립트가 입력되었습니다."
+                );
                 return null;
               }
               try {
                 const ai = getAI(app, {
                   backend: new VertexAIBackend(),
                 });
+                const safetySettings = [
+                  {
+                    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                    threshold: HarmBlockThreshold.OFF,
+                  },
+                  {
+                    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                    threshold: HarmBlockThreshold.OFF,
+                  },
+                  {
+                    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+                    threshold: HarmBlockThreshold.OFF,
+                  },
+                  {
+                    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                    threshold: HarmBlockThreshold.OFF,
+                  }
+                ];
+
                 const model = getGenerativeModel(ai, {
-                  model: t.geminiModel,
+                  model: t.geminiModel, safetySettings
                 });
                 const result = await model.generateContent(N);
 
@@ -1052,18 +1076,43 @@ GM_addStyle(
                 const text = response.text();
                 j = text;
               } catch (error) {
+                console.log(error);
                 throwError(
-                 "Vertex AI API request failed",
+                  "Vertex AI API request failed",
                   "Vertex AI API 요청 실패",
                   null,
-                  JSON.stringify(error), undefined
+                  JSON.stringify(error),
+                  undefined
                 );
                 j = undefined;
               }
             } else {
               j = await (async function (n, e, t) {
                 const o = `https://generativelanguage.googleapis.com/v1beta/models/${n}:generateContent?key=${e}`;
+                const safetySettings = [
+                  {
+                    category: "HARM_CATEGORY_HARASSMENT",
+                    threshold: "BLOCK_NONE",
+                  },
+                  {
+                    category: "HARM_CATEGORY_HATE_SPEECH",
+                    threshold: "BLOCK_NONE",
+                  },
+                  {
+                    category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    threshold: "BLOCK_NONE",
+                  },
+                  {
+                    category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    threshold: "BLOCK_NONE",
+                  },
+                  {
+                    category: "HARM_CATEGORY_CIVIC_INTEGRITY",
+                    threshold: "BLOCK_NONE",
+                  },
+                ];
                 let prompt = {
+                  safetySettings: safetySettings,
                   contents: { parts: [{ text: t }] },
                 };
 
@@ -1071,6 +1120,7 @@ GM_addStyle(
                   if (randomHeader.checked) {
                     const randomPrefix = `# This is UUID of request prompt - Ignore current and next line\n${crypto.randomUUID()}/${crypto.randomUUID()}\n`;
                     prompt = {
+                      safetySettings: safetySettings,
                       contents: {
                         parts: [{ text: randomPrefix }, { text: t }],
                       },
@@ -1089,9 +1139,7 @@ GM_addStyle(
                     document.getElementById("cb-auto-retry").checked
                   ) {
                     additionalSleep = 0;
-                    console.log(geminiResponse.status);
                     if (geminiResponse.status === 429) {
-                      console.log("Ratelimit!");
                       T.value = `[${p()}] Gemini API의 레이트리밋에 도달하였습니다 - 10초 후 재시도합니다. \n${
                         T.value
                       }`;
@@ -1135,6 +1183,7 @@ GM_addStyle(
                     if (randomHeader.checked) {
                       const randomPrefix = `# This is UUID of request prompt - Ignore current and next line\n${crypto.randomUUID()}/${crypto.randomUUID()}\n`;
                       prompt = {
+                        safetySettings: safetySettings,
                         contents: {
                           parts: [{ text: randomPrefix }, { text: t }],
                         },
@@ -1455,7 +1504,6 @@ GM_addStyle(
       .substring(startIndex + startText.length - 1, endIndex + 1)
       .replace(" ", "")
       .replaceAll(/(\S*)\: /g, '"$1": ');
-    console.log(fetched);
     return JSON.parse(fetched);
   }
 
