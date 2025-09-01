@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Copy (결정화 캐즘 카피)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-COPY-v1.1.3
+// @version     CRYS-COPY-v1.1.4
 // @description 크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -55,12 +55,12 @@
 
   function acquireMenuElements() {
     // Dark mode
-    let data = document.querySelectorAll(".css-1phiq9z");
+    let data = document.querySelectorAll(".css-19fu3mx");
     if (data && data.length > 0) {
       return data;
     }
     // Light mode
-    return document.querySelectorAll(".css-ywqzoc");
+    return document.querySelectorAll(".css-19fu3mx");
   }
 
   function acquireMenu() {
@@ -82,7 +82,9 @@
       decodeParameter("access_token") &&
       o(document.body, () => {
         acquireMenuElements().forEach((t) => {
+          const t2 = t;
           t.onclick = () => {
+            
             const e = (function (t) {
               try {
                 const e = t.parentElement?.parentElement;
@@ -94,8 +96,12 @@
                 const r = e[a];
                 if (!r?.children) return null;
                 const n = Array.isArray(r.children) ? r.children : [r.children];
-                for (const t of n)
-                  if (t?.props?.character?._id) return t.props.character._id;
+                for (const t of n) {
+                  if (t?.props?.character?._id) {
+                    console.log(t2);
+                    return t.props.character._id;
+                  }
+                }
                 return null;
               } catch (t) {
                 return null;
