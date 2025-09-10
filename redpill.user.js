@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized RedPill (결정화 캐즘 붉은약)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-PILL-v1.3.0
+// @version     CRYS-PILL-v1.3.1
 // @description 크랙의 통계 수정 및 데이터 표시 개선. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -11,7 +11,8 @@
 // ==/UserScript==
 GM_addStyle(
   'body[data-theme="dark"] .red-pill-realtime-usage { color: #F0EFEB; font-weight: bold; font-size: 12px;}' +
-    'body[data-theme="light"] .red-pill-realtime-usage {color: #1A1918; font-weight: bold; font-size: 12px;}'
+    'body[data-theme="light"] .red-pill-realtime-usage {color: #1A1918; font-weight: bold; font-size: 12px;}' + 
+    '.red-pill-refresh-button { padding: 0px 12px; border: 1px solid rgb(66, 65, 61); height: 28px; color: rgb(240, 239, 235); font-size: 14px; margin-right: 5px; border-radius: 4px; }'
 );
 (function () {
   let isIntegrationMode = false;
@@ -642,7 +643,7 @@ GM_addStyle(
                 <span style="font-weight:600; margin-left: 5px; color: #ff0000;">redpill</span>
                 <span style="font-weight:500; font-size: 0.7em; color: ${
                   darkTheme ? "#777" : "#999"
-                }; margin-left: 8px;">${"v1.3.0"}</span>
+                }; margin-left: 8px;">${"v1.3.1"}</span>
             `;
       const r = document.createElement("button");
       r.id = "cr-close";
@@ -1082,7 +1083,7 @@ GM_addStyle(
     button.setAttribute("color", "text_primary");
     button.style.cssText = "margin-right: 5px";
     button.innerHTML =
-      '<div display="flex" width="100%" class="css-1gs21jv efhw7t80">통계 새로고침</div>';
+      '<div display="flex" width="100%" class="css-1dp6yu8 eh9908w0">통계 새로고침</div>';
     div.append(button);
     panel.childNodes[0].insertBefore(div, panel.childNodes[0].childNodes[2]);
     div.addEventListener("click", () => {
@@ -1101,12 +1102,12 @@ GM_addStyle(
       processing = true;
       div.style.cssText = 'style = "background-color: #9c9c9c87;"';
       button.innerHTML =
-        '<div display="flex" width="100%" class="css-1gs21jv efhw7t80">불러오는 중..</div>';
+        '<div display="flex" width="100%" class="css-1dp6yu8 eh9908w0">불러오는 중..</div>';
       safeLoadAll().then(() => {
         processing = false;
         div.style.cssText = "";
         button.innerHTML =
-          '<div display="flex" width="100%" class="css-1gs21jv efhw7t80">통계 새로고침</div>';
+          '<div display="flex" width="100%" class="css-1dp6yu8 eh9908w0">통계 새로고침</div>';
 
         injectAllCrackerUsage(cachedResult);
       });
