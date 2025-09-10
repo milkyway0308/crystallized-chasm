@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Burner+ (결정화 캐즘 버너+)
 // @namespace   https://github.com/chasm-js
-// @version     CRYS-BURN-v1.5.2
+// @version     CRYS-BURN-v1.5.3
 // @description 크랙 캐릭터 채팅 요약 및 반영. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -65,7 +65,7 @@ GM_addStyle(
     ).padStart(2, "0")}`;
   }
   function u() {
-    const n = location.pathname.match(/\/u\/([a-f0-9]+)\/c\/([a-f0-9]+)/);
+    const n = location.pathname.match(/\/characters\/([a-f0-9]+)\/chats\/([a-f0-9]+)/);
     return n ? { characterId: n[1], chatroomId: n[2] } : null;
   }
   function extractCookie(key) {
