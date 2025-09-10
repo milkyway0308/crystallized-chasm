@@ -82,7 +82,7 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 캐릭터의 원본 데이터를 JSON 형태로 추출하거나 개정된 원본 데이터를 붙여넣고,<br>
 캐릭터를 복사하여 새로 게시하는 기능을 컨텍스트 메뉴에 추가합니다. <br>
 
-## 결정화 캐즘 - 붉은 약 (v1.3.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js) ]<br>
+## 결정화 캐즘 - 붉은 약 (v1.3.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js) ]<br>
 
 혹시 내가 얼마나 돈을 썼는지 보고 내상을 입고 싶지 않으신가요?<br>
 그게 아니라면 내가 어떤 캐릭터를 가장 애정하는지 수치로 알고 싶지 않으신가요?<br>
