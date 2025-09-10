@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Burner+ (결정화 캐즘 버너+)
 // @namespace   https://github.com/chasm-js
-// @version     CRYS-BURN-v1.5.1
+// @version     CRYS-BURN-v1.5.2
 // @description 크랙 캐릭터 채팅 요약 및 반영. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -507,7 +507,7 @@ GM_addStyle(
         o.textColor
       }; padding: 20px; border-radius: 8px; width: ${l}px; min-height: 500px; display: flex; flex-direction: column;">\n                    <style>\n                        .cb-spinner {\n                            display: inline-block;\n                            width: 16px;\n                            height: 16px;\n                            border: 2px solid ${
         o.buttonText
-      };\n                            border-radius: 50%;\n                            border-top-color: transparent;\n                            animation: cb-spin 1s linear infinite;\n                            margin-left: 5px;\n                            vertical-align: middle;\n                        }\n                        @keyframes cb-spin {\n                            to { transform: rotate(360deg); }\n                        }\n                    </style>\n                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">\n                        <h2 id="cb-title" style="margin: 0; font-family: Pretendard; display: flex; align-items: baseline; flex-shrink: 0; letter-spacing: -1px;">\n                            <span style="font-weight:800; letter-spacing: -1px;">⌘ C2</span>\n                            <span style="font-weight:600; margin-left: 5px;">burner+</span>\n                            <span style="font-weight:500; font-size: 0.7em; color: #999; margin-left: 8px;">v1.5.1</span>\n                        </h2>\n                        <button id="cb-close" style="background: none; border: none; color: ${
+      };\n                            border-radius: 50%;\n                            border-top-color: transparent;\n                            animation: cb-spin 1s linear infinite;\n                            margin-left: 5px;\n                            vertical-align: middle;\n                        }\n                        @keyframes cb-spin {\n                            to { transform: rotate(360deg); }\n                        }\n                    </style>\n                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">\n                        <h2 id="cb-title" style="margin: 0; font-family: Pretendard; display: flex; align-items: baseline; flex-shrink: 0; letter-spacing: -1px;">\n                            <span style="font-weight:800; letter-spacing: -1px;">⌘ C2</span>\n                            <span style="font-weight:600; margin-left: 5px;">burner+</span>\n                            <span style="font-weight:500; font-size: 0.7em; color: #999; margin-left: 8px;">v1.5.2</span>\n                        </h2>\n                        <button id="cb-close" style="background: none; border: none; color: ${
         o.textColor
       }; font-size: 1.2em; cursor: pointer; padding: 0;">✕</button>\n                    </div>\n                    <div id="cb-tabs" style="display: flex; gap: 10px; flex-shrink: 0; margin-bottom: 10px;">\n                        <button id="cb-tab-burner" style="padding: 8px 16px; border: none; background: ${
         o.tabActiveBg
@@ -1462,10 +1462,11 @@ GM_addStyle(
       return;
     }
     // Top element
-    const data = document.getElementsByClassName("css-2j5iyq");
+    const data = document.getElementsByClassName("css-1bhbevm");
     if (data && data.length > 0) {
       const top = data[0];
       const buttonCloned = top.childNodes[0].cloneNode(true);
+      buttonCloned.style.cssText = "margin-right: 10px";
       buttonCloned.className = "burner-test-button " + buttonCloned.className;
       const textNode = buttonCloned.getElementsByTagName("p");
       const imageNode = buttonCloned.getElementsByTagName("img");
@@ -1483,7 +1484,7 @@ GM_addStyle(
       return;
     }
     // Top element
-    const data = document.getElementsByClassName("css-v66jlo");
+    const data = document.getElementsByClassName("css-1ri906y");
     if (data && data.length > 0) {
       const top = data[0].parentElement;
       const buttonCloned = top.childNodes[1].cloneNode(true);
@@ -1524,8 +1525,9 @@ GM_addStyle(
   }
 
   async function addChasmButton() {
-    if (!/\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)) return;
-    const n = document.querySelector(".css-uxwch2");
+    if (!/\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname)) return;
+    console.log("A1");
+    const n = document.querySelector(".css-j7qwjs");
     await injectButton();
     if (
       n &&
@@ -1543,7 +1545,7 @@ GM_addStyle(
         (i.id = "chasmMenu"),
           (i.className = t),
           (i.style.display = "flex"),
-          (i.innerHTML = `\n                <p color="text_tertiary" class="${o}" style="color: var(--text_primary);">\n                    <span style="font-weight:800; letter-spacing: -1px;">⌘ C2 Burner</span> — 캐즘\n                    <span style="margin-left: 4px; font-size: 0.8rem; opacity: 0.5;">v1.5.1</span>\n                </p>\n            `);
+          (i.innerHTML = `\n                <p color="text_tertiary" class="${o}" style="color: var(--text_primary);">\n                    <span style="font-weight:800; letter-spacing: -1px;">⌘ C2 Burner</span> — 캐즘\n                    <span style="margin-left: 4px; font-size: 0.8rem; opacity: 0.5;">v1.5.2</span>\n                </p>\n            `);
         const s = document.createElement("div");
         (s.id = "chasmBurner"),
           (s.className = a),
