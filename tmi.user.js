@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized TMI (캐즘 과포화)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-TMI-v1.3.0
+// @version      CRYS-TMI-v1.3.1
 // @description  크랙 UI에 추가 정보 제공. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
@@ -15,6 +15,7 @@
   let updating = false;
   let updateStoppedAt = new Date();
   let fetched = false;
+  let requireReupdate = false;
 
   function updateCracker(cracker) {
     initialCracker = cracker;
@@ -37,7 +38,7 @@
   }
 
   function updateCrackerText(cracker) {
-    const buttonElements = document.getElementsByClassName("css-1jrgdy");
+    const buttonElements = document.getElementsByClassName("css-5q07im");
     if (!buttonElements || buttonElements.length <= 0) {
       logWarning("No cracker button found; Does crack updated?");
       return;
@@ -128,8 +129,11 @@
   }
 
   function updateRemainingText(cracker) {
-    const targets = document.getElementsByClassName("css-1bhbevm");
-    if (!targets || targets.length <= 0) return;
+    let targets = document.getElementsByClassName("css-1bhbevm");
+    if (!targets || targets.length <= 0) {
+      return;
+    }
+    targets = targets[0].childNodes;
     const currentTarget = targets[targets.length - 1];
     const textTag = currentTarget.getElementsByTagName("p")[0];
     let expectedChatType = "";
@@ -299,6 +303,7 @@
   }
 
   async function doInitialize() {
+    console.log("Called?");
     if (updating) return;
     if (!doesInitialized) {
       doesInitialized = true;
@@ -313,6 +318,12 @@
         updating = false;
         return;
       }
+        updating = false;
+    }
+    if (requireReupdate) {
+      console.log("Re-update");
+      requireReupdate = false;
+      updateCracker(lastCracker);
     }
     if (isARPGPath()) {
       // Let's use more modern and solid solution
