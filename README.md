@@ -76,11 +76,13 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 **결정화 캐즘 프로젝트는 스크립트별로 기능이 분리됩니다.**<br>
 **반드시 모든 스크립트를 설치할 필요는 없습니다. 필요한 기능만 골라 설치하세요.**
 
-## 결정화 캐즘 - 카피 (v1.1.4) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/copy.user.js) ]<br>
+## 결정화 캐즘 - 네오-카피(v2.0.0) / 카피 (v1.1.4) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/neocopy.user.js) / [구버전 설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/copy.user.js) ]<br>
 
 결정화 캐즘 카피는 크랙 캐릭터 제작자를 위한 보조 도구입니다.<br>
 캐릭터의 원본 데이터를 JSON 형태로 추출하거나 개정된 원본 데이터를 붙여넣고,<br>
 캐릭터를 복사하여 새로 게시하는 기능을 컨텍스트 메뉴에 추가합니다. <br>
+> ⚠ 결정화 캐즘 네오-카피는 구버전 카피와 호환되지 않습니다.
+> 결정화 캐즘 네오-카피는 완전히 재작성되어 독립된 캐즘 카피입니다.
 
 ## 결정화 캐즘 - 붉은 약 (v1.3.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js) ]<br>
 
