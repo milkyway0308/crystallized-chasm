@@ -303,7 +303,6 @@
   }
 
   async function doInitialize() {
-    console.log("Called?");
     if (updating) return;
     if (!doesInitialized) {
       doesInitialized = true;
@@ -321,9 +320,8 @@
         updating = false;
     }
     if (requireReupdate) {
-      console.log("Re-update");
       requireReupdate = false;
-      updateCracker(lastCracker);
+      updateCracker(initialCracker);
     }
     if (isARPGPath()) {
       // Let's use more modern and solid solution
