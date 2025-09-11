@@ -15,7 +15,7 @@
   let lastSelected = 0;
   function check() {
     if (updating) return;
-    const elements = document.querySelectorAll(".message-bubble .css-u4p24i");
+    const elements = document.querySelectorAll(".css-n55rwb .css-1bamzls");
     if (!elements) {
       return;
     }
