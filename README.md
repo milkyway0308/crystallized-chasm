@@ -109,6 +109,10 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 길고 긴 채팅창 세션 목록은 이제 안녕, 결정화 캐즘 폴드와 함께 더 짧은 세션 목록을 사용해보세요!<br>
 결정화 캐즘 폴드는 세션 목록을 같은 캐릭터 단위로 묶어 세션 목록에 대신 출력해줍니다.<br>
 
+## 결정화 캐즘 - 계수기 (v1.0.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js) ]<br>
+
+결정화 캐즘 계수기는 채팅 입력 칸 위에 현재 채팅이 진행된 턴 수를 표시해줍니다.<br>
+
 ## 결정화 캐즘 - 뮤트 (v1.0.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/mute.user.js) ]<br>
 
 결정화 캐즘 뮤트는 채팅창에서 TTS 버튼을 완전히 삭제해줍니다.<br>
@@ -123,8 +127,6 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 
 > ⚠ 삭제 기능은 대단히 위험한 기능입니다. 결정화 캐즘의 개발자는 네뷸라이저의 대량 자동 삭제 기능을 사용함으로써 발생하는 문제에 대해 책임지지 않습니다.<br>
 > 로컬 환경에서는 문제 없이 정상 작동하는 것이 확인되었습니다.
-
-
 
 ## 결정화 캐즘 - 차원이동 (v1.2.3) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/alternation.user.js) ]<br>
 
