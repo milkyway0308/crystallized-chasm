@@ -1081,7 +1081,6 @@ GM_addStyle(
     button.className = expectedClass;
     button.display = "flex";
     button.setAttribute("color", "text_primary");
-    button.style.cssText = "margin-right: 5px";
     button.innerHTML =
       '<div display="flex" width="100%" class="css-1dp6yu8 eh9908w0">통계 새로고침</div>';
     div.append(button);
