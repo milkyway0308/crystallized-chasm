@@ -12,7 +12,7 @@
 GM_addStyle(
   'body[data-theme="dark"] .red-pill-realtime-usage { color: #F0EFEB; font-weight: bold; font-size: 12px;}' +
     'body[data-theme="light"] .red-pill-realtime-usage {color: #1A1918; font-weight: bold; font-size: 12px;}' + 
-    '.red-pill-refresh-button { padding: 0px 12px; border: 1px solid rgb(66, 65, 61); height: 28px; color: rgb(240, 239, 235); font-size: 14px; margin-right: 5px; border-radius: 4px; }'
+    '.red-pill-refresh-button { padding: 0px 12px; border: 1px solid var(--text_disabled); height: 28px; color: var(--text_primary); font-size: 14px; margin-right: 5px; border-radius: 4px; }'
 );
 (function () {
   let isIntegrationMode = false;
