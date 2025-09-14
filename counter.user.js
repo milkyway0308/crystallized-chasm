@@ -7,7 +7,7 @@
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js
-// @require      https://unpkg.com/dexie@latest/dist/dexie.js
+// @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
 // @grant       none
 // ==/UserScript==
 !(async function () {
@@ -242,7 +242,7 @@
       });
       turnIndicatorElement.textContent = `${count}턴`;
     } catch (err) {
-      if (turnIndicatorElement.textContent != "오류!") {
+      if (turnIndicatorElement.textContent !== "오류!") {
         turnIndicatorElement.textContent = "오류!";
       }
       console.error(err);
@@ -428,6 +428,7 @@
       return;
     injectElement();
   }
+
   function prepare() {
     setup();
     attachObserver(document, () => {
