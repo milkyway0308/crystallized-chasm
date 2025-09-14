@@ -19,11 +19,16 @@ GM_addStyle(
     "@media screen and (max-width:500px) { .burner-input-button { display: block; } }" +
     "@keyframes rotate { from { transform: rotate(0deg); } to {  transform: rotate(360deg); }}" +
     ".hourglass-container { width: 16px; height: 16px;}" +
-    '.hourglass-container[rotate="true"] { animation: 2s rotate infinite;}'
+    '.hourglass-container[rotate="true"] { animation: 2s rotate infinite;}' +
+    ".html-display-button { display: flex !important; flex-direction: row; align-items: center; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; display: block; background: #333; color: #fff;}" +
+    '.html-display-button[disabled="true"] { background: #eee; color: #333; cursor: not-allowed; }' +
+    ".chasm-burner-status { display: flex; flex-direction: row !important; font-size: 0.8em; margin-bottom: 4px; }" +
+    'body[data-theme="dark"] .chasm-burner-status { color: white; }' +
+    'body[data-theme="light"] .chasm-burner-status { color: #1a1a1a; }'
 );
 !(async function () {
   "use strict";
-
+  const VERSION = "v1.5.4";
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
   );
@@ -35,10 +40,15 @@ GM_addStyle(
     VertexAIBackend,
   } = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-ai.js");
 
-  // TODO: Add SDKs for Firebase products that you want to use
   // https://www.svgrepo.com/svg/535448/hourglass-half-bottom
   const HOURGLASS_SVG =
     '<svg width="16px" height="16px" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M13 2H14V0H2V2H3V4.41421L6.58579 8L3 11.5858V14H2V16H14V14H13V11.5858L9.41421 8L13 4.41421V2ZM5 3.58579V2H11V3.58579L8 6.58579L5 3.58579Z" fill="#e0e0e0"></path> </g></svg>';
+
+  const SPINNER_SVG =
+    '<?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools --><svg fill="#949494" width="12px" height="12px" viewBox="-1.5 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m7.5 21 2.999-3v1.5c4.143 0 7.501-3.359 7.501-7.502 0-2.074-.842-3.952-2.202-5.309l2.114-2.124c1.908 1.901 3.088 4.531 3.088 7.437 0 5.798-4.7 10.498-10.498 10.498-.001 0-.001 0-.002 0v1.5zm-7.5-9c.007-5.796 4.704-10.493 10.499-10.5h.001v-1.5l3 3-3 3v-1.5s-.001 0-.002 0c-4.143 0-7.502 3.359-7.502 7.502 0 2.074.842 3.952 2.203 5.31l-2.112 2.124c-1.907-1.89-3.088-4.511-3.088-7.407 0-.01 0-.02 0-.03v.002z"/></svg>';
+  // https://www.svgrepo.com/svg/522506/close
+  const CLOSE_SVG =
+    '<svg width="16px" height="16px" viewBox="-0.5 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#FFFFFF"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M3 21.32L21 3.32001" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M3 3.32001L21 21.32" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>';
   const n = "https://contents-api.wrtn.ai",
     e = 5e3,
     t = "css-j7qwjs",
@@ -65,7 +75,9 @@ GM_addStyle(
     ).padStart(2, "0")}`;
   }
   function u() {
-    const n = location.pathname.match(/\/characters\/([a-f0-9]+)\/chats\/([a-f0-9]+)/);
+    const n = location.pathname.match(
+      /\/characters\/([a-f0-9]+)\/chats\/([a-f0-9]+)/
+    );
     return n ? { characterId: n[1], chatroomId: n[2] } : null;
   }
   function extractCookie(key) {
@@ -1343,17 +1355,123 @@ GM_addStyle(
                       l === "vertexai"
                         ? "Google Vertex AI"
                         : l.charAt(0).toUpperCase() + l.slice(1)
-                    } ] — ${r}</div>\n                <div id="${i}-buttons" style="display: flex; gap: 10px; align-items: center;">\n                    <button id="${i}-send" style="padding: 10px 20px; background: ${
+                    } ] — ${r}</div>\n         
+                         
+                    <div id = "chasm-status-${n}" class = "chasm-burner-status"> 
+                      <div style = "animation: 2s rotate linear infinite; margin-bottom: 4px; width: 12px; height: 12px; margin-right: 4px;"> ${SPINNER_SVG} </div> 
+                      <span> HTML 유효성 확인중.. </span>
+                    </div>
+                    
+                    
+                    <div id="${i}-buttons" style="display: flex; gap: 10px; align-items: center;">\n 
+                    <button id="${i}-send" style="padding: 10px 20px; background: ${
                       o.buttonBg
                     }; color: ${
                       o.buttonText
-                    }; border: none; border-radius: 4px; cursor: pointer; display: block;">전송</button>\n                    <div id="${i}-status" style="font-size: 0.9em; color: ${
+                    }; border: none; border-radius: 4px; cursor: pointer; display: block;">전송</button>\n 
+                    <button id ="sandbox-html-${n}" class = "html-display-button" disabled="true" content-reference="${i}-text"> <span> HTML 표시 </span> </button>  
+                                      <div id="${i}-status" style="font-size: 0.9em; color: ${
                       o.textColor
                     }; margin-left: 10px; display: none;"></div>\n                </div>\n            `),
                     document.getElementById("cb-tab-content").appendChild(d),
                     s.addEventListener("click", () => G(s, d));
                   const p = document.getElementById(`${i}-text`),
                     m = document.getElementById(`${i}-count`);
+                  const statusElement = document.getElementById(
+                    `chasm-status-${n}`
+                  );
+                  let responseText = p.value;
+                  if (responseText.startsWith("```html")) {
+                    responseText = responseText.substring(7);
+                  }
+                  if (responseText.endsWith("```")) {
+                    responseText = responseText.substring(
+                      0,
+                      responseText.length - 3
+                    );
+                  }
+                  if (statusElement) {
+                    new Promise((resolve, reject) => {
+                      try {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(
+                          responseText,
+                          "text/html"
+                        );
+                        if (doc.documentElement.querySelector("parsererror")) {
+                          console.log(
+                            doc.documentElement.querySelector("parsererror")
+                          );
+                          resolve(false);
+                        } else {
+                          resolve(true);
+                        }
+                      } catch (err) {
+                        resolve(false);
+                      }
+                    })
+                      .then((value) => {
+                        if (value) {
+                          const button = document.getElementById(
+                            `sandbox-html-${n}`
+                          );
+                          if (button) {
+                            statusElement.innerHTML = `<span style="color: green; margin-bottom: 4px;"> ✓ 유효한 HTML 응답입니다. </span>`;
+                            button.addEventListener("click", () => {
+                              // I'm a engineer, trust me!
+                              const allowJS = confirm(
+                                "버너 프롬프트로 가공된 HTML 코드는 자바스크립트 코드를 포함할 수 있습니다.\n결정화 캐즘 버너는 HTML에 포함된 스크립트를 사용할 수 있도록 구성되었으나, 이는 대단히 위험한 행위이며 결정화 캐즘 개발진은 코드 실행을 권장하지 않습니다.\n" +
+                                  "자바스크립트 코드를 비활성화하면 표시된 HTML 문서에서 클릭으로 발동하는 액션이나 상호작용들이 비활성화될 수 있습니다. 단, 이는 CSS만으로 구성된 애니메이션에는 포함되지 않습니다.\n\n" +
+                                  "자바스크립트 코드를 포함하여 HTML을 표시하시겠습니까?\n취소를 누를 경우, 샌드박스 모드로 실행되어 스크립트 실행을 막습니다."
+                              );
+                              const topDivision = document.createElement("div");
+                              topDivision.id = "chasm-burner-html-preview";
+                              topDivision.style.cssText =
+                                "display: flex; flex-direction: column; align-items: center; z-index: 99999 !important; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: white; ";
+                              const topBar = document.createElement("div");
+                              topBar.style.cssText =
+                                "display: flex; flex-direction: row; align-items: center; width: 100%; height: 32px; background-color: #333; border-bottom: 1px solid #555;";
+                              const comment = document.createElement("span");
+                              comment.style.cssText =
+                                "font-size: 0.8em; color: #eee; margin-left: 24px;";
+                              comment.textContent = allowJS
+                                ? `C2 Burner+ ${VERSION} HTML Preview (Full Mode)`
+                                : `C2 Burner+ ${VERSION} HTML Preview (Sandbox Mode)`;
+                              topBar.append(comment);
+                              const closer = document.createElement("div");
+                              closer.innerHTML = CLOSE_SVG;
+                              closer.style.cssText =
+                                "width: fit-content; margin-left: auto; height: 16px; width: 16px; cursor: pointer; margin-right: 16px;";
+                              closer.addEventListener("click", () => {
+                                document
+                                  .getElementById("chasm-burner-html-preview")
+                                  .remove();
+                              });
+                              topBar.append(closer);
+                              const newItem = document.createElement("iframe");
+                              newItem.style.cssText =
+                                "flex: 1 !important; width: 100% !important;";
+                              if (!allowJS) {
+                                newItem.setAttribute("sandbox", "");
+                              }
+                              newItem.setAttribute(
+                                "srcdoc",
+                                responseText.replace('"', "&quot;")
+                              );
+                              topDivision.append(topBar);
+                              topDivision.append(newItem);
+                              document.body.append(topDivision);
+                            });
+                            button.removeAttribute("disabled");
+                          }
+                        } else {
+                          statusElement.innerHTML = `<span style="color: red; margin-bottom: 4px;"> 🛇 유효한 HTML이 아닙니다. HTML 표시가 비활성화됩니다. </span>`;
+                        }
+                      })
+                      .catch((err) => {
+                        statusElement.innerHTML = `<span style="color: red; margin-bottom: 4px;"> 🛇 처리 중 오류가 발생하여 HTML 전송을 사용할 수 없습니다.</span>`;
+                      });
+                  }
                   p.addEventListener(
                     "input",
                     c(() => {
@@ -1525,7 +1643,8 @@ GM_addStyle(
   }
 
   async function addChasmButton() {
-    if (!/\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname)) return;
+    if (!/\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname))
+      return;
     console.log("A1");
     const n = document.querySelector(".css-j7qwjs");
     await injectButton();
