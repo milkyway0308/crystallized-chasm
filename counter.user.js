@@ -424,7 +424,7 @@
   // =====================================================
 
   function setup() {
-    if (!/\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname))
+    if (!/\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname))
       return;
     injectElement();
   }
