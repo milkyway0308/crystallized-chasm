@@ -113,7 +113,7 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 
 결정화 캐즘 계수기는 채팅 입력 칸 위에 현재 채팅이 진행된 턴 수를 표시해줍니다.<br>
 
-## 결정화 캐즘 - 뮤트 (v1.0.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/mute.user.js) ]<br>
+## 결정화 캐즘 - 뮤트 (v1.0.2) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/mute.user.js) ]<br>
 
 결정화 캐즘 뮤트는 채팅창에서 TTS 버튼을 완전히 삭제해줍니다.<br>
 TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
