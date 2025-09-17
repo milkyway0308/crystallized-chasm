@@ -27,6 +27,9 @@
       if (!element.hasAttribute("chasm-mute-disabled")) {
         element.style.cssText = "display: none;";
         element.setAttribute("chasm-mute-disabled", "true");
+        const emptyDiv = document.createElement("div");
+        emptyDiv.className = "chasm-mute-placeholder";
+        element.parentElement.insertBefore(emptyDiv, element);
       }
     }
     updating = false;
