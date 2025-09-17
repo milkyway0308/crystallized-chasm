@@ -9,7 +9,6 @@
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/alternation.user.js
 // @grant        GM_addStyle
 // ==/UserScript==
-//
 
 GM_addStyle(
   "@keyframes chasm-rotate { from { transform: rotate(0deg); } to {  transform: rotate(360deg); }}" +
@@ -24,6 +23,9 @@ GM_addStyle(
     ".chasm-altr-button .loading-icon { display: none; margin-left: 40px; animation: chasm-rotate 1s infinite; }" +
     '.chasm-altr-button[loading="true"] .loading-icon { display: block; }'
 );
+if (!document.chasmApi) {
+  document.chasmApi = {};
+}
 !(async function () {
   // =================================================
   //                    클래스 선언
@@ -645,7 +647,8 @@ GM_addStyle(
   //                    초기화
   // =================================================
   function setup() {
-    if (!/\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname)) return;
+    if (!/\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname))
+      return;
     const item = document.getElementsByClassName("chasm-altr-button");
     if (item && item.length !== 0) {
       return;
@@ -733,6 +736,26 @@ GM_addStyle(
     });
   }
 
+  // =================================================
+  //                 연동용 API
+  // =================================================
+  // class AlternationMessages {
+  //   constructor(isUser, )
+  // }
+  class AlternationState {
+    constructor(current, end, phase) {
+      /** @type {number} */
+      this.current = current;
+      /** @type {number} */
+      this.end = end;
+      /** @type {number} */
+      this.phase = phase;
+    }
+  }
+  document.chasmApi.alternation = {
+    /**  */
+    execute: (characterId, turn, phaseListener) => {},
+  };
   // =================================================
   //               스크립트 초기 실행
   // =================================================
