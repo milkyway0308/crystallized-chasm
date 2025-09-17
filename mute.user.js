@@ -37,7 +37,7 @@
     let oldHref = location.href;
     attachObserver(document, () => {
       // Check last page href and test path
-      if (location.href !== oldHref && /^\/u\/(.*)?$/.test(location.pathname)) {
+      if (location.href !== oldHref && isChattingPath()) {
         oldHref = location.href;
         checkEnabled = true;
         attachChatChangeObserver();
@@ -103,6 +103,21 @@
     );
   }
 
+  
+  /**
+   * 현재 URL이 채팅방의 URL인지 반환합니다.
+   * @returns 채팅 URL 일치 여부
+   */
+  function isChattingPath() {
+    // 2025-09-17 Path
+    return (
+      /\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname) ||
+      // 2025-09-11 Path
+      /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname) ||
+      // Legacy Path
+      /\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)
+    );
+  }
   "loading" === document.readyState
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
