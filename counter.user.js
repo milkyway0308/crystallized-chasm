@@ -116,6 +116,21 @@
   // =====================================================
   //                  크랙 종속 유틸리티
   // =====================================================
+
+  /**
+   * 현재 URL이 채팅방의 URL인지 반환합니다.
+   * @returns 채팅 URL 일치 여부
+   */
+  function isChattingPath() {
+    // 2025-09-17 Path
+    return (
+      /\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname) ||
+      // 2025-09-11 Path
+      /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname) ||
+      // Legacy Path
+      /\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)
+    );
+  }
   /**
    * 현재 크랙의 테마가 다크 모드인지 반환합니다.
    * @returns 다크 모드가 적용되었는지의 여부
@@ -283,7 +298,7 @@
     });
   }
 
-  async function setMessageCount(chatRoomId,) {
+  async function setMessageCount(chatRoomId) {
     await db.chatData.put({
       chatId: chatRoomId,
       time: new Date().getTime(),
@@ -424,7 +439,7 @@
   // =====================================================
 
   function setup() {
-    if (!/\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname))
+    if (!isChattingPath())
       return;
     injectElement();
   }
