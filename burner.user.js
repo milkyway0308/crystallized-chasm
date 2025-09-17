@@ -75,10 +75,10 @@ GM_addStyle(
     ).padStart(2, "0")}`;
   }
   function u() {
-    const n = location.pathname.match(
-      /\/stories\/([a-f0-9]+)\/episodes\/([a-f0-9]+)/
-    );
-    return n ? { characterId: n[1], chatroomId: n[2] } : null;
+    const split = window.location.pathname.substring(1).split("/");
+    const characterId = split[1];
+    const chatRoomId = split[3];
+    return isChattingPath() ? { characterId: characterId, chatroomId: chatRoomId } : null;
   }
   function extractCookie(key) {
     const e = document.cookie.match(
@@ -1654,7 +1654,7 @@ GM_addStyle(
   }
 
   async function addChasmButton() {
-    if (!/\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname))
+    if (!isChattingPath())
       return;
     const n = document.querySelector(".css-j7qwjs");
     await injectButton();
@@ -1802,6 +1802,16 @@ GM_addStyle(
   }
   async function B() {
     await addChasmButton(), addBurnerButton(), injectButton();
+  }
+  function isChattingPath() {
+    // 2025-09-17 Path
+    return (
+      /\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname) ||
+      // 2025-09-11 Path
+      /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname) ||
+      // Legacy Path
+      /\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)
+    );
   }
   "loading" === document.readyState
     ? (document.addEventListener("DOMContentLoaded", B),
