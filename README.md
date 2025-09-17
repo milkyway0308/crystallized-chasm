@@ -128,7 +128,7 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 > ⚠ 삭제 기능은 대단히 위험한 기능입니다. 결정화 캐즘의 개발자는 네뷸라이저의 대량 자동 삭제 기능을 사용함으로써 발생하는 문제에 대해 책임지지 않습니다.<br>
 > 로컬 환경에서는 문제 없이 정상 작동하는 것이 확인되었습니다.
 
-## 결정화 캐즘 - 차원이동 (v1.2.3) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/alternation.user.js) ]<br>
+## 결정화 캐즘 - 차원이동 (v1.2.4) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/alternation.user.js) ]<br>
 
 지금 그대로의 이야기의 또 다른 이야기를 듣고 싶지 않으신가요?<br>
 아니면, 내 실수로 인해 망가질 이 이야기를 위해 선택지를 보류하고 싶으신 경험, 있지 않으신가요?<br><br>
