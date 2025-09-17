@@ -529,6 +529,20 @@ if (!document.chasmApi) {
   //                  크랙 종속성 유틸리티
   // =================================================
   /**
+   * 현재 URL이 채팅방의 URL인지 반환합니다.
+   * @returns 채팅 URL 일치 여부
+   */
+  function isChattingPath() {
+    // 2025-09-17 Path
+    return (
+      /\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname) ||
+      // 2025-09-11 Path
+      /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname) ||
+      // Legacy Path
+      /\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)
+    );
+  }
+  /**
    * 사이드 패널의 요소를 찾아 반환합니다.
    * @returns {boolean} 사이드 패널 요소
    */
@@ -647,7 +661,7 @@ if (!document.chasmApi) {
   //                    초기화
   // =================================================
   function setup() {
-    if (!/\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname))
+    if (!isChattingPath())
       return;
     const item = document.getElementsByClassName("chasm-altr-button");
     if (item && item.length !== 0) {
