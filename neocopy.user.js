@@ -901,11 +901,14 @@ GM_addStyle(
         return;
       } else {
         const splitted = file.name.split(".");
-        const suffix = splitted[splitted.length - 1];
+        const suffix = splitted[splitted.length - 2];
+        console.log(suffix);
+        console.log(splitted);
+        console.log(suffix.substring(0, suffix.lastIndexOf("(")).trim());
         if (
           suffix !== "neocopy" &&
-          (suffix.indexOf("(") === -1 ||
-            suffix.substring(0, suffix.indexOf("(")).trim() !== "neocopy")
+          (suffix.lastIndexOf("(") === -1 ||
+            suffix.substring(0, suffix.lastIndexOf("(")).trim() !== "neocopy")
         ) {
           alert("*.neocopy.json 형태의 파일만 불러올 수 있습니다.");
           return;
