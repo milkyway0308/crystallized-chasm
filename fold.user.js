@@ -133,9 +133,9 @@ GM_addStyle(
           const characterId = session.character._id;
           const characterName = session.character.name;
           const sessionTitle = session.title;
-          // URL Format: https://crack.wrtn.ai/u/{character_id}/c/{session_id}
-          // "https://crack.wrtn.ai/u/{character_id}/c/{_id}"
-          const url = `/u/${characterId}/c/${sessionId}`;
+          // URL Format: https://crack.wrtn.ai/stories/{character_id}/episodes/{session_id}
+          // "https://crack.wrtn.ai/stories/{character_id}/episodes/{_id}"
+          const url = `/stories/${characterId}/episodes/${sessionId}`;
           if (urls.includes(url)) {
             logWarning(
               "Duplicated element returned from server ( URL " + url + " )"
