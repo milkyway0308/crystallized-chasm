@@ -89,7 +89,7 @@
   function updateARPGRemainingText(cracker) {
     if (isARPGPath()) {
       const leftButton = document.getElementsByClassName(
-        isDarkMode() ? "css-l2pvvz" : "css-mxh4ma"
+        isDarkMode() ?  "css-7xxnit" : "css-1w6u7sl"
       );
       if (leftButton && leftButton.length > 0) {
         if (leftButton[0].getAttribute("last-cracker") !== cracker.toString()) {
@@ -109,7 +109,7 @@
     }
     if (isARPGBuilderPath()) {
       const confirmButton = document.getElementsByClassName(
-        isDarkMode() ? "css-l2pvvz" : "css-mxh4ma"
+        isDarkMode() ? "css-7xxnit" : "css-1w6u7sl"
       );
       if (confirmButton && confirmButton.length > 0) {
         if (
@@ -341,7 +341,7 @@
   }
 
   function isARPGPath() {
-    return /\/arpg\/[a-f0-9]+\/play\/[a-f0-9]+/.test(location.pathname);
+    return /\/arpg\/[a-f0-9]+\/[a-f0-9]+\/play/.test(location.pathname);
   }
 
   function isARPGBuilderPath() {
