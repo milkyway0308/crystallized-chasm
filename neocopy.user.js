@@ -634,8 +634,6 @@ GM_addStyle(
       return result;
     }
     if (anonymization && result.data) {
-      console.log(result);
-      console.log(result.data);
       const keyToDelete = [
         "_id",
         "userId",
@@ -902,9 +900,6 @@ GM_addStyle(
       } else {
         const splitted = file.name.split(".");
         const suffix = splitted[splitted.length - 2];
-        console.log(suffix);
-        console.log(splitted);
-        console.log(suffix.substring(0, suffix.lastIndexOf("(")).trim());
         if (
           suffix !== "neocopy" &&
           (suffix.lastIndexOf("(") === -1 ||
@@ -923,7 +918,7 @@ GM_addStyle(
         try {
           const loaded = JSON.parse(event.target.result);
           if (loaded.type !== "chasm-neocopy") {
-            console.log("이 파일은 네오카피 JSON 파일이 아닙니다.");
+            alert("이 파일은 네오카피 JSON 파일이 아닙니다.");
             return;
           }
           let imageCount = 0;
@@ -981,11 +976,11 @@ GM_addStyle(
             }
           } catch (e2) {
             alert("불러온 캐릭터의 크랙 업로드에 실패하였습니다.");
-            console.log(e);
+            console.error(e);
           }
         } catch (e) {
           alert("파일이 오염되었거나 JSON 형태가 아닙니다.");
-          console.log(e);
+          console.error(e);
         }
       };
       reader.onerror = () => {
