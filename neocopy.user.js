@@ -661,7 +661,7 @@ GM_addStyle(
         "commentCount",
         "dislikeCount",
       ];
-      for(let key of keyToDelete) {
+      for (let key of keyToDelete) {
         delete result.data[key];
       }
     }
@@ -896,9 +896,20 @@ GM_addStyle(
         return;
       }
       const file = event.target.files[0];
-      if (!file.name.endsWith(".neocopy.json")) {
+      if (!file.name.endsWith(".json")) {
         alert("*.neocopy.json 형태의 파일만 불러올 수 있습니다.");
         return;
+      } else {
+        const splitted = file.name.split(".");
+        const suffix = splitted[splitted.length - 1];
+        if (
+          suffix !== "neocopy" &&
+          (suffix.indexOf("(") === -1 ||
+            suffix.substring(0, suffix.indexOf("(")).trim() !== "neocopy")
+        ) {
+          alert("*.neocopy.json 형태의 파일만 불러올 수 있습니다.");
+          return;
+        }
       }
       const reader = new FileReader();
       reader.onload = async (event) => {
@@ -929,7 +940,7 @@ GM_addStyle(
             !confirm(
               `이 파일에서 캐릭터를 불러와 선택한 캐릭터에 덮어씌우시겠습니까?\n캐릭터명: ${
                 loaded.prompt.name
-              }\n이미지: ${imageCount}개\n 생성 버전: C2 Neocopy ${
+              }\n이미지: ${imageCount}개\n생성 버전: C2 Neocopy ${
                 loaded.version
               }\n추출 시간: ${new Date(loaded.exported).toLocaleTimeString()}`
             ) ||
