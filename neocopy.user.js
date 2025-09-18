@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Neo-Copy (결정화 캐즘 네오-카피)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-COPY-v2.0.0
+// @version     CRYS-COPY-v2.1.0-PREVIEW
 // @description 크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -10,6 +10,7 @@
 // @grant       GM_addStyle
 // ==/UserScript==
 
+const VERSION = "CRYS-COPY-v2.1.0-PREVIEW";
 GM_addStyle(
   // Basic: 172px
   "#chasm-copy-dropdown-container { display: flex; flex-direction: row; min-width: 98px; background-color: var(--bg_screen); border-left: 1px solid var(--surface_chat_primary); border-top: 1px solid var(--surface_chat_primary); border-bottom: 1px solid var(--surface_chat_primary); padding: 0px 0px; border-radius: 1px; box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px; z-index: 11 !important; position: fixed !important; }" +
@@ -620,9 +621,10 @@ GM_addStyle(
   /**
    * 캐릭터 데이터를 크랙 서버에서 가져옵니다.
    * @param {string} characterId 캐릭터 ID
+   * @param {boolean} anonymization 개인 정보 삭제 여부
    * @returns {Promise<any | Error>} 캐릭터 데이터 혹은 오류
    */
-  async function getMyCharacter(characterId) {
+  async function getMyCharacter(characterId, anonymization) {
     if (!characterId) return new Error("캐릭터 ID가 잘못 입력되었습니다.");
     const result = await authFetch(
       "GET",
@@ -630,6 +632,38 @@ GM_addStyle(
     );
     if (result instanceof Error) {
       return result;
+    }
+    if (anonymization && result.data) {
+      console.log(result);
+      console.log(result.data);
+      const keyToDelete = [
+        "_id",
+        "userId",
+        "wrtnUid",
+        "creator",
+        "createdAt",
+        "updatedAt",
+        "chatCount",
+        "chatUserCount",
+        "likeCount",
+        "imageCount",
+        "isLiked",
+        "isDisliked",
+        "countryCode",
+        "status",
+        "visibility",
+        "firstPublicAt",
+        "isCommentBlocked",
+        "genreId",
+        "commentCount",
+        "badges",
+        "snapshotId",
+        "commentCount",
+        "dislikeCount",
+      ];
+      for(let key of keyToDelete) {
+        delete result.data[key];
+      }
     }
     return result.data ?? new Error("캐릭터 데이터 응답이 잘못되었습니다.");
   }
@@ -673,7 +707,7 @@ GM_addStyle(
    * @returns {Promise<0 | 1 | Error>} 결과 상태 혹은 오류. 0일 경우 정상, 1일 경우 정상이나 카테고리 하드코딩을 의미합니다.
    */
   async function publishCharacter(originId, state, safety) {
-    const origin = await getMyCharacter(originId);
+    const origin = await getMyCharacter(originId, false);
     if (origin instanceof Error) {
       return origin;
     }
@@ -709,7 +743,7 @@ GM_addStyle(
    */
   async function publish(id, state, safety) {
     removeOriginalDropdown();
-    const characterData = await getMyCharacter(id);
+    const characterData = await getMyCharacter(id, false);
     if (characterData instanceof Error) {
       alert(
         "캐릭터를 가져오는데에 실패하였습니다 : 인증 정보가 올바르지 않거나, 잘못된 캐릭터입니다."
@@ -788,7 +822,7 @@ GM_addStyle(
       alert("클립보드 데이터가 유효한 JSON 형식이 아닙니다.");
       return;
     }
-    const characterData = await getMyCharacter(id);
+    const characterData = await getMyCharacter(id, false);
     if (characterData instanceof Error) {
       alert("캐릭터 데이터를 가져오던 중 오류가 발생하였습니다.");
       return;
@@ -817,6 +851,135 @@ GM_addStyle(
     ) {
       window.location.reload();
     }
+  }
+
+  async function exportToFile(id) {
+    removeOriginalDropdown();
+    const characterData = await getMyCharacter(id, true);
+    if (characterData instanceof Error) {
+      alert(
+        "캐릭터를 가져오는데에 실패하였습니다 : 인증 정보가 올바르지 않거나, 잘못된 캐릭터입니다."
+      );
+      return;
+    }
+    const blob = new Blob([
+      JSON.stringify(
+        {
+          type: "chasm-neocopy",
+          version: VERSION,
+          exported: new Date().getTime(),
+          prompt: characterData,
+        },
+        null,
+        2
+      ),
+    ]);
+    if (window.navigator.msSaveOrOpenBlob) {
+      window.navigator.msSaveBlob(blob, `${characterData.name}.neocopy.json`);
+    } else {
+      const element = window.document.createElement("a");
+      element.href = window.URL.createObjectURL(blob);
+      element.download = `${characterData.name}.neocopy.json`;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
+  }
+
+  async function importFromFile(id) {
+    removeOriginalDropdown();
+    const tempElement = document.createElement("input");
+    tempElement.setAttribute("type", "file");
+    tempElement.setAttribute("accept", "application/json");
+    tempElement.addEventListener("change", (event) => {
+      if (event.target.files.length <= 0) {
+        return;
+      }
+      const file = event.target.files[0];
+      if (!file.name.endsWith(".neocopy.json")) {
+        alert("*.neocopy.json 형태의 파일만 불러올 수 있습니다.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        if (!event.target.result) {
+          alert("파일 읽기에 실패하였습니다.");
+          return;
+        }
+        try {
+          const loaded = JSON.parse(event.target.result);
+          if (loaded.type !== "chasm-neocopy") {
+            console.log("이 파일은 네오카피 JSON 파일이 아닙니다.");
+            return;
+          }
+          let imageCount = 0;
+          if (
+            !loaded.prompt.startingSets ||
+            loaded.prompt.startingSets.length <= 0
+          ) {
+            alert(
+              "이 캐릭터는 시작 설정이 존재하지 않습니다 - 배포자가 잘못 수정되었거나, 크랙 레거시 포맷입니다."
+            );
+            return;
+          }
+          for (let data of loaded.prompt.startingSets) {
+            imageCount += data.situationImages.length;
+          }
+          if (
+            !confirm(
+              `이 파일에서 캐릭터를 불러와 선택한 캐릭터에 덮어씌우시겠습니까?\n캐릭터명: ${
+                loaded.prompt.name
+              }\n이미지: ${imageCount}개\n 생성 버전: C2 Neocopy ${
+                loaded.version
+              }\n추출 시간: ${new Date(loaded.exported).toLocaleTimeString()}`
+            ) ||
+            !confirm(
+              "최종 확인입니다.\n선택한 캐릭터의 데이터를 파일에서 불러온 데이터로 덮어씌울까요? 이 작업은 되돌릴 수 없습니다. \n선택한 캐릭터의 데이터는 영구적으로 파일에서 불러온 데이터로 덮어씌워집니다."
+            )
+          ) {
+            return;
+          }
+          try {
+            const characterData = await getMyCharacter(id, false);
+            if (characterData instanceof Error) {
+              alert("캐릭터 데이터를 가져오던 중 오류가 발생하였습니다.");
+              return;
+            }
+            const pasteResult = await setCharacter(
+              id,
+              characterData,
+              loaded.prompt,
+              false
+            );
+            if (pasteResult instanceof Error) {
+              console.error(pasteCharacter);
+              alert(
+                "오류로 인해 캐릭터 덮어쓰기에 실패하였습니다. 콘솔을 확인하여 상세한 오류를 확인하세요."
+              );
+              return;
+            }
+            if (
+              confirm(
+                "캐릭터 데이터의 덮어씌우기에 성공하였습니다.\n페이지를 새로 고칠까요?"
+              )
+            ) {
+              window.location.reload();
+            }
+          } catch (e2) {
+            alert("불러온 캐릭터의 크랙 업로드에 실패하였습니다.");
+            console.log(e);
+          }
+        } catch (e) {
+          alert("파일이 오염되었거나 JSON 형태가 아닙니다.");
+          console.log(e);
+        }
+      };
+      reader.onerror = () => {
+        alert("파일을 불러오는 중 오류가 발생하였습니다.");
+      };
+      reader.readAsText(file);
+    });
+    tempElement.click();
   }
   // =====================================================
   //                      초기화
@@ -854,9 +1017,17 @@ GM_addStyle(
         await publish(id, 1, false);
       });
     });
+    appendDropdownMenu(menu, "✦ 파일 관리", (appender) => {
+      appender("✦ 파일로 내보내기", async (id) => {
+        await exportToFile(id);
+      });
+      appender("✦ 파일에서 가져오기", async (id) => {
+        await importFromFile(id);
+      });
+    });
     appendNewMenu(menu, "↙ JSON 복사", async (id) => {
       removeOriginalDropdown();
-      const characterData = await getMyCharacter(id);
+      const characterData = await getMyCharacter(id, false);
       if (characterData instanceof Error) {
         alert(
           "캐릭터를 가져오는데에 실패하였습니다 : 인증 정보가 올바르지 않거나, 잘못된 캐릭터입니다."
