@@ -16,7 +16,7 @@ GM_addStyle(
   ".burner-test-button { display: block; } " +
     ".burner-input-button { display: none; } " +
     "@media screen and (max-width:500px) { .burner-test-button { display: none; } }" +
-    "@media screen and (max-width:500px) { .burner-input-button { display: block; } }" +
+    "@media screen and (max-width:500px) { .burner-input-button { display: flex !important; } }" +
     "@keyframes rotate { from { transform: rotate(0deg); } to {  transform: rotate(360deg); }}" +
     ".hourglass-container { width: 16px; height: 16px;}" +
     '.hourglass-container[rotate="true"] { animation: 2s rotate infinite;}' +
