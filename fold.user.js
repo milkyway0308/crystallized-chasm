@@ -474,8 +474,8 @@ GM_addStyle(
   //                       초기화
   // ==================================================
   "loading" === document.readyState
-    ? (document.addEventListener("DOMContentLoaded", B),
-      window.addEventListener("load", B))
+    ? (document.addEventListener("DOMContentLoaded", doInitialize),
+      window.addEventListener("load", doInitialize))
     : "interactive" === document.readyState ||
       "complete" === document.readyState
     ? await doInitialize()
