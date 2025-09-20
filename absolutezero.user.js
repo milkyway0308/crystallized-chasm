@@ -132,6 +132,30 @@ GM_addStyle(
     return document.getElementsByClassName("chasm-absolute-zero-freeze").length;
   }
 
+  function deleteIncompatibleImages() {
+    const toRemove = [];
+    const freezed = document.querySelectorAll(
+      "img.chasm-absolute-zero-freeze"
+    );
+    for (let element of freezed) {
+      const canvas = element.parentElement.getElementsByTagName("canvas");
+      const img = element.parentElement.getElementsByTagName("img");
+      if (canvas.length <= 0 || img.length <= 0) continue;
+      if (img[0].getAttribute("alt") && canvas[0].getAttribute("alt") !== img[0].getAttribute("alt")) {
+        img[0].classList.remove("chasm-absolute-zero-freeze-prepare");
+        img[0].classList.remove("chasm-absolute-zero-freeze");
+        img[0].removeAttribute("freeze-out");
+        img[0].removeAttribute("melt-in");
+        toRemove.push(canvas[0]);
+      }
+    }
+    if (toRemove.length > 0) {
+      for (let element of toRemove) {
+        element.remove();
+      }
+    }
+  }
+
   function applyStopper(imageNode) {
     if (imageNode.classList.contains("chasm-absolute-zero-freeze-prepare")) {
       return;
@@ -167,6 +191,7 @@ GM_addStyle(
   function setup() {
     if (!isDashboardPath() || lastProceedImages === document.images.length)
       return;
+    deleteIncompatibleImages();
     for (let imageNode of document.images) {
       if (imageNode.classList.contains("chasm-absolute-zero-freeze")) {
         continue;
@@ -200,8 +225,7 @@ GM_addStyle(
       const hoverer = Array.from(document.querySelectorAll("div:hover"))
         .filter((e) => e.querySelector("div > canvas ~ img"))
         .filter(
-          (e) =>
-            e.childNodes.length > 0 && e.childNodes[0].tagName === "CANVAS"
+          (e) => e.childNodes.length > 0 && e.childNodes[0].tagName === "CANVAS"
         );
       for (let parent of hoverer) {
         const element = parent.childNodes[0];
