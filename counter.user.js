@@ -153,15 +153,6 @@
   }
 
   /**
-   *
-   * @returns {HTMLElement | undefined}
-   */
-  function extractChatField() {
-    const field = document.querySelectorAll("css-12u91zd");
-    if (field && field.length > 0) return field[0];
-    return undefined;
-  }
-  /**
    * 크랙의 토큰을 인증 수단으로 사용하여 요청을 보냅니다.
    * @param {string} method 요청 메서드
    * @param {string} url 요청 URL
@@ -388,14 +379,14 @@
   function getTopSharedDivision() {
     let upperBar = document.getElementById("chasm-shared-chatting-bar");
     if (!upperBar) {
-      const parentElement = document.getElementsByClassName("css-1m49xfi");
+      const parentElement = document.getElementsByClassName("css-1l95jz6");
       if (!parentElement || parentElement.length <= 0) {
         return undefined;
       }
       upperBar = document.createElement("div");
       upperBar.id = "chasm-shared-chatting-bar";
       upperBar.style.cssText =
-        "display: flex; flex-direction: row; margin-left: 8px; margin-bottom: 8px;";
+        "display: flex; flex-direction: row; margin-left: 8px; margin-bottom: 0px;";
       parentElement[0].insertBefore(upperBar, parentElement[0].childNodes[0]);
     }
     return upperBar;
