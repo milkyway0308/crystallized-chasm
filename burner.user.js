@@ -28,7 +28,7 @@ GM_addStyle(
 );
 !(async function () {
   "use strict";
-  const VERSION = "v1.6.2";
+  const VERSION = "v1.6.3";
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
   );
