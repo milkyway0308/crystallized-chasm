@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Counter (결정화 캐즘 계수기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-CNTR-v1.0.4
+// @version     CRYS-CNTR-v1.1.0
 // @description 채팅에 캐릭터 채팅 턴 계수기 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -118,18 +118,24 @@
   // =====================================================
 
   /**
-   * 현재 URL이 채팅방의 URL인지 반환합니다.
+   * 현재 URL이 스토리챗의 URL인지 반환합니다.
    * @returns 채팅 URL 일치 여부
    */
-  function isChattingPath() {
+  function isStoryPath() {
     // 2025-09-17 Path
     return (
       /\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname) ||
-      // 2025-09-11 Path
-      /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname) ||
       // Legacy Path
       /\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)
     );
+  }
+
+  /**
+   * 현재 URL이 캐릭터챗의 URL인지 반환합니다.
+   * @returns 채팅 URL 일치 여부
+   */
+  function isCharacterPath() {
+    return /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname);
   }
   /**
    * 현재 크랙의 테마가 다크 모드인지 반환합니다.
@@ -201,7 +207,13 @@
   }
 
   function getRenderedMessageCount() {
-    return document.getElementsByClassName("css-hp68mp").length;
+    if (isCharacterPath()) {
+      return document.getElementsByClassName(isDarkMode() ? "css-f5nv21" : "css-1xhj18k")
+        .length;
+    }
+    return document.getElementsByClassName(
+      isDarkMode() ? "css-ae5fn1" : "css-12ju2tb"
+    ).length;
   }
 
   // =====================================================
@@ -243,9 +255,13 @@
         return;
       }
       setChattingLogLoading(chatId, true);
-      const count = await fetchMessageCount(chatId, (count) => {
-        turnIndicatorElement.textContent = `${count}턴`;
-      });
+      const count = isStoryPath()
+        ? await fetchMessageCount(chatId, (count) => {
+            turnIndicatorElement.textContent = `${count}턴`;
+          })
+        : await fetchCharacterMessageCount(chatId, (count) => {
+            turnIndicatorElement.textContent = `${count}턴`;
+          });
       turnIndicatorElement.textContent = `${count}턴`;
     } catch (err) {
       if (turnIndicatorElement.textContent !== "오류!") {
@@ -256,7 +272,7 @@
     setChattingLogLoading(chatId, false);
   }
   /**
-   * 메
+   *
    * @param {string} chatRoomId
    * @param {string} messageId
    */
@@ -334,6 +350,44 @@
     return chatCounts;
   }
 
+  async function fetchCharacterMessageCount(chatId, liveReceiver) {
+    await setLastAccess(chatId);
+    let chatCounts = await getMessageCount(chatId);
+    let changed = false;
+    let url = `https://contents-api.wrtn.ai/character-chat/single-character-chats/${chatId}/messages?limit=40`;
+    let continueFetch = true;
+    while (continueFetch) {
+      const result = await retryAuthFetch(3, "GET", url);
+      if (!result || result instanceof Error) {
+        throw result ?? new Error("Unknwon error from request");
+      }
+      const dataMessages = result.data.messages;
+      for (let message of dataMessages) {
+        const messageId = message._id;
+        if (message.role === "user") continue;
+        if (!(await isMessageCached(chatId, messageId))) {
+          await setMessageCached(chatId, messageId);
+          changed = true;
+          liveReceiver(++chatCounts);
+          // Let's add some "Modification animation"
+          await new Promise((resolve) => setTimeout(resolve, 2));
+        } else {
+          // Message ID already cached, stop fetching
+          continueFetch = false;
+          break;
+        }
+      }
+      if (result.data.hasNext && result.data.nextCursor) {
+        url = `https://contents-api.wrtn.ai/character-chat/single-character-chats/${chatId}/messages?limit=40&cursor=${result.data.nextCursor}`;
+        // Waiting 50ms to avoid ratelimiting
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      } else {
+        break;
+      }
+    }
+    return chatCounts;
+  }
+
   // =====================================================
   //                      SVG
   // =====================================================
@@ -379,7 +433,16 @@
   function getTopSharedDivision() {
     let upperBar = document.getElementById("chasm-shared-chatting-bar");
     if (!upperBar) {
-      const parentElement = document.getElementsByClassName("css-1l95jz6");
+      let parentElement;
+      if (isCharacterPath()) {
+        parentElement = document.getElementsByClassName(
+          isDarkMode() ? "css-12u91zd" : "css-12u91zd"
+        );
+      } else {
+        parentElement = document.getElementsByClassName(
+          isDarkMode() ? "css-h60a3h" : "css-h60a3h"
+        );
+      }
       if (!parentElement || parentElement.length <= 0) {
         return undefined;
       }
@@ -430,8 +493,7 @@
   // =====================================================
 
   function setup() {
-    if (!isChattingPath())
-      return;
+    if (!isStoryPath() && !isCharacterPath()) return;
     injectElement();
   }
 

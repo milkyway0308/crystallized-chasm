@@ -76,15 +76,15 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 **결정화 캐즘 프로젝트는 스크립트별로 기능이 분리됩니다.**<br>
 **반드시 모든 스크립트를 설치할 필요는 없습니다. 필요한 기능만 골라 설치하세요.**
 
-## 결정화 캐즘 - 네오-카피(v2.1.0) / 카피 (v1.1.4) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/neocopy.user.js) / [구버전 설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/copy.user.js) ]<br>
+## 결정화 캐즘 - 네오-카피(v2.2.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/neocopy.user.js) ]<br>
 
-결정화 캐즘 카피는 크랙 캐릭터 제작자를 위한 보조 도구입니다.<br>
+결정화 캐즘 네오-카피는 크랙 캐릭터 제작자를 위한 보조 도구입니다.<br>
 캐릭터의 원본 데이터를 JSON 형태로 추출하거나 개정된 원본 데이터를 붙여넣고,<br>
 캐릭터를 복사하여 새로 게시하는 기능을 컨텍스트 메뉴에 추가합니다. <br>
 > ⚠ 결정화 캐즘 네오-카피는 구버전 카피와 호환되지 않습니다.
 > 결정화 캐즘 네오-카피는 완전히 재작성되어 독립된 캐즘 카피입니다.
 
-## 결정화 캐즘 - 붉은 약 (v1.3.3) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js) ]<br>
+## 결정화 캐즘 - 붉은 약 (v1.3.4) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js) ]<br>
 
 혹시 내가 얼마나 돈을 썼는지 보고 내상을 입고 싶지 않으신가요?<br>
 그게 아니라면 내가 어떤 캐릭터를 가장 애정하는지 수치로 알고 싶지 않으신가요?<br>
@@ -95,12 +95,12 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 > ⚠ 세션 아래 표시되는 소모량은 세션 소모량이 아닌 캐릭터 소모량입니다.<br>
 > ⚠ 6월 크래커 업데이트 이전 소모된 슈퍼챗은 크래커 35개로 환산되어 계산됩니다.
 
-## 결정화 캐즘 - 버너+ (v1.6.3) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/burner.user.js) ]<br>
+## 결정화 캐즘 - 버너+ (v1.7.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/burner.user.js) ]<br>
 
 결정화 캐즘 버너+는 채팅방의 채팅을 외부 LLM에 의탁하여 요약하는 스크립트입니다.<br>
 채팅 내용을 축약하고 요약해 전소하여 크랙 AI의 기억력을 향상시킬 수 있습니다.<br>
 
-## 결정화 캐즘 - 과포화 (v1.3.3) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/tmi.user.js) ]<br>
+## 결정화 캐즘 - 과포화 (v1.3.4) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/tmi.user.js) ]<br>
 
 결정화 캐즘 과포화는 채팅의 소모 개수를 과거의 슈퍼챗 개수 표기로 변환하여 소모량 및 잔여량을 더욱 가시적으로 보여줍니다.<br>
 
@@ -109,7 +109,7 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 길고 긴 채팅창 세션 목록은 이제 안녕, 결정화 캐즘 폴드와 함께 더 짧은 세션 목록을 사용해보세요!<br>
 결정화 캐즘 폴드는 세션 목록을 같은 캐릭터 단위로 묶어 세션 목록에 대신 출력해줍니다.<br>
 
-## 결정화 캐즘 - 계수기 (v1.0.4) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js) ]<br>
+## 결정화 캐즘 - 계수기 (v1.1.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js) ]<br>
 
 결정화 캐즘 계수기는 채팅 입력 칸 위에 현재 채팅이 진행된 턴 수를 표시해줍니다.<br>
 
@@ -125,7 +125,7 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 
 결정화 캐즘 절대영도는 랭킹 화면에서의 GIF / WEBP 재생을 중지하고, 호버하는 대상에만 적용시킵니다.<br>
 
-## 결정화 캐즘 - 네뷸라이저 (v1.1.5) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/nebulizer.user.js) ]<br>
+## 결정화 캐즘 - 네뷸라이저 (v1.2.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/nebulizer.user.js) ]<br>
 
 결정화 캐즘 네뷸라이저는 차단된 제작자의 댓글 숨김 및 대량 자동 삭제를 추가해줍니다.<br>
 

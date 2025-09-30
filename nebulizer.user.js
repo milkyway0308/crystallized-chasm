@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Nebulizer (결정화 캐즘 네뷸라이저)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-NEBL-v1.1.5
+// @version     CRYS-NEBL-v1.2.0
 // @description 차단 목록의 제작자의 댓글을 블러 처리 및 차단된 댓글 대량 삭제. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -13,7 +13,9 @@ GM_addStyle(
   ".chasm-nebulizer-text { font-family: Pretendard; font-weight: bold; font-size: 24px; }" +
     'body[data-theme="dark"] .chasm-nebulizer-text { color: #F0EFEB; }' +
     'body[data-theme="light"] .chasm-nebulizer-text { color: #1A1918; }' +
-    ".chasm-nebulizer-hidden { user-select: none; filter: blur(10px);}"
+    ".chasm-nebulizer-hidden { user-select: none; filter: blur(10px);}" +
+    ".chasm-nebulizer-refresh-button { display: flex; align-items: center; padding: 0px 12px; border: 1px solid var(--text_disabled); height: 28px; color: var(--text_primary); font-size: 14px; margin-right: 5px; border-radius: 4px; font-weight: 600; }" +
+    '.chasm-nebulizer-refresh-button[nebulizer-loading="true"] { background-color: #9c9c9c87; }'
 );
 (async function () {
   const LOCAL_KEY_USER_LIST = "chasm-nebulizer-cached-ban-list";
@@ -23,12 +25,20 @@ GM_addStyle(
   let deleting = false;
   let filteredElements = [];
   let elementSize = 0;
+  function isStoryCommentary() {
+    return /^\/detail(\/.*)?$/.test(location.pathname);
+  }
+
+  function isCharacterCommentary() {
+    return /^\/characters\/[a-f0-9]+\/detail$/.test(location.pathname);
+  }
+
   async function setup() {
     appendSyncButton();
     if (updating) return;
-    if (/^\/detail(\/.*)?$/.test(location.pathname)) {
+    if (isStoryCommentary() || isCharacterCommentary()) {
       injectDestroyButtons();
-      let elements = getAllCommentary();
+      let elements = isStoryCommentary() ? getAllCommentary() : getAllCommentary();
       if (elementSize === elements.length) {
         return;
       }
@@ -54,9 +64,9 @@ GM_addStyle(
         if (!cache.includes(writerId)) {
           continue;
         }
-        for (let childElement of element.childNodes) {
+        for (let childElement of element.getElementsByTagName("p")) {
           if (
-            childElement.nodeName.toLowerCase() === "p" &&
+            childElement.innerText === extractCommentContent(element) &&
             !childElement.hasAttribute("chasm-nebulizer-proceed")
           ) {
             childElement.classList.add(CLASS_COMMENT_HIDDEN);
@@ -212,7 +222,6 @@ GM_addStyle(
       }
       const rootNode = document.getElementsByClassName("css-18nhf9q");
       if (!rootNode || rootNode.length === 0) {
-        logWarning("Cannot modify title; Crack updated, or bug occured?");
         return;
       }
       const top = document.createElement("div");
@@ -226,7 +235,6 @@ GM_addStyle(
       originTitleNode.style.cssText = "display: none;";
       rootNode[0].insertBefore(top, originTitleNode);
     } catch (e) {
-      console.log(e);
     }
   }
 
@@ -262,14 +270,14 @@ GM_addStyle(
       button.setAttribute("color", "text_primary");
       // button.style.cssText = "margin-right: 5px";
       button.innerHTML =
-        '<div display="flex" width="100%" class="css-1gs21jv efhw7t80">목록 동기화</div>';
+        '<div display="flex" width="100%" class="chasm-nebulizer-refresh-button">목록 동기화</div>';
       const textElement = button.childNodes[0];
       button.onclick = async () => {
         textElement.textContent = "불러오는 중...";
-        button.style.cssText = "background-color: #9c9c9c87;";
+        textElement.setAttribute("nebulizer-loading", "true");
         await reloadCache();
         textElement.textContent = "목록 동기화";
-        button.style.cssText = "";
+        textElement.removeAttribute("nebulizer-loading");
       };
       div.append(button);
 
@@ -302,8 +310,8 @@ GM_addStyle(
         log("Empty array returned, request complete!");
         break;
       }
-      const dataList = json.data.blocks;
 
+      const dataList = json.data.blocks;
       for (let data of dataList) {
         if (!banList.includes(data.name)) {
           banList.push(data.name);
@@ -319,11 +327,11 @@ GM_addStyle(
   //             크랙 종속성 유틸리티성 메서드
   // =================================================
   /**
-   * 모든 최상단 댓글 컨테이너를 가져옵니다.
+   * 모든 스토리 최상단 댓글 컨테이너를 가져옵니다.
    * @returns 모든 최상단 댓글 컨테이너
    */
   function getAllCommentary() {
-    return document.getElementsByClassName("css-sj8vxf");
+    return document.getElementsByClassName("css-1ofqig9");
   }
 
   /**
@@ -339,6 +347,20 @@ GM_addStyle(
     return undefined;
   }
 
+  
+  /**
+   * 댓글 내용을를 HTML 노드에서 가져옵니다.
+   * @param {Node} commentary 댓글 노드
+   * @returns 작성자 ID
+   */
+  function extractCommentContent(commentary) {
+    let data = findCommentProperty(commentary);
+    if (data) {
+      return data.content;
+    }
+    return undefined;
+  }
+
   /**
    * 최상단 댓글 컨테이너(div)에서 첫번쨰로 해당디는 댓글 메타데이터를 가져옵니다.
    * @param {Node} node
@@ -349,7 +371,6 @@ GM_addStyle(
       return findCommentFrom(prop);
     });
     if (foundComment) {
-      console.log("Found " + foundComment);
       return foundComment;
     }
     for (let childNode of node.childNodes) {
@@ -391,20 +412,29 @@ GM_addStyle(
    */
   function findCommentFrom(props) {
     if (props.comment) return props.comment;
-    for (let children of props.children) {
-      if (!children || !children.props) continue;
-      if (children.props.comment) {
-        return children.props.comment;
-      }
-      // Cannot use recursion call - we have to stop here
-      // If we use recursion, non-iterable children occurs unexpected exception
-      if (children.props.children) {
-        for (let subchild of children.props.children) {
-          if (subchild && subchild.props && subchild.props.comment) {
-            return subchild.props.comment;
+    try {
+      for (let children of props.children) {
+        if (!children || !children.props) continue;
+        if (children.props.comment) {
+          return children.props.comment;
+        }
+        // Cannot use recursion call - we have to stop here
+        // If we use recursion, non-iterable children occurs unexpected exception
+        if (children.props.children) {
+          try {
+            for (let subchild of children.props.children) {
+              if (subchild && subchild.props && subchild.props.comment) {
+                return subchild.props.comment;
+              }
+            }
+          } catch (e) {
+            // Child might not a iterable
+            // We don't know more elegance way to implement it
           }
         }
       }
+    } catch (e) {
+      // Yes, still not know to implement it without exception handling ¯\_(ツ)_/¯
     }
     return undefined;
   }
