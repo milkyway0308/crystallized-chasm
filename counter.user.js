@@ -255,7 +255,6 @@
         return;
       }
       setChattingLogLoading(chatId, true);
-      console.log("A1");
       const count = isStoryPath()
         ? await fetchMessageCount(chatId, (count) => {
             turnIndicatorElement.textContent = `${count}턴`;
@@ -263,7 +262,6 @@
         : await fetchCharacterMessageCount(chatId, (count) => {
             turnIndicatorElement.textContent = `${count}턴`;
           });
-          console.log("A2");
       turnIndicatorElement.textContent = `${count}턴`;
     } catch (err) {
       if (turnIndicatorElement.textContent !== "오류!") {
