@@ -325,8 +325,8 @@ GM_addStyle(
         ? reactProperty.children
         : [reactProperty.children];
       for (const child of propertyChilds) {
-        if (child?.props?.character?._id) {
-          return child.props.character._id;
+        if (child?.props?.content?.sourceId) {
+          return child.props.content.sourceId;
         }
       }
       return null;
@@ -1057,6 +1057,8 @@ GM_addStyle(
     setup();
     attachObserver(document, setup);
   }
+  document.neo_copy_debug = doDebugExtraction;
+  
   "loading" === document.readyState
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
