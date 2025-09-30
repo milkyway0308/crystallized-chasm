@@ -201,7 +201,7 @@
   }
 
   function getRenderedMessageCount() {
-    return document.getElementsByClassName("css-hp68mp").length;
+    return document.getElementsByClassName(isDarkMode() ? "css-ae5fn1" : "css-12ju2tb").length;
   }
 
   // =====================================================
@@ -256,7 +256,7 @@
     setChattingLogLoading(chatId, false);
   }
   /**
-   * 메
+   * 
    * @param {string} chatRoomId
    * @param {string} messageId
    */
@@ -379,7 +379,7 @@
   function getTopSharedDivision() {
     let upperBar = document.getElementById("chasm-shared-chatting-bar");
     if (!upperBar) {
-      const parentElement = document.getElementsByClassName("css-1l95jz6");
+      const parentElement = document.getElementsByClassName(isDarkMode() ? "css-h60a3h" : "css-h60a3h");
       if (!parentElement || parentElement.length <= 0) {
         return undefined;
       }
