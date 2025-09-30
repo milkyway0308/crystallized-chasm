@@ -13,7 +13,9 @@ GM_addStyle(
   ".chasm-nebulizer-text { font-family: Pretendard; font-weight: bold; font-size: 24px; }" +
     'body[data-theme="dark"] .chasm-nebulizer-text { color: #F0EFEB; }' +
     'body[data-theme="light"] .chasm-nebulizer-text { color: #1A1918; }' +
-    ".chasm-nebulizer-hidden { user-select: none; filter: blur(10px);}"
+    ".chasm-nebulizer-hidden { user-select: none; filter: blur(10px);}" + 
+    '.chasm-nebulizer-refresh-button { display: flex; align-items: center; padding: 0px 12px; border: 1px solid var(--text_disabled); height: 28px; color: var(--text_primary); font-size: 14px; margin-right: 5px; border-radius: 4px; font-weight: 600; }' + 
+    '.chasm-nebulizer-refresh-button[nebulizer-loading="true"] { background-color: #9c9c9c87; }' 
 );
 (async function () {
   const LOCAL_KEY_USER_LIST = "chasm-nebulizer-cached-ban-list";
@@ -262,14 +264,14 @@ GM_addStyle(
       button.setAttribute("color", "text_primary");
       // button.style.cssText = "margin-right: 5px";
       button.innerHTML =
-        '<div display="flex" width="100%" class="css-1gs21jv efhw7t80">목록 동기화</div>';
+        '<div display="flex" width="100%" class="chasm-nebulizer-refresh-button">목록 동기화</div>';
       const textElement = button.childNodes[0];
       button.onclick = async () => {
         textElement.textContent = "불러오는 중...";
-        button.style.cssText = "background-color: #9c9c9c87;";
+        textElement.setAttribute("nebulizer-loading", "true");
         await reloadCache();
         textElement.textContent = "목록 동기화";
-        button.style.cssText = "";
+        textElement.removeAttribute("nebulizer-loading");
       };
       div.append(button);
 
