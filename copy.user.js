@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name        Chasm Crystallized Copy (결정화 캐즘 카피)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-COPY-v1.1.4
-// @description 크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
+// @version     CRYS-COPY-v1.1.4-FINALE
+// @description 크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정. **이 스크립트는 유지보수가 중단되었습니다. 네오-카피 모듈로 재설치하세요.**
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/copy.user.js
