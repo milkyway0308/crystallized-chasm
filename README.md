@@ -125,7 +125,7 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 
 결정화 캐즘 절대영도는 랭킹 화면에서의 GIF / WEBP 재생을 중지하고, 호버하는 대상에만 적용시킵니다.<br>
 
-## 결정화 캐즘 - 네뷸라이저 (v1.1.5) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/nebulizer.user.js) ]<br>
+## 결정화 캐즘 - 네뷸라이저 (v1.2.0p) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/preview/nebulizer.user.js) ]<br>
 
 결정화 캐즘 네뷸라이저는 차단된 제작자의 댓글 숨김 및 대량 자동 삭제를 추가해줍니다.<br>
 
