@@ -1301,9 +1301,6 @@ GM_addStyle(
     appendNewMenu(menu, "↗ JSON 붙여넣기", async (id) => {
       await pasteCharacter(id, false, true);
     });
-    appendNewMenu(menu, "⚠ JSON 강제 붙여넣기", async (id) => {
-      await pasteCharacter(id, true, false);
-    });
   }
 
   function prepare() {
