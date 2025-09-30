@@ -1287,7 +1287,7 @@ GM_addStyle(
     let selected = document.getElementsByTagName("a");
     const nodes = [];
     for (let node of selected) {
-      if (node.getAttribute("href").startsWith("/u/")) {
+      if (node.getAttribute("href").startsWith("/stories/")) {
         nodes.push(node);
       }
     }
