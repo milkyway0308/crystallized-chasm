@@ -221,7 +221,7 @@ GM_addStyle(
         return;
       }
       const rootNode = document.getElementsByClassName("css-18nhf9q");
-      if (!rootNode || rootNode.length === 0) {\
+      if (!rootNode || rootNode.length === 0) {
         return;
       }
       const top = document.createElement("div");
