@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Burner+ (결정화 캐즘 버너+)
 // @namespace   https://github.com/chasm-js
-// @version     CRYS-BURN-v1.6.3
+// @version     CRYS-BURN-v1.6.4p
 // @description 크랙 캐릭터 채팅 요약 및 반영. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -14,9 +14,8 @@
 
 GM_addStyle(
   ".burner-test-button { display: block; } " +
-    ".burner-input-button { display: none; } " +
+    ".burner-input-button { display: flex !important; } " +
     "@media screen and (max-width:500px) { .burner-test-button { display: none; } }" +
-    "@media screen and (max-width:500px) { .burner-input-button { display: flex !important; } }" +
     "@keyframes rotate { from { transform: rotate(0deg); } to {  transform: rotate(360deg); }}" +
     ".hourglass-container { width: 16px; height: 16px;}" +
     '.hourglass-container[rotate="true"] { animation: 2s rotate infinite;}' +
@@ -28,7 +27,7 @@ GM_addStyle(
 );
 !(async function () {
   "use strict";
-  const VERSION = "v1.6.3";
+  const VERSION = "v1.6.4p";
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
   );
