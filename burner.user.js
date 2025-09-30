@@ -13,9 +13,10 @@
 // ==/UserScript==
 
 GM_addStyle(
-  ".burner-test-button { display: block; } " +
+  ".burner-button { height: 32px; padding: 12px 12px; border-radius: 4px; cursor: pointer; display: flex; flex-direction: row; align-items: center; justify-items: center; border: 1px solid var(--text_action_blue_secondary); color: var(--text_action_blue_secondary); font-size: 14px; font-weight: 600; } " +
+    ".burner-button:hover { background-color: var(--bg_dimmed2); } " +
     ".burner-input-button { display: flex !important; } " +
-    "@media screen and (max-width:500px) { .burner-test-button { display: none; } }" +
+    "@media screen and (max-width:500px) { .burner-button { display: none; } }" +
     "@keyframes rotate { from { transform: rotate(0deg); } to {  transform: rotate(360deg); }}" +
     ".hourglass-container { width: 16px; height: 16px;}" +
     '.hourglass-container[rotate="true"] { animation: 2s rotate infinite;}' +
@@ -23,7 +24,8 @@ GM_addStyle(
     '.html-display-button[disabled="true"] { background: #eee; color: #333; cursor: not-allowed; }' +
     ".chasm-burner-status { display: flex; flex-direction: row !important; font-size: 0.8em; margin-bottom: 4px; }" +
     'body[data-theme="dark"] .chasm-burner-status { color: white; }' +
-    'body[data-theme="light"] .chasm-burner-status { color: #1a1a1a; }'
+    'body[data-theme="light"] .chasm-burner-status { color: #1a1a1a; }' + 
+    '.display-inline-important { display: inline !important; }'
 );
 !(async function () {
   "use strict";
@@ -77,7 +79,7 @@ GM_addStyle(
     const split = window.location.pathname.substring(1).split("/");
     const characterId = split[1];
     const chatRoomId = split[3];
-    return isChattingPath()
+    return isStoryPath() || isCharacterPath()
       ? { characterId: characterId, chatroomId: chatRoomId }
       : null;
   }
@@ -172,17 +174,32 @@ GM_addStyle(
       this.request = n ? x : b;
     }
     async getChatroom(e) {
-      const t = await this.request(
-        "GET",
-        `${n}/character-chat/api/v2/chat-room/${e}`
-      );
-      return t?.data ? new h(t.data, this.request) : null;
+      let roomResult;
+      if (isCharacterPath()) {
+        roomResult = await this.request(
+          "GET",
+          `https://contents-api.wrtn.ai/character-chat/single-character-chats/${e}`
+        );
+      } else {
+        roomResult = await this.request(
+          "GET",
+          `${n}/character-chat/api/v2/chat-room/${e}`
+        );
+      }
+      return roomResult?.data ? new h(roomResult.data, this.request) : null;
     }
     async getMessages(e, cursor = "", limit = 40) {
-      const a = cursor
-        ? `${n}/character-chat/api/v2/chat-room/${e}/messages?limit=${limit}&cursor=${cursor}`
-        : `${n}/character-chat/api/v2/chat-room/${e}/messages?limit=${limit}`;
-      return await this.request("GET", a);
+      let chatFetchUrl;
+      if (isStoryPath()) {
+        chatFetchUrl = cursor
+          ? `${n}/character-chat/api/v2/chat-room/${e}/messages?limit=${limit}&cursor=${cursor}`
+          : `${n}/character-chat/api/v2/chat-room/${e}/messages?limit=${limit}`;
+      } else {
+        chatFetchUrl = cursor
+          ? `${n}/character-chat/single-character-chats/${e}/messages?limit=${limit}&cursor=${cursor}`
+          : `${n}/character-chat/single-character-chats/${e}/messages?limit=${limit}`;
+      }
+      return await this.request("GET", chatFetchUrl);
     }
     async getPersona() {
       const e = (await this.request("GET", `${n}/character/character-profiles`))
@@ -985,15 +1002,17 @@ GM_addStyle(
             (T.value = `[${p()}] 총 ${k}턴 (${2 * k} 메시지) 가져오기 시작\n${
               T.value
             }`);
-          const M = await w.getMessages(B.chatroomId, "", 2 * k);
-          if (!M?.data?.list)
+          const messageResult = await w.getMessages(B.chatroomId, "", 2 * k);
+          if (!messageResult?.data?.list && !messageResult?.data?.messages)
             return (
               (T.value = `[${p()}] 메시지 가져오기 실패\n${T.value}`),
               alert("메시지를 불러오지 못했습니다."),
               void b()
             );
+          const messages =
+            messageResult.data.list ?? messageResult.data.messages;
           T.value = `[${p()}] 총 ${k}턴 (${2 * k} 메시지) ${
-            M.data.list.length
+            messages.length
           }개 가져옴\n${T.value}`;
           const R = await w.getPersona(),
             O = E.json?.chatProfile?._id
@@ -1013,7 +1032,7 @@ GM_addStyle(
             (T.value = `[${p()}] 유저노트 첨부: ${L ? "성공" : "없음"}\n${
               T.value
             }`));
-          const P = M.data.list.map((n) => ({
+          const P = messages.map((n) => ({
             message: n.content,
             role: n.role,
             username: "user" === n.role ? O.name : void 0,
@@ -1493,78 +1512,92 @@ GM_addStyle(
                         p.value.length / e
                       )}개 메시지 분할 전송)`;
                     }, 200)
-                  ),
-                    document
-                      .getElementById(`${i}-send`)
-                      .addEventListener("click", async () => {
-                        const n = document.getElementById(`${i}-status`);
-                        n.style.display = "inline";
-                        const o = (e, t = !1) => {
-                          n.innerHTML = `${e}${
-                            t ? '<span class="cb-spinner"></span>' : ""
-                          }`;
-                        };
-                        o("유저 입력 보내는 중", !0);
-                        let a = p.value;
-                        const r = new y(),
-                          l = u();
-                        if (!l)
-                          return (
-                            o("잘못된 URL 구조"),
-                            void alert("잘못된 URL 구조입니다.")
-                          );
-                        const s = await r.getChatroom(l.chatroomId);
-                        if (!s)
-                          return (
-                            o("채팅방 가져오기 실패"),
-                            void alert("채팅방을 불러오지 못했습니다.")
-                          );
+                  );
+                  if (isCharacterPath()) {
+                    document.getElementById(`${i}-send`).style.cssText =
+                      document.getElementById(`${i}-send`).style.cssText + "; background-color: var(--text_textfield_disabled) !important; cursor: not-allowed !important;";
+
+                    document.getElementById(`${i}-status`).innerHTML =
+                      "<span style='color: red; font-size: 12px;' >✗ 결정화 캐즘 버너의 현재 버전에서는 캐릭터로의 메시지 전송을 지원하지 않습니다.</span>";
+                    document.getElementById(`${i}-status`).classList.add("display-inline-important");
+                  }
+                  document
+                    .getElementById(`${i}-send`)
+                    .addEventListener("click", async () => {
+                      if (isCharacterPath()) {
+                        alert(
+                          "결정화 캐즘의 현재 버전에서는 캐릭터로의 전송을 지원하지 않습니다."
+                        );
+                        return;
+                      }
+                      const n = document.getElementById(`${i}-status`);
+                      n.style.display = "inline";
+                      const o = (e, t = !1) => {
+                        n.innerHTML = `${e}${
+                          t ? '<span class="cb-spinner"></span>' : ""
+                        }`;
+                      };
+                      o("유저 입력 보내는 중", true);
+                      let a = p.value;
+                      const r = new y(),
+                        l = u();
+                      if (!l)
+                        return (
+                          o("잘못된 URL 구조"),
+                          void alert("잘못된 URL 구조입니다.")
+                        );
+                      const s = await r.getChatroom(l.chatroomId);
+                      if (!s)
+                        return (
+                          o("채팅방 가져오기 실패"),
+                          void alert("채팅방을 불러오지 못했습니다.")
+                        );
+                      if (
+                        (t.prependText && (a = `${t.prependText}\n\n${a}`),
+                        t.appendText && (a = `${a}\n\n${t.appendText}`),
+                        a.length > e)
+                      ) {
                         if (
-                          (t.prependText && (a = `${t.prependText}\n\n${a}`),
-                          t.appendText && (a = `${a}\n\n${t.appendText}`),
-                          a.length > e)
-                        ) {
+                          !confirm(
+                            "요약 내용이 너무 깁니다. 제한은 최대 1회 요약값이지만, 실질적으로는 3천자 내외로 요약하는 것이 제일 좋습니다. 무시하고 나눠서 분할 전송하시겠습니까?"
+                          )
+                        )
+                          return (
+                            o("전송 취소"), void (n.style.display = "none")
+                          );
+                        const r = [];
+                        for (let n = 0; n < a.length; n += e)
+                          r.push(a.slice(n, n + e));
+                        for (let n = 0; n < r.length; n++) {
+                          o(`유저 입력 보내는 중 (${n + 1}/${r.length})`, !0);
+                          const e = await s.send(t.userMessage, !1);
                           if (
-                            !confirm(
-                              "요약 내용이 너무 깁니다. 제한은 최대 1회 요약값이지만, 실질적으로는 3천자 내외로 요약하는 것이 제일 좋습니다. 무시하고 나눠서 분할 전송하시겠습니까?"
-                            )
+                            (o(`응답 수정 시작 (${n + 1}/${r.length})`, !0),
+                            !(await e.set(r[n])))
                           )
                             return (
-                              o("전송 취소"), void (n.style.display = "none")
-                            );
-                          const r = [];
-                          for (let n = 0; n < a.length; n += e)
-                            r.push(a.slice(n, n + e));
-                          for (let n = 0; n < r.length; n++) {
-                            o(`유저 입력 보내는 중 (${n + 1}/${r.length})`, !0);
-                            const e = await s.send(t.userMessage, !1);
-                            if (
-                              (o(`응답 수정 시작 (${n + 1}/${r.length})`, !0),
-                              !(await e.set(r[n])))
-                            )
-                              return (
-                                o(`응답 수정 실패 (${n + 1}/${r.length})`),
-                                void alert("메시지 전송에 실패했습니다.")
-                              );
-                          }
-                          o("응답 수정 완료");
-                        } else {
-                          o("유저 입력 보내는 중", !0);
-                          const n = await s.send(t.userMessage, !1);
-                          if ((o("응답 수정 시작", !0), !(await n.set(a))))
-                            return (
-                              o("응답 수정 실패"),
+                              o(`응답 수정 실패 (${n + 1}/${r.length})`),
                               void alert("메시지 전송에 실패했습니다.")
                             );
-                          o("응답 수정 완료");
                         }
-                        confirm(
-                          "전송이 완료되었습니다! 페이지를 새로고침하시겠습니까?"
-                        )
-                          ? location.reload()
-                          : (n.style.display = "none");
-                      }),
-                    G(s, d);
+                        o("응답 수정 완료");
+                      } else {
+                        o("유저 입력 보내는 중", !0);
+                        const n = await s.send(t.userMessage, !1);
+                        if ((o("응답 수정 시작", !0), !(await n.set(a))))
+                          return (
+                            o("응답 수정 실패"),
+                            void alert("메시지 전송에 실패했습니다.")
+                          );
+                        o("응답 수정 완료");
+                      }
+                      confirm(
+                        "전송이 완료되었습니다! 페이지를 새로고침하시겠습니까?"
+                      )
+                        ? location.reload()
+                        : (n.style.display = "none");
+                    });
+                  G(s, d);
                 })(j, q, $)
               : ((T.value = `[${p()}] ${
                   $.charAt(0).toUpperCase() + $.slice(1)
@@ -1587,22 +1620,23 @@ GM_addStyle(
       j.addEventListener("click", () => s.remove());
   }
   async function injectBannerButton() {
-    const selected = document.getElementsByClassName("burner-test-button");
+    const selected = document.getElementsByClassName("burner-button");
     if (selected && selected.length > 0) {
       return;
     }
     // Top element
-    const data = document.getElementsByClassName("css-1bhbevm");
+    const data = document.getElementsByClassName(
+      isStoryPath() ? "css-1bhbevm" : "css-l8r172"
+    );
     if (data && data.length > 0) {
       const top = data[0];
-      const buttonCloned = top.childNodes[0].cloneNode(true);
+      const buttonCloned = document.createElement("button");
+      buttonCloned.innerHTML = "<p></p>";
       buttonCloned.style.cssText = "margin-right: 10px";
-      buttonCloned.className = "burner-test-button " + buttonCloned.className;
+      buttonCloned.className = "burner-button";
       const textNode = buttonCloned.getElementsByTagName("p");
-      const imageNode = buttonCloned.getElementsByTagName("img");
       top.insertBefore(buttonCloned, top.childNodes[0]);
       textNode[0].innerText = "🔥  Chasm Burner";
-      imageNode[0].remove();
       buttonCloned.removeAttribute("onClick");
       buttonCloned.addEventListener("click", C);
     }
@@ -1654,7 +1688,7 @@ GM_addStyle(
   }
 
   async function addChasmButton() {
-    if (!isChattingPath()) return;
+    if (!isStoryPath() && !isCharacterPath()) return;
     const n = document.querySelector(".css-j7qwjs");
     await injectButton();
     if (
@@ -1802,15 +1836,16 @@ GM_addStyle(
   async function B() {
     await addChasmButton(), addBurnerButton(), injectButton();
   }
-  function isChattingPath() {
+  function isStoryPath() {
     // 2025-09-17 Path
     return (
       /\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname) ||
-      // 2025-09-11 Path
-      /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname) ||
       // Legacy Path
       /\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)
     );
+  }
+  function isCharacterPath() {
+    return /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname);
   }
   "loading" === document.readyState
     ? (document.addEventListener("DOMContentLoaded", B),
