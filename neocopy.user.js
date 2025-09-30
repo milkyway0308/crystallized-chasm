@@ -20,6 +20,30 @@ GM_addStyle(
 );
 !(function () {
   const menuElementClass = "chasm-copy-menu";
+  class ExtractedCharacterInfo {
+    constructor(type, id) {
+      /**@type {string} */
+      this.type = type;
+      /**@type {string} */
+      this.id = id;
+    }
+
+    /**
+     * 선택한 데이터가 스토리챗인지 확인합니다.
+     * @returns {boolean} 데이터의 스토리챗 여부
+     */
+    isStory() {
+      return !this.type || this.type.length <= 0 || this.type === "story";
+    }
+
+    /**
+     * 선택한 데이터가 캐릭터챗인지 확인합니다.
+     * @returns {boolean} 데이어틔 캐릭터챗 여부
+     */
+    isCharacter() {
+      return this.type === "character";
+    }
+  }
   // =====================================================
   //                      유틸리티
   // =====================================================
@@ -82,6 +106,36 @@ GM_addStyle(
         lambda();
       }
     });
+  }
+
+  /**
+   * 크랙의 토큰을 쿠키에 넣어 인증 수단으로 사용하여 요청을 보냅니다.
+   * @param {string} method 요청 메서드
+   * @param {string} url 요청 URL
+   * @param {any | undefined} body 요청 바디 파라미터
+   * @returns {any | Error} 파싱된 값 혹은 오류
+   */
+  async function authCookieFetch(method, url, body) {
+    try {
+      const param = {
+        method: method,
+        headers: {
+          Cookie: `access_token=${extractAccessToken()};`,
+          "Content-Type": "application/json",
+        },
+      };
+      if (body) {
+        param.body = JSON.stringify(body);
+      }
+      const result = await fetch(url, param);
+      if (!result.ok)
+        return new Error(
+          `HTTP 요청 실패 (${result.status}) [${await result.json()}]`
+        );
+      return await result.json();
+    } catch (t) {
+      return new Error(`알 수 없는 오류 (${t.message ?? JSON.stringify(t)})`);
+    }
   }
 
   /**
@@ -309,7 +363,7 @@ GM_addStyle(
   /**
    * 현재 작품의 ID를 메뉴 요소에서 추출합니다.
    * @param {HTMLElement} element 메뉴 요소
-   * @returns {string | null} 작품 ID 혹은 null
+   * @returns {ExtractedCharacterInfo | null} 작품 ID 혹은 null
    */
   function extractCurrentArticle(element) {
     try {
@@ -326,7 +380,10 @@ GM_addStyle(
         : [reactProperty.children];
       for (const child of propertyChilds) {
         if (child?.props?.content?.sourceId) {
-          return child.props.content.sourceId;
+          return new ExtractedCharacterInfo(
+            child.props.content.type,
+            child.props.content.sourceId
+          );
         }
       }
       return null;
@@ -371,6 +428,14 @@ GM_addStyle(
     });
   }
 
+  function extractArticle() {
+    const menu = acquireMenu();
+    if (!menu) {
+      return undefined;
+    }
+    return extractCurrentArticle(menu.childNodes[0]);
+  }
+
   // For debug, do not use it if not emergency situation
   function doDebugExtraction() {
     for (let element of document.querySelectorAll("*")) {
@@ -391,7 +456,7 @@ GM_addStyle(
    * @param {any} clipboard 클립보드 JSON
    * @returns {any} 구축된 캐릭터 데이터
    */
-  function __constructCharacter(clipboard) {
+  function __constructStory(clipboard) {
     return {
       name: clipboard.name,
       description: clipboard.description,
@@ -429,7 +494,7 @@ GM_addStyle(
    * @returns {any} 최신 스키마로 변환된 구축된 캐릭터 스키마
    */
   function __convertLegacyStructure(clipboard) {
-    const constructed = __constructCharacter(clipboard);
+    const constructed = __constructStory(clipboard);
     if (clipboard.initialMessages) {
       if (clipboard.initialMessages.length <= 0) {
         delete constructed.initialMessages;
@@ -480,7 +545,7 @@ GM_addStyle(
    * @param {any} remote 원격 데이터
    * @param {any} constructed 구축된 데이터
    */
-  function __emptifyCharacter(defaultBaseId, remote, constructed) {
+  function __emptifyStory(defaultBaseId, remote, constructed) {
     for (let index = 0; index < constructed.startingSets.length; index++) {
       if (remote.startingSets[index] && remote.startingSets[index].baseSetId) {
         delete remote.startingSets[index].baseSetId;
@@ -512,7 +577,39 @@ GM_addStyle(
     ];
   }
 
-  function __constructCharacterFrom(remote, categoryId, state, safety) {
+  function __constructCharacterFrom(chatId, remote, state) {
+    const data = {
+      associatedStoryIds: remote.associatedStoryIds,
+      detailDescription: remote.detailDescription,
+      exampleMessages: remote.exampleMessages,
+      genreId: remote.genreId,
+      introInitialMessages: remote.introInitialMessages,
+      isCommentBlocked: remote.isCommentBlocked,
+      isMovingImage: remote.isMovingImage,
+      name: remote.name,
+      profileImageUrl: remote.profileImageUrl,
+      simpleDescription: remote.simpleDescription,
+      situationImages: remote.situationImages,
+      systemPrompt: remote.systemPrompt,
+      tags: remote.tags,
+      target: remote.target,
+      visibility:
+        typeof state === "string"
+          ? state
+          : state === 0
+          ? "public"
+          : state === 1
+          ? "private"
+          : "linkonly",
+    };
+    if (chatId) {
+      data.singleCharacterId = chatId;
+    }
+
+    return data;
+  }
+
+  function __constructStoryFrom(remote, categoryId, state, safety) {
     return {
       name: remote.name,
       description: remote.description,
@@ -546,7 +643,7 @@ GM_addStyle(
     };
   }
 
-  function __convertPublishcation(origin, cloned) {
+  function __convertStoryPublishcation(origin, cloned) {
     if (origin.startingSets && origin.startingSets.length > 0) {
       cloned.startingSets = origin.startingSets.map(
         (t) => (delete (t = { ...t })._id, t)
@@ -604,7 +701,7 @@ GM_addStyle(
    * @param {any} remote 원격 데이터
    * @param {any} constructed 구축된 데이터
    */
-  function __overwriteSetId(remote, constructed) {
+  function __overwriteStorySetId(remote, constructed) {
     if (constructed.startingSets.length > 0) {
       for (let index = 0; index < constructed.startingSets.length; index++) {
         if (
@@ -620,15 +717,17 @@ GM_addStyle(
 
   /**
    * 캐릭터 데이터를 크랙 서버에서 가져옵니다.
-   * @param {string} characterId 캐릭터 ID
+   * @param {ExtractedCharacterInfo} idData 채팅 ID 데이터
    * @param {boolean} anonymization 개인 정보 삭제 여부
    * @returns {Promise<any | Error>} 캐릭터 데이터 혹은 오류
    */
-  async function getMyCharacter(characterId, anonymization) {
-    if (!characterId) return new Error("캐릭터 ID가 잘못 입력되었습니다.");
+  async function getChatData(idData, anonymization) {
+    if (!idData) return new Error("스토리 ID가 잘못 입력되었습니다.");
     const result = await authFetch(
       "GET",
-      `https://contents-api.wrtn.ai/character/characters/me/${characterId}`
+      idData.isCharacter()
+        ? `https://contents-api.wrtn.ai/character/single-characters/me/${idData.id}`
+        : `https://contents-api.wrtn.ai/character/characters/me/${idData.id}`
     );
     if (result instanceof Error) {
       return result;
@@ -652,7 +751,6 @@ GM_addStyle(
         "visibility",
         "firstPublicAt",
         "isCommentBlocked",
-        "genreId",
         "commentCount",
         "badges",
         "snapshotId",
@@ -668,65 +766,110 @@ GM_addStyle(
 
   /**
    * 캐릭터를 클립보드 데이터로 덮어씌웁니다.
-   * @param {string} id 캐릭터 ID
+   * @param {ExtractedCharacterInfo} id 캐릭터 ID
    * @param {any} remote 원격 데이터
    * @param {any} clipboard 클립보드 데이터
    * @param {any} force 강제 설정 여부. true일 경우, 캐릭터 데이터를 비운 후 클립보드 데이터로 재설정합니다.
    * @returns {Promise<any | Error>} 설정 후 파싱된 값 혹은 오류
    */
-  async function setCharacter(id, remote, clipboard, force) {
-    let defaultBaseId = remote.startingSets[0].baseSetId;
-    for (var sets of clipboard.startingSets || []) delete sets._id;
-    const constructed = __convertLegacyStructure(clipboard);
-    // Overwriting visibility to origin
-    constructed.visibility = remote.visibility;
-    if (force) {
-      __emptifyCharacter(defaultBaseId, remote, constructed);
-      await authFetch(
+  async function setChat(id, remote, clipboard, force) {
+    if (id.isStory()) {
+      let defaultBaseId = remote.startingSets[0].baseSetId;
+      for (var sets of clipboard.startingSets || []) delete sets._id;
+      const constructed = __convertLegacyStructure(clipboard);
+      // Overwriting visibility to origin
+      constructed.visibility = remote.visibility;
+      if (force) {
+        __emptifyStory(defaultBaseId, remote, constructed);
+        await authFetch(
+          "PATCH",
+          `https://contents-api.wrtn.ai/character/characters/${id.id}`,
+          constructed
+        );
+        return await this.setCharacter(id, remote, clipboard, false);
+      }
+      __overwriteStorySetId(remote, constructed);
+      return await authFetch(
         "PATCH",
-        `https://contents-api.wrtn.ai/character/characters/${id}`,
+        `https://contents-api.wrtn.ai/character/characters/${id.id}`,
         constructed
       );
-      return await this.setCharacter(id, remote, clipboard, false);
+    } else {
+      return await authFetch(
+        "PUT",
+        `https://contents-api.wrtn.ai/character/single-characters/${id.id}`,
+        __constructCharacterFrom(id.id, clipboard, remote.visibility)
+      );
     }
-    __overwriteSetId(remote, constructed);
-    return await authFetch(
-      "PATCH",
-      `https://contents-api.wrtn.ai/character/characters/${id}`,
-      constructed
+  }
+
+  async function getNewCharacterId() {
+    const result = await authFetch(
+      "POST",
+      "https://contents-api.wrtn.ai/character/single-characters/new"
     );
+    if (!result) {
+      return result;
+    }
+    if (!result.data || !result.data.characterId) {
+      return new Error("서버에서 잘못된 응답을 전송하였습니다.");
+    }
+    return result.data.characterId;
   }
 
   /**
    * 캐릭터를 새로 배포합니다.
+   * @param {ExtractedCharacterInfo} originInfo 추출된 원본 데이터 ID
    * @param {any} origin 원본 작품의 JSON 데이터입니다.
    * @param {number} state 작품의 상태를 뜻합니다. [0 = 공개 / 1 = 비공개 / 2 = 일부 공개]
    * @param {boolean|undefined} safety 작품의 세이프티 상태를 뜻합니다. undefined일 경우 기존 작품을 따라가며, true일 경우 세이프티, false일 경우 언세이프티로 배포됩니다.
    * @returns {Promise<0 | 1 | Error>} 결과 상태 혹은 오류. 0일 경우 정상, 1일 경우 정상이나 카테고리 하드코딩을 의미합니다.
    */
-  async function publishCharacter(originId, state, safety) {
-    const origin = await getMyCharacter(originId, false);
+  async function publishChat(originInfo, state, safety) {
+    const origin = await getChatData(originInfo, false);
     if (origin instanceof Error) {
       return origin;
     }
-    let categoryForceUpdated = false;
-    let categoryId = origin.categories[0]?._id;
-    if (!categoryId) {
-      categoryForceUpdated = true;
-      categoryId = "65e808c01a9eea7b2f66092c";
+    if (originInfo.isStory()) {
+      let categoryForceUpdated = false;
+      let categoryId = origin.categories[0]?._id;
+      if (!categoryId) {
+        categoryForceUpdated = true;
+        categoryId = "65e808c01a9eea7b2f66092c";
+      }
+      for (const t of origin.startingSets || []) delete t._id;
+      let cloned = __constructStoryFrom(origin, categoryId, state, safety);
+      __convertStoryPublishcation(origin, cloned);
+      let result = await authFetch(
+        "POST",
+        "https://contents-api.wrtn.ai/character/characters",
+        cloned
+      );
+      if (result instanceof Error) {
+        return result;
+      }
+      return categoryForceUpdated ? 1 : 0;
+    } else {
+      const newId = await getNewCharacterId();
+      if (newId instanceof Error) {
+        alert(
+          "새로운 캐릭터 ID를 가져오는 도중 오류가 발생하였습니다. (" +
+            JSON.stringify(newId) +
+            ")"
+        );
+        return;
+      }
+      let cloned = __constructCharacterFrom(newId, origin, state);
+      let result = await authFetch(
+        "POST",
+        `https://contents-api.wrtn.ai/character/single-characters/${newId}`,
+        cloned
+      );
+      if (result instanceof Error) {
+        return result;
+      }
+      return 0;
     }
-    for (const t of origin.startingSets || []) delete t._id;
-    let cloned = __constructCharacterFrom(origin, categoryId, state, safety);
-    __convertPublishcation(origin, cloned);
-    let result = await authFetch(
-      "POST",
-      "https://contents-api.wrtn.ai/character/characters",
-      cloned
-    );
-    if (result instanceof Error) {
-      return result;
-    }
-    return categoryForceUpdated ? 1 : 0;
   }
 
   // =====================================================
@@ -735,25 +878,26 @@ GM_addStyle(
 
   /**
    * 캐릭터를 새로 배포합니다.
+   * @param {ExtractedCharacterInfo} id 작품의 추출된 ID입니다.
    * @param {any} origin 원본 작품의 JSON 데이터입니다.
    * @param {number} state 작품의 상태를 뜻합니다. [0 = 공개 / 1 = 비공개 / 2 = 일부 공개]
    * @param {boolean|undefined} safety 작품의 세이프티 상태를 뜻합니다. undefined일 경우 기존 작품을 따라가며, true일 경우 세이프티, false일 경우 언세이프티로 배포됩니다.
    */
   async function publish(id, state, safety) {
     removeOriginalDropdown();
-    const characterData = await getMyCharacter(id, false);
+    const characterData = await getChatData(id, false);
     if (characterData instanceof Error) {
       alert(
         "캐릭터를 가져오는데에 실패하였습니다 : 인증 정보가 올바르지 않거나, 잘못된 캐릭터입니다."
       );
       return;
     }
-    const result = await publishCharacter(id, state, safety);
+    const result = await publishChat(id, state, safety);
     if (result instanceof Error) {
       alert(`처리에 실패하였습니다. (${result.message})`);
     } else if (result === 0) {
       const doReload = confirm(
-        `캐릭터 '${characterData.name}'을 ${
+        `${id.isStory() ? "스토리" : "캐릭터"} '${characterData.name}'을 ${
           safety ? "세이프티" : "언세이프티"
         } ${
           state === 0 ? "공개" : state === 1 ? "비공개" : "링크 공개"
@@ -784,6 +928,13 @@ GM_addStyle(
     }
   }
 
+  /**
+   *
+   * @param {ExtractedCharacterInfo} id
+   * @param {boolean} force
+   * @param boolean} doubleCheck
+   * @returns
+   */
   async function pasteCharacter(id, force, doubleCheck) {
     removeOriginalDropdown();
     if (force) {
@@ -820,7 +971,19 @@ GM_addStyle(
       alert("클립보드 데이터가 유효한 JSON 형식이 아닙니다.");
       return;
     }
-    const characterData = await getMyCharacter(id, false);
+    if (id.isStory() && clipboard.type && clipboard.type === "character") {
+      alert(
+        "대상 작품이 스토리입니다. 클립보드 데이터는 캐릭터임으로, 이 작품에 붙여넣을 수 없습니다."
+      );
+      return;
+    }
+    if (id.isCharacter() && (!clipboard.type || clipboard.type === "story")) {
+      alert(
+        "대상 작품이 캐릭터입니다. 클립보드 데이터는 스토리임으로, 이 작품에 붙여넣을 수 없습니다."
+      );
+      return;
+    }
+    const characterData = await getChatData(id, false);
     if (characterData instanceof Error) {
       alert("캐릭터 데이터를 가져오던 중 오류가 발생하였습니다.");
       return;
@@ -834,7 +997,7 @@ GM_addStyle(
         return;
       }
     }
-    const pasteResult = await setCharacter(id, characterData, clipboard, false);
+    const pasteResult = await setChat(id, characterData, clipboard, false);
     if (pasteResult instanceof Error) {
       console.error(pasteCharacter);
       alert(
@@ -851,9 +1014,14 @@ GM_addStyle(
     }
   }
 
+  /**
+   *
+   * @param {ExtractedCharacterInfo} id
+   * @returns
+   */
   async function exportToFile(id) {
     removeOriginalDropdown();
-    const characterData = await getMyCharacter(id, true);
+    const characterData = await getChatData(id, true);
     if (characterData instanceof Error) {
       alert(
         "캐릭터를 가져오는데에 실패하였습니다 : 인증 정보가 올바르지 않거나, 잘못된 캐릭터입니다."
@@ -865,6 +1033,11 @@ GM_addStyle(
         {
           type: "chasm-neocopy",
           version: VERSION,
+          chatType: id.isCharacter()
+            ? "character"
+            : id.isStory()
+            ? "story"
+            : id.type,
           exported: new Date().getTime(),
           prompt: characterData,
         },
@@ -884,6 +1057,10 @@ GM_addStyle(
     }
   }
 
+  /**
+   *
+   * @param {ExtractedCharacterInfo} id
+   */
   async function importFromFile(id) {
     removeOriginalDropdown();
     const tempElement = document.createElement("input");
@@ -921,18 +1098,43 @@ GM_addStyle(
             alert("이 파일은 네오카피 JSON 파일이 아닙니다.");
             return;
           }
-          let imageCount = 0;
-          if (
-            !loaded.prompt.startingSets ||
-            loaded.prompt.startingSets.length <= 0
-          ) {
+          const type = loaded.chatType ?? "story";
+          if (id.isStory()) {
+            if (type !== "story") {
+              alert(
+                "파일에서 스토리챗이 감지되었으나, 대상 채팅이 스토리챗이 아닙니다."
+              );
+              return;
+            }
+          } else if (id.isCharacter()) {
+            if (type !== "character") {
+              alert(
+                "파일에서 캐릭터챗이 감지되었으나, 대상 채팅이 스토리챗이 아닙니다."
+              );
+              return;
+            }
+          } else {
             alert(
-              "이 캐릭터는 시작 설정이 존재하지 않습니다 - 배포자가 잘못 수정되었거나, 크랙 레거시 포맷입니다."
+              `이 버전의 결정화 캐즘에서 지원되지 않는 타입니다. (${type})`
             );
             return;
           }
-          for (let data of loaded.prompt.startingSets) {
-            imageCount += data.situationImages.length;
+          let imageCount = 0;
+          if (type === "story") {
+            if (
+              !loaded.prompt.startingSets ||
+              loaded.prompt.startingSets.length <= 0
+            ) {
+              alert(
+                "이 캐릭터는 시작 설정이 존재하지 않습니다 - 배포자가 잘못 수정되었거나, 크랙 레거시 포맷입니다."
+              );
+              return;
+            }
+            for (let data of loaded.prompt.startingSets) {
+              imageCount += data.situationImages.length;
+            }
+          } else if (type === "character") {
+            imageCount = loaded.prompt.situationImages.length;
           }
           if (
             !confirm(
@@ -949,12 +1151,12 @@ GM_addStyle(
             return;
           }
           try {
-            const characterData = await getMyCharacter(id, false);
+            const characterData = await getChatData(id, false);
             if (characterData instanceof Error) {
               alert("캐릭터 데이터를 가져오던 중 오류가 발생하였습니다.");
               return;
             }
-            const pasteResult = await setCharacter(
+            const pasteResult = await setChat(
               id,
               characterData,
               loaded.prompt,
@@ -990,6 +1192,7 @@ GM_addStyle(
     });
     tempElement.click();
   }
+
   // =====================================================
   //                      초기화
   // =====================================================
@@ -1003,7 +1206,56 @@ GM_addStyle(
     if (document.getElementsByClassName(menuElementClass).length > 0) {
       return;
     }
-    bindArticleExtractor();
+    const id = extractArticle();
+    console.log(id);
+    if (!id) {
+      return;
+    }
+    if (id.isStory()) {
+      setupStoryDropdown(menu);
+    } else {
+      setupCharacterDropdown(menu);
+    }
+  }
+
+  function setupCharacterDropdown(menu) {
+    appendDropdownMenu(menu, "✦ 재게시", (appender) => {
+      appender("✦ 공개", async (id) => {
+        await publish(id, 0, false);
+      });
+      appender("✦ 링크 공개", async (id) => {
+        await publish(id, 2, false);
+      });
+      appender("✦ 비공개", async (id) => {
+        await publish(id, 1, false);
+      });
+    });
+    appendDropdownMenu(menu, "✦ 파일 관리", (appender) => {
+      appender("✦ 파일로 내보내기", async (id) => {
+        await exportToFile(id);
+      });
+      appender("✦ 파일에서 가져오기", async (id) => {
+        await importFromFile(id);
+      });
+    });
+    appendNewMenu(menu, "↙ JSON 복사", async (id) => {
+      removeOriginalDropdown();
+      const characterData = await getChatData(id, false);
+      if (characterData instanceof Error) {
+        alert(
+          "캐릭터를 가져오는데에 실패하였습니다 : 인증 정보가 올바르지 않거나, 잘못된 캐릭터입니다."
+        );
+        return;
+      }
+      navigator.clipboard.writeText(JSON.stringify(characterData, null, 2));
+      alert("캐릭터 데이터가 클립보드로 복사되었습니다.");
+    });
+    appendNewMenu(menu, "↗ JSON 붙여넣기", async (id) => {
+      await pasteCharacter(id, false, false);
+    });
+  }
+
+  function setupStoryDropdown(menu) {
     appendDropdownMenu(menu, "✦ 세이프티 재게시", (appender) => {
       appender("✦ 공개", async (id) => {
         await publish(id, 0, true);
@@ -1036,7 +1288,7 @@ GM_addStyle(
     });
     appendNewMenu(menu, "↙ JSON 복사", async (id) => {
       removeOriginalDropdown();
-      const characterData = await getMyCharacter(id, false);
+      const characterData = await getChatData(id, false);
       if (characterData instanceof Error) {
         alert(
           "캐릭터를 가져오는데에 실패하였습니다 : 인증 정보가 올바르지 않거나, 잘못된 캐릭터입니다."
@@ -1053,12 +1305,13 @@ GM_addStyle(
       await pasteCharacter(id, true, false);
     });
   }
+
   function prepare() {
     setup();
     attachObserver(document, setup);
   }
   document.neo_copy_debug = doDebugExtraction;
-  
+
   "loading" === document.readyState
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
