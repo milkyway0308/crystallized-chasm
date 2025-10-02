@@ -208,11 +208,12 @@
 
   function getRenderedMessageCount() {
     if (isCharacterPath()) {
-      return document.getElementsByClassName(isDarkMode() ? "css-f5nv21" : "css-1xhj18k")
-        .length;
+      return document.getElementsByClassName(
+        isDarkMode() ? "css-f5nv21" : "css-1xhj18k"
+      ).length;
     }
     return document.getElementsByClassName(
-      isDarkMode() ? "css-ae5fn1" : "css-12ju2tb"
+      isDarkMode() ? "css-ae5fn1" : "css-f5t16p"
     ).length;
   }
 
@@ -235,10 +236,13 @@
     const state = getChattingLogState(chatId);
     const rendered = getRenderedMessageCount();
     if (rendered != state.lastDetected) {
-      state.lastDetected = rendered;
       return true;
     }
     return false;
+  }
+
+  function setCachedRenderedMessage(chatId, count) {
+    getChattingLogState(chatId).lastDetected = count;
   }
 
   function isChattingLogLoading(chatId) {
@@ -249,11 +253,28 @@
     getChattingLogState(chatId).isLoading = loading;
   }
 
+  function invalidateOthers() {
+    if (!isStoryPath() && !isCharacterPath()) {
+      for (let key in Object.getOwnPropertyNames(lastDetectedMessageCount)) {
+        delete lastDetectedMessageCount[key];
+      }
+    } else {
+      const split = window.location.pathname.substring(1).split("/");
+      const chatRoomId = split[3];
+      for (let key in Object.getOwnPropertyNames(lastDetectedMessageCount)) {
+        if (chatRoomId !== key) {
+          delete lastDetectedMessageCount[key];
+        }
+      }
+    }
+  }
+
   async function doFetchMessageCounts(chatId, turnIndicatorElement) {
     try {
       if (!isRenderedMessageChanged(chatId) || isChattingLogLoading(chatId)) {
         return;
       }
+      setCachedRenderedMessage(chatId, getRenderedMessageCount());
       setChattingLogLoading(chatId, true);
       const count = isStoryPath()
         ? await fetchMessageCount(chatId, (count) => {
@@ -501,6 +522,9 @@
     setup();
     attachObserver(document, () => {
       setup();
+    });
+    attachHrefObserver(document, () => {
+      invalidateOthers();
     });
   }
 
