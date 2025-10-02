@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized RedPill (결정화 캐즘 붉은약)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-PILL-v1.3.4
+// @version     CRYS-PILL-v1.3.5p
 // @description 크랙의 통계 수정 및 데이터 표시 개선. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -11,8 +11,8 @@
 // ==/UserScript==
 GM_addStyle(
   'body[data-theme="dark"] .red-pill-realtime-usage { color: #F0EFEB; font-weight: bold; font-size: 12px;}' +
-    'body[data-theme="light"] .red-pill-realtime-usage {color: #1A1918; font-weight: bold; font-size: 12px;}' + 
-    '.red-pill-refresh-button { padding: 0px 12px; border: 1px solid var(--text_disabled); height: 28px; color: var(--text_primary); font-size: 14px; margin-right: 5px; border-radius: 4px; font-weight: 600; }'
+    'body[data-theme="light"] .red-pill-realtime-usage {color: #1A1918; font-weight: bold; font-size: 12px;}' +
+    ".red-pill-refresh-button { padding: 0px 12px; border: 1px solid var(--text_disabled); height: 28px; color: var(--text_primary); font-size: 14px; margin-right: 5px; border-radius: 4px; font-weight: 600; }"
 );
 (function () {
   let isIntegrationMode = false;
@@ -426,6 +426,7 @@ GM_addStyle(
       a = [];
     for (;;) {
       const u = `${"https://contents-api.wrtn.ai/superchat/character-super-mode/payment-history?type=unlimited"}&page=${f}`;
+      console.log("무제한 로그 페이지 " + f + " 가져오는 중..");
       appendLog(
         d,
         `\ubb34\uc81c\ud55c \uacb0\uc81c \ub0b4\uc5ed ${f} \ud398\uc774\uc9c0 \ub85c\ub4dc \uc911...`
@@ -478,6 +479,33 @@ GM_addStyle(
         !k.data.histories ||
         k.data.histories.length === 0
       ) {
+        if (!k) {
+          console.log("무제한 데이터 호출 중지됨");
+        } else if (k.result !== "SUCCESS") {
+          console.log(
+            "무제한 데이터 호출 중지됨 - 데이터가 성공이 아님 (" +
+              JSON.stringify(k) +
+              ")"
+          );
+        } else if (!k.data) {
+          console.log(
+            "무제한 데이터 호출 중지됨 - 데이터 배열이 없음 (" +
+              JSON.stringify(k) +
+              ")"
+          );
+        } else if (!k.data.histories) {
+          console.log(
+            "무제한 데이터 호출 중지됨 - 데이터에 내역이 없음 (" +
+              JSON.stringify(k) +
+              ")"
+          );
+        } else if (k.data.histories.length === 0) {
+          console.log(
+            "무제한 데이터 호출 중지됨 - 데이터에 내역이 0개임 (" +
+              JSON.stringify(k) +
+              ")"
+          );
+        }
         appendLog(
           d,
           "\ubb34\uc81c\ud55c \uacb0\uc81c \ub0b4\uc5ed \ud638\ucd9c \uc644\ub8cc."
@@ -561,6 +589,33 @@ GM_addStyle(
           !jsonData.data ||
           jsonData.data.length === 0
         ) {
+        if (!jsonData) {
+          console.log("무제한 데이터 호출 중지됨");
+        } else if (jsonData.result !== "SUCCESS") {
+          console.log(
+            "일반 데이터 호출 중지됨 - 데이터가 성공이 아님 (" +
+              JSON.stringify(jsonData) +
+              ")"
+          );
+        } else if (!jsonData.data) {
+          console.log(
+            "일반 데이터 호출 중지됨 - 데이터 배열이 없음 (" +
+              JSON.stringify(jsonData) +
+              ")"
+          );
+        } else if (!k.data.histories) {
+          console.log(
+            "일반 데이터 호출 중지됨 - 데이터에 내역이 없음 (" +
+              JSON.stringify(jsonData) +
+              ")"
+          );
+        } else if (k.data.histories.length === 0) {
+          console.log(
+            "일반 데이터 호출 중지됨 - 데이터에 내역이 0개임 (" +
+              JSON.stringify(jsonData) +
+              ")"
+          );
+        }
           appendLog(
             c,
             `\uc804\uccb4 \uae30\ub85d \ud638\ucd9c \uc644\ub8cc! (\uc18c\uc694 \uc2dc\uac04: ${Q(
@@ -1418,7 +1473,7 @@ GM_addStyle(
       retry = 0;
       let json = await result.json();
       if (!json.data || json.data.length <= 0) {
-        log("STOPPING! No data returned, or end of the page?");
+        log("STOPPING! No data returned, or end of the page? + (" + JSON.stringify(json) + ")");
         requireStop = true;
         break;
       }
