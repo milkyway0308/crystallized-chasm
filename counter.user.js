@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Counter (결정화 캐즘 계수기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-CNTR-v1.1.0
+// @version     CRYS-CNTR-v1.1.1
 // @description 채팅에 캐릭터 채팅 턴 계수기 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -225,7 +225,7 @@
     if (!currentLoadingData) {
       currentLoadingData = lastDetectedMessageCount[chatId] = {
         isLoading: false,
-        lastDetected: 0,
+        lastDetected: -1,
       };
     }
     return currentLoadingData;
