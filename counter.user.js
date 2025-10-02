@@ -225,7 +225,7 @@
     if (!currentLoadingData) {
       currentLoadingData = lastDetectedMessageCount[chatId] = {
         isLoading: false,
-        lastDetected: 0,
+        lastDetected: -1,
       };
     }
     return currentLoadingData;
