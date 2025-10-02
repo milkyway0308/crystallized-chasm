@@ -213,7 +213,7 @@
       ).length;
     }
     return document.getElementsByClassName(
-      isDarkMode() ? "css-ae5fn1" : "css-f5t16p"
+      isDarkMode() ? "css-1ifxcjt" : "css-1ifxcjt"
     ).length;
   }
 
@@ -261,7 +261,7 @@
     } else {
       const split = window.location.pathname.substring(1).split("/");
       const chatRoomId = split[3];
-      for (let key in Object.getOwnPropertyNames(lastDetectedMessageCount)) {
+      for (let key of Object.keys(lastDetectedMessageCount)) {
         if (chatRoomId !== key) {
           delete lastDetectedMessageCount[key];
         }
@@ -525,6 +525,12 @@
     });
     attachHrefObserver(document, () => {
       invalidateOthers();
+      const textNode = document.getElementById(
+        "chasm-counter-indicator-container"
+      );
+      if (textNode) {
+        textNode.textContent = "--";
+      }
     });
   }
 
