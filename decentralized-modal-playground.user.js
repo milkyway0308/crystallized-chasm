@@ -13,9 +13,19 @@
 !(function () {
   document.testModal = () => {
     const manager = ModalManager.getOrCreateManager("test");
-    manager.createMenu("test1", () => {
-      console.log("Hello, World!");
-    });
+    manager
+      .createMenu("C2 Burner+", (modal) => {
+        console.log("Hello, World!");
+        modal.replaceContentPanel((panel) => {
+          panel.addInputGrid("Test");
+        });
+        return true;
+      })
+      .createSubMenu("Test submenu 1", (moda) => {})
+      .createSubMenu("Test submenu 2", (moda) => {});
+    manager
+      .createMenu("C2 Ignitor", (modal) => {})
+      .createSubMenu("Test Menu", (modal) => {});
     manager.display();
   };
 })();
@@ -28,18 +38,32 @@ const DECENTRAL_VERSION = "Decentrallized Modal v1.0.0";
 
 const DECENTRAL_CSS_VALUES = `
     .decentral-modal-container[theme="light"] {
+        --decentral-text: #000000;
+        --decentral-text-inactive-hover: #64748B;
+        --decentral-text-inactive: #64748B;
         --decentral-background: #FFFFFF;
-        --decentral-border: #666666;
+        --decentral-background-menu: #EFF6FF;
+        --decentral-hover: #F1F5F9;
+        --decentral-border: #E5E7EB;
+        --decentral-active-item: #2563EB;
+        --decentral-active-text: #2563EB;
+        --decentral-background-active-item: #0EA5E910;
+        font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
     }
+
     .decentral-modal-container[theme="dark"] {
         --decentral-background: #212121;
         --decentral-border: #666666;
+        --decentral-active-item: #2563EB;
+        --decentral-active-text: #2563EB;
+        --decentral-background-active-item: #0EA5E910;
     }
+
     .decentral-modal-container {
         display: flex;
+        flex-direction: column;
         z-index: 999999;
         margin: auto;
-        font-family: 'Pretendard';
         background-color: #99999970;
         top: 0;
         left: 0;
@@ -49,32 +73,86 @@ const DECENTRAL_CSS_VALUES = `
     }
     .decentral-modal {
         min-width: 200px;
-        max-width: 800px;
+        max-width: 70%;
         min-height: 480px;
         max-height: 90%;
         width: 80%;
         height: 60%;
-        border-radius: 2px;
-        background-color: var(--decentral-background); 
+        border-radius: 4px;
+        background-color: var(--decentral-background);
         margin: auto;
     }
+
     .decentral-menu-container {
         border-right: 1px solid var(--decentral-border);
         display: flex;
-        width: fit-content;
-        height: 100%; 
-        padding: 10px 20px;
+        width: 200px;
+        height: 100%;
         flex-direction: column;
+        padding: 20px 15px;
+        background-color: var(--decentral-background-menu);
+        color: var(--decentral-text-inactive);
+        font-weight: 400;
+    }
+
+    .decentral-menu-container .decentral-menu-element {
+        display: flex;
+        font-size: 15px;
+        padding: 12px 10px;
+        border-radius: 2px;
+        padding-left: 15px;
+        width: 100%;
+        border-radius: 2px;
+    }
+    
+
+    .decentral-menu-container .decentral-sub-menu-element {
+        display: flex;
+        font-size: 14px;
+        padding: 8px 6px;
+        border-radius: 2px;
+        padding-left: 15px;
+        margin-left: 10px;
+        width: 100%;
+        border-radius: 2px;
+    }
+    
+    .decentral-menu-element-container .decentral-sub-menu-container {
+        display: none;
+        width: 100%;
+    }
+
+    .decentral-menu-element-container[active="true"] .decentral-sub-menu-container {
+        display: flex;
+        margin-top: 5px;
+    }
+
+    .decentral-menu-element, .decentral-sub-menu-element {
+      cursor: pointer;
+    }
+
+    
+    .decentral-menu-element:not([active="true"]):hover, .decentral-sub-menu-element:not([active="true"]):hover {
+      background-color: var(--decentral-hover);
     }
 
     .decentral-menu-container .decentral-menu-element[active="true"] {
-        color: var(--decentral-text);
-        font-size: 16sp;
+        position: relative;
+        color: var(--decentral-active-text); 
+        background-color: var(--decentral-background-active-item);
+        font-weight: 700;
     }
+        
+    
 
-    .decentral-menu-container .decentral-menu-element[active="true"] {
-        border-left: 4px solid var(--decentral-active-item);
-        font-weight: bold;
+    .decentral-menu-container .decentral-menu-element[active="true"]:before {
+      top: 20%;
+      content: '';
+      position: absolute;
+      left: -1px;
+      width: 2px;
+      height: 60%;
+      background-color: blue;
     }
 
     .decentral-grid-container {
@@ -89,34 +167,35 @@ const DECENTRAL_CSS_VALUES = `
         overflow-x: hidden;
         padding-right: 5px;
     }
+
     .decentral-grid-element {
-        display: flex; flex-direction: column; 
-        max-width: 100%; 
+        display: flex; flex-direction: column;
+        max-width: 100%;
         height: fit-content;
     }
     .decentral-grid-element-long {
         display: flex;
-        flex-direction: column; 
-        grid-column: 1 / 3; 
-        max-width: 100%; 
-        height: fit-content; 
+        flex-direction: column;
+        grid-column: 1 / 3;
+        max-width: 100%;
+        height: fit-content;
     }
     @media screen and (max-width:900px) {
         .decentral-modal-panel-menu {
             display: none;
         }
-            
+
         .decentral-modal-mobile-menu[active="true"] {
             display: flex;
          }
         .decentral-grid-container {
-            grid-template-columns: minmax(250px, 1fr); column-count: 1; 
+            grid-template-columns: minmax(250px, 1fr); column-count: 1;
         }
         .decentral-grid-element {
-            grid-column: 1 / 1; 
+            grid-column: 1 / 1;
         }
         .decentral-grid-element-long {
-            grid-column: 1 / 1; 
+            grid-column: 1 / 1;
         }
     }
 `;
@@ -129,9 +208,14 @@ class ModalManager {
   static __doInit() {
     if (!this.doesInit) {
       this.doesInit = true;
-      GM_addStyle(DECENTRAL_CSS_VALUES);
+      if (!document.__modalManager) {
+        GM_addStyle(DECENTRAL_CSS_VALUES);
+        document.__modalManager = this.__modalMap;
+      }
+      this.__modalMap = document.__modalManager;
     }
   }
+
   /**
    * 등록된 모달 관리자 인스턴스를 반환하거나, 등록되지 않았을 경우 새로 생성하여 등록하고 반환합니다..
    * @param {string} name 모달 관리자 이름
@@ -212,10 +296,10 @@ class ModalMenu {
    * @returns {ModalMenu}
    */
   createSubMenu(menuName, menuAction) {
-    let menuItem = this.__modal.__menuItems.get(menuName);
+    let menuItem = this.__subMenus.get(menuName);
     if (!menuItem) {
       menuItem = new ModalMenu(menuAction);
-      this.__modal.__menuItems.set(menuName, menuItem);
+      this.__subMenus.set(menuName, menuItem);
     }
     return menuItem;
   }
@@ -301,7 +385,7 @@ class DecentrallizedModal {
     });
     this.__container.appendChild(this.__modal);
     this.__modal.appendChild(
-      (this.__menuPanel = new MenuPanel(this, this.__menuItems)).asHTML()
+      (this.__menuPanel = new MenuPanel(this, this.__menuItems, [])).asHTML()
     );
     this.__modal.appendChild(
       (this.__mobileMenuPanel = new MobileMenuPanel(
@@ -310,10 +394,23 @@ class DecentrallizedModal {
       )).asHTML()
     );
     this.__modal.appendChild(
-      (this.__contentPanel = new ContentPanel()).asHTML()
+      (this.__contentPanel = new ContentPanel(
+        `decentral-content-${this.baseId}`
+      )).asHTML()
     );
     this.__container.setAttribute("theme", isDarkTheme ? "dark" : "light");
     return this.__container;
+  }
+
+  /**
+   *
+   * @param {(panel: ContentPanel) => unit} lambda
+   */
+  replaceContentPanel(lambda) {
+    const element = document.getElementById(`decentral-content-${this.baseId}`);
+    this.__contentPanel = new ContentPanel(`decentral-content-${this.baseId}`);
+    lambda(this.__contentPanel);
+    element.outerHTML = this.__contentPanel.asHTML().outerHTML;
   }
 }
 
@@ -338,17 +435,21 @@ class MenuPanel extends HTMLComponentConvertable {
     try {
       for (let item of this.menus) {
         const menuItem = item[1];
-
-        const menuContainer = document.createElement("div");
-
-        menuContainer.appendChild(
-          setupClassNode("span", "decentral-menu-element", (node) => {
+        const menuContainer = setupClassNode(
+          "div",
+          "decentral-menu-element-container"
+        );
+        const menuText = setupClassNode(
+          "span",
+          "decentral-menu-element",
+          (node) => {
             node.textContent = item[0];
             node.onclick = () => {
               menuItem.onDisplay(this.modal);
             };
-          })
+          }
         );
+        menuContainer.appendChild(menuText);
 
         if (menuItem.__subMenus.size > 0) {
           const subMenuContainer = setupClassNode(
@@ -366,9 +467,31 @@ class MenuPanel extends HTMLComponentConvertable {
               })
             );
             menuContainer.append(subMenuContainer);
+            if (!isElementActiveSelected && this.selectedMenu.length === 2) {
+              if (
+                this.selectedMenu[0] === item[0] &&
+                this.selectedMenu[1] === subItem[0]
+              ) {
+                isElementActiveSelected = true;
+                subMenuContainer.setAttribute("active", "true");
+              }
+            }
           }
         }
         container.append(menuContainer);
+        if (!isElementActiveSelected) {
+          if (this.selectedMenu.length === 0) {
+            isElementActiveSelected = true;
+            menuContainer.setAttribute("active", "true");
+            menuText.setAttribute("active", "true");
+          } else if (this.selectedMenu.length === 1) {
+            if (this.selectedMenu[0] === item[0]) {
+              isElementActiveSelected = true;
+              menuContainer.setAttribute("active", "true");
+              menuText.setAttribute("active", "true");
+            }
+          }
+        }
       }
     } catch (ex) {
       console.error(ex);
@@ -427,7 +550,42 @@ class MobileMenuPanel extends HTMLComponentConvertable {
   }
 }
 
-class ContentPanel extends HTMLComponentConvertable {}
+class ContentPanel extends HTMLComponentConvertable {
+  __element = setupClassNode("div", "decentral-grid-container", () => {});
+
+  constructor(id) {
+    super();
+    this.__element.id = id;
+  }
+  /**
+   *
+   * @param {string | undefined} titleText
+   * @param {((node: HTMLElement, title: HTMLElement | undefined) => any) | undefined} lambda
+   */
+  addGrid(titleText, lambda) {
+    this.__element.appendChild(createLongGridElement(titleText, lambda));
+  }
+
+  addInputGrid(id, titleText, onChange) {
+    this.__element.append(
+      createGridElement(titleText, (node) => {
+        node.append(
+          setupClassNode("input", "chasm-ignt-text-field", (area) => {
+            area.id = id;
+            area.setAttribute("type", "text");
+            area.onchange = () => {
+              onChange(area.value);
+            };
+          })
+        );
+      })
+    );
+  }
+
+  asHTML() {
+    return this.__element;
+  }
+}
 
 class TitleComponent extends HTMLComponentConvertable {}
 
