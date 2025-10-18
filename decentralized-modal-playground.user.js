@@ -60,6 +60,9 @@
 const DECENTRAL_VERSION = "Decentrallized Modal v1.0.0";
 
 const DECENTRAL_CSS_VALUES = `
+    /*
+     * 변수 선언부 
+     */
     .decentral-modal-container[theme="light"] {
         --decentral-text: #000000;
         --decentral-text-formal: #64748B;
@@ -86,6 +89,11 @@ const DECENTRAL_CSS_VALUES = `
         --decentral-background-active-item: #0EA5E910;
     }
 
+    /*
+     * 모달 컨테이너 선언
+     * 원본 페이지
+     * └ **모달 컨테이너** 
+     */
     .decentral-modal-container {
         display: flex;
         flex-direction: column;
@@ -98,6 +106,14 @@ const DECENTRAL_CSS_VALUES = `
         height: 100%;
         position: absolute;
     }
+        
+
+    /*
+     * 모달 베이스 선언
+     * 원본 페이지
+     * └ 모달 컨테이너
+     *   └ **모달 베이스** 
+     */
     .decentral-modal {
         display: flex;
         flex-direction: row;
@@ -113,22 +129,14 @@ const DECENTRAL_CSS_VALUES = `
         color: var(--decentral-text);
     }
 
-    .decentral-modal-title {
-      display: flex;
-      flex-direction: row;
-      padding: 15px 20px;
-      align-items: center;
-      border-bottom: 1px solid var(--decentral-border);
-    }
-
-    .decental-modal-title-text {
-      margin-left: 10px;
-    }
-
-    .decentral-modal-button-container {
-      margin-left: auto;
-    }
-    
+    /*
+     * 모달 헤더(제목) 선언
+     * 원본 페이지
+     * └ 모달 컨테이너
+     *   └ 모달 베이스
+     *     └ **모달 헤더**
+     */
+    /* 모달 헤더 아이콘 */
     .decentral-modal-title-icon {
       width: 32px;
       height: 32px;
@@ -136,6 +144,34 @@ const DECENTRAL_CSS_VALUES = `
       padding: 0px 16px;
     }
 
+    /* 모달 헤더 제목 */
+    .decentral-modal-title-container {
+      display: flex;
+      flex-direction: row;
+      padding: 15px 20px;
+      align-items: center;
+      border-bottom: 1px solid var(--decentral-border);
+    }
+
+    /* 모달 헤더 제목 텍스트*/
+    .decental-modal-title-text {
+      margin-left: 10px;
+    }
+
+    
+    /* 모달 헤더 우측 툴바 컨테이너 */
+    .decentral-modal-button-container {
+      margin-left: auto;
+    }
+
+    /*
+     * 모달 좌측 PC / 태블릿 메뉴 컨테이너 선언
+     * 원본 페이지
+     * └ 모달 컨테이너
+     *   └ 모달 베이스
+     *     └ **모달 메뉴**
+     */
+    /* 모달 메뉴 컨테이너 */
     .decentral-menu-container {
         border-right: 1px solid var(--decentral-border);
         display: flex;
@@ -149,12 +185,7 @@ const DECENTRAL_CSS_VALUES = `
         font-weight: 400;
     }
 
-    .decentral-vertical-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
+    /* 모달 최상단 메뉴 요소 */
     .decentral-menu-container .decentral-menu-element {
         display: flex;
         font-size: 15px;
@@ -165,18 +196,7 @@ const DECENTRAL_CSS_VALUES = `
         border-radius: 2px;
     }
     
-
-    .decentral-menu-container .decentral-sub-menu-element {
-        display: flex;
-        font-size: 14px;
-        padding: 8px 6px;
-        border-radius: 2px;
-        padding-left: 15px;
-        margin-left: 10px;
-        width: 100%;
-        border-radius: 2px;
-    }
-    
+    /* 모달 최상단 메뉴 요소 컨테이너 */
     .decentral-menu-element-container .decentral-sub-menu-container {
         display: none;
         width: 100%;
@@ -187,15 +207,29 @@ const DECENTRAL_CSS_VALUES = `
         margin-top: 5px;
     }
 
+    /* 모달 서브 메뉴 요소 */
+    .decentral-menu-container .decentral-sub-menu-element {
+        display: flex;
+        font-size: 14px;
+        padding: 8px 6px;
+        border-radius: 2px;
+        padding-left: 15px;
+        margin-left: 10px;
+        width: 100%;
+        border-radius: 2px;
+    }
+
+    /* 메뉴 커서 핸들러 */
     .decentral-menu-element, .decentral-sub-menu-element {
       cursor: pointer;
     }
-
     
+    /* 표시된 메뉴 호버시 백그라운드 색상 적용 */
     .decentral-menu-element:not([active="true"]):hover, .decentral-sub-menu-element:not([active="true"]):hover {
       background-color: var(--decentral-hover);
     }
 
+    /* 선택된 메뉴 색상 및 볼드 적용 */
     .decentral-menu-container .decentral-menu-element[active="true"] {
         position: relative;
         color: var(--decentral-active-text); 
@@ -203,6 +237,7 @@ const DECENTRAL_CSS_VALUES = `
         font-weight: 700;
     }
 
+    /* 선택된 메뉴 좌측 보더 적용 */
     .decentral-menu-container .decentral-menu-element[active="true"]:before {
       top: 20%;
       content: '';
@@ -213,6 +248,15 @@ const DECENTRAL_CSS_VALUES = `
       background-color: blue;
     }
 
+    
+    /*
+     * 모달 우측 컨텐츠 선언
+     * 원본 페이지
+     * └ 모달 컨테이너
+     *   └ 모달 베이스
+     *     └ 모달 컨텐츠
+     */
+    /* 스크롤 한계 적용을 위한 컨텐츠 그리드 래퍼 */
     .decentral-grid-container {
       display: flex;
       width: 100%;
@@ -223,6 +267,8 @@ const DECENTRAL_CSS_VALUES = `
       min-width: 0; 
       position: relative;
     }
+
+    /* 컨텐츠 그리드 컨테이너*/
     .decentral-grid {
         display: grid;
         width: 100%;
@@ -237,6 +283,7 @@ const DECENTRAL_CSS_VALUES = `
         position: absolute;
     }
 
+    /* 컨텐츠 고정 푸터 */
     .decentral-modal-footer {
       border-top: 1px solid var(--decentral-border);
       display: flex;
@@ -244,6 +291,7 @@ const DECENTRAL_CSS_VALUES = `
       padding: 0px 16px;
     }
 
+    /* 컨텐츠 제목 텍스트 */
     .decentral-element-title {
       font-size: 13px;
       font-weight: light;
@@ -251,6 +299,7 @@ const DECENTRAL_CSS_VALUES = `
       color: var(--decentral-text-formal);
     }
     
+    /* 2단 적재 가능한 속성 요소 */
     .decentral-grid-element {
       display: flex; 
       flex-direction: column;
@@ -262,6 +311,7 @@ const DECENTRAL_CSS_VALUES = `
       min-width: 0; 
     }
 
+    /* 동시 적재 불가능한 속성 요소 */
     .decentral-grid-element-long {
       display: flex;
       flex-direction: column;
@@ -274,12 +324,29 @@ const DECENTRAL_CSS_VALUES = `
       min-width: 0; 
     }
 
+    
+    /*
+     * 범용 클래스 선언 
+     */
+    /* Weight 1 기반 가변 수직 컨테이너 */
+    .decentral-vertical-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    
+    /*
+     * 체크박스-스위치 선언 
+     */
+    /* 스위치 최상단 컨테이너 */
     .decentral-switch-field {
       display: flex;
       width: 100%;
       background-color: var(--decentral-switch-background);
     }
 
+    /* 스위치 텍스트 컨테이너 */
     .decentral-switch-field .element-text-container {
       display: flex;
       flex-direction: column;
@@ -287,6 +354,7 @@ const DECENTRAL_CSS_VALUES = `
       padding: 8px 16px;
     }
 
+    /* 스위치 제목 */
     .decentral-switch-field .element-title {
       font-size: 14px;
       font-weight: normal;
@@ -294,6 +362,7 @@ const DECENTRAL_CSS_VALUES = `
       color: var(--decentral-text);
     }
 
+    /* 스위치 설명 */
     .decentral-switch-field .element-description {
       font-size: 13px;
       font-weight: light;
@@ -301,6 +370,7 @@ const DECENTRAL_CSS_VALUES = `
     }
 
     
+    /* 스위치 내 체크박스 컨테이너 */
     .decentral-switch-field .element-switch-container {
       display: flex;
       margin-left: auto;
@@ -308,49 +378,13 @@ const DECENTRAL_CSS_VALUES = `
       padding: 4px 16px;
     }
 
-    .decentral-text-field {
-      background-color: var(--decentral-text-background);
-      border: 1px solid var(--decentral-text-border);
-      border-radius: 4px;
-      width: 100%;
-      padding: 4px 8px;
-      color: var(--decentral-text);
-      height: 36px;
-    }
-
-    .decentral-text-area {
-      background-color: var(--decentral-text-background);
-      border: 1px solid var(--decentral-text-border);
-      resizable: false;
-      width: 100%;
-      padding: 4px 8px;
-      color: var(--decentral-text);
-      height: 64px;
-    }
-
     
-    .decentral-logging-area {
-      background-color: var(--decentral-text-background);
-      border: 1px solid var(--decentral-text-border);
-      resizable: false;
-      width: 100%;
-      padding: 4px 8px;
-      color: var(--decentral-text);
-      height: 128px;
-    }
-
-    label {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      cursor: pointer;
-    }
-
     /*
         Switch Checkbox source code from:
         https://www.daleseo.com/css-toggle-switch/
     */
-    [type="checkbox"] {
+   /* 커스텀 체크박스 설정 */
+    .element-switch {
       appearance: none;
       position: relative;
       border-radius: 1.25em;
@@ -360,7 +394,8 @@ const DECENTRAL_CSS_VALUES = `
       border-color: #CBD5E1;
     }
 
-    [type="checkbox"]::before {
+    /* 체크박스 스위치 버튼 */
+    .element-switch::before {
       content: "";
       position: absolute;
       top: -0.05em;
@@ -373,31 +408,71 @@ const DECENTRAL_CSS_VALUES = `
       transition: left 50ms linear;
     }
 
-    [type="checkbox"]:checked {
+    /* 선택된 체크박스의 스위치 위치 이동 */
+    .element-switch:checked::before {
+      left: 2em;
+    }
+    /* 체크된 스위치 체크박스 색상 */
+    .element-switch:checked {
       background-color: var(--decentral-active-item);
       border-color: var(--decentral-active-item);
     }
 
-    [type="checkbox"]:checked::before {
-      left: 2em;
-    }
-
-    [type="checkbox"]:disabled {
+    /* 비활성화된 스위치 체크박스 설정 */
+    .element-switch:disabled {
       border-color: lightgray;
       opacity: 0.7;
       cursor: not-allowed;
     }
 
-    [type="checkbox"]:disabled:before {
+    /* 비활성화된 스위치 버튼 색상 설정 */
+    .element-switch:disabled:before {
       background-color: var(--decentral-text-inactive);
     }
 
-    [type="checkbox"]:disabled + span {
-      opacity: 0.7;
-      cursor: not-allowed;
+    /*
+     * input 기반 1단 텍스트필드 선언 
+     */
+    .decentral-text-field {
+      background-color: var(--decentral-text-background);
+      border: 1px solid var(--decentral-text-border);
+      border-radius: 4px;
+      width: 100%;
+      padding: 4px 8px;
+      color: var(--decentral-text);
+      height: 36px;
     }
 
-        
+    
+    /*
+     * textarea 기반 다단식 텍스트에리어 선언 
+     */
+    /* 수정 가능한 일반 textarea */
+    .decentral-text-area {
+      background-color: var(--decentral-text-background);
+      border: 1px solid var(--decentral-text-border);
+      resizable: false;
+      width: 100%;
+      padding: 4px 8px;
+      color: var(--decentral-text);
+      height: 64px;
+    }
+
+    /* 데이터 표시용 수정 불가능 textarea */
+    .decentral-logging-area {
+      background-color: var(--decentral-text-background);
+      border: 1px solid var(--decentral-text-border);
+      resizable: false;
+      width: 100%;
+      padding: 4px 8px;
+      color: var(--decentral-text);
+      height: 128px;
+    }
+
+
+    /**
+     *  모바일 레이아웃 대응 
+     */
     @media screen and (max-width:600px) {
         .decentral-menu-container {
           display: none;
@@ -1006,7 +1081,7 @@ class ContentPanel extends ComponentAppender {
       () => {}
     );
     this.__verticalContainer.append(
-      setupClassNode("div", "decentral-modal-title", (node) => {
+      setupClassNode("div", "decentral-modal-title-container", (node) => {
         node.append(icon);
         node.append(
           setupClassNode("p", "decental-modal-title-text", (node) => {
