@@ -15,7 +15,6 @@
     const manager = ModalManager.getOrCreateManager("test");
     manager
       .createMenu("C2 Burner+", (modal) => {
-        console.log("Hello, World!");
         modal.replaceContentPanel(
           (panel) => {
             panel.addInputGrid("Test", "Hello, World!", (action) => {});
@@ -189,6 +188,7 @@ const DECENTRAL_CSS_VALUES = `
         background-color: var(--decentral-background-menu);
         color: var(--decentral-text-inactive);
         font-weight: 400;
+        user-select: none;
     }
 
     /* 모달 최상단 메뉴 요소 */
@@ -636,7 +636,6 @@ class ModalManager {
       menuItem = new ModalMenu(menuAction);
       this.__modal.__menuItems.set(menuName, menuItem);
     }
-    console.log(this.__modal.__menuItems);
     return menuItem;
   }
 
@@ -921,10 +920,6 @@ class MenuPanel extends HTMLComponentConvertable {
             "decentral-sub-menu-container"
           );
           for (let subItem of menuItem.__subMenus) {
-            console.log(
-              "Appending subitem" + subItem + " (" + menuItem.__subMenus + ")"
-            );
-            const subMenuItem = subItem[1];
             subMenuContainer.appendChild(
               setupClassNode("span", "decentral-sub-menu-element", (node) => {
                 node.textContent = subItem[0];
@@ -970,7 +965,6 @@ class MenuPanel extends HTMLComponentConvertable {
     } catch (ex) {
       console.error(ex);
     }
-    console.log("Finished!");
     return container;
   }
 }
