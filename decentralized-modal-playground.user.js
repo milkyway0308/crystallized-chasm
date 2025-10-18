@@ -28,6 +28,7 @@
             panel.addInputGrid("Test4", "Hello, World!", (action) => {});
             panel.addInputGrid("Test4", "Hello, World!", (action) => {});
             panel.addInputGrid("Test4", "Hello, World!", (action) => {});
+            panel.footer().addLongInputGrid("Test Footer", "WTF!", (action) => {})
           },
           "C2 Burner+",
           DECENTRAL_DEFAULT_ICON_SVG
@@ -97,7 +98,6 @@ const DECENTRAL_CSS_VALUES = `
         width: 80%;
         height: 60%;
         border-radius: 3px;
-        border-radius: 4px;
         background-color: var(--decentral-background);
         margin: auto;
         color: var(--decentral-text);
@@ -192,8 +192,6 @@ const DECENTRAL_CSS_VALUES = `
         background-color: var(--decentral-background-active-item);
         font-weight: 700;
     }
-        
-    
 
     .decentral-menu-container .decentral-menu-element[active="true"]:before {
       top: 20%;
@@ -227,6 +225,13 @@ const DECENTRAL_CSS_VALUES = `
         min-height: 0;
         min-width: 0; 
         position: absolute;
+    }
+
+    .decentral-modal-footer {
+      border-top: 1px solid var(--decentral-border);
+      display: flex;
+      flex-direction: column;
+      padding: 0px 16px;
     }
 
     .decentral-element-title {
@@ -677,65 +682,36 @@ class MobileMenuPanel extends HTMLComponentConvertable {
   }
 }
 
-class ContentPanel extends HTMLComponentConvertable {
-  __verticalContainer = setupClassNode(
-    "div",
-    "decentral-vertical-container",
-    () => {}
-  );
-  __element = setupClassNode("div", "decentral-grid", () => {});
-
-  constructor(id, title, svg) {
+class ComponentAppender extends HTMLComponentConvertable {
+  /**
+   *
+   * @param {HTMLElement} parentElement
+   */
+  constructor(parentElement) {
     super();
-    this.__verticalContainer.id = id;
-    const icon = setupClassNode(
-      "div",
-      "decentral-modal-title-icon",
-      (node) => {}
-    );
-    const gridWrapper = setupClassNode("div", "decentral-grid-container", () => {});
-    this.__verticalContainer.append(
-      setupClassNode("div", "decentral-modal-title", (node) => {
-        node.append(icon);
-        node.append(
-          setupClassNode("p", "decental-modal-title-text", (node) => {
-            node.innerText = title;
-          })
-        );
-        node.append(
-          setupClassNode("div", "decentral-modal-button-container", (node) => {
-            node.append(setupNode("div", (svgNode) => {
-              svgNode.innerHTML = DECENTRAL_CLOSE_ICON_SVG;
-            }));
-          })
-        );
-      })
-    );
-    icon.outerHTML = svg;
-    icon.classList.add("decentral-modal-title-icon");
-    gridWrapper.append(this.__element);
-    this.__verticalContainer.append(gridWrapper);
+    this.parentElement = parentElement;
   }
+
   /**
    *
    * @param {string | undefined} titleText
    * @param {((node: HTMLElement, title: HTMLElement | undefined) => any) | undefined} lambda
    */
   addGrid(titleText, lambda) {
-    this.__element.appendChild(createGridElement(titleText, lambda));
+    this.parentElement.appendChild(createGridElement(titleText, lambda));
   }
-  
+
   /**
    *
    * @param {string | undefined} titleText
    * @param {((node: HTMLElement, title: HTMLElement | undefined) => any) | undefined} lambda
    */
   addLongGrid(titleText, lambda) {
-    this.__element.appendChild(createLongGridElement(titleText, lambda));
+    this.parentElement.appendChild(createLongGridElement(titleText, lambda));
   }
 
   addInputGrid(id, titleText, onChange) {
-    this.__element.append(
+    this.parentElement.append(
       createGridElement(titleText, (node) => {
         node.append(
           setupClassNode("input", "decentral-text-field", (area) => {
@@ -750,9 +726,8 @@ class ContentPanel extends HTMLComponentConvertable {
     );
   }
 
-  
   addLongInputGrid(id, titleText, onChange) {
-    this.__element.append(
+    this.parentElement.append(
       createLongGridElement(titleText, (node) => {
         node.append(
           setupClassNode("input", "decentral-text-field", (area) => {
@@ -766,12 +741,65 @@ class ContentPanel extends HTMLComponentConvertable {
       })
     );
   }
+}
+
+class ContentPanel extends ComponentAppender {
+  __verticalContainer = setupClassNode(
+    "div",
+    "decentral-vertical-container",
+    () => {}
+  );
+  __footer = setupClassNode("div", "decentral-modal-footer", () => {});
+  __footerAppender = new ComponentAppender(this.__footer);
+
+  constructor(id, title, svg) {
+    super(setupClassNode("div", "decentral-grid", () => {}));
+    this.__element = this.parentElement;
+    this.__verticalContainer.id = id;
+    const icon = setupClassNode(
+      "div",
+      "decentral-modal-title-icon",
+      (node) => {}
+    );
+    const gridWrapper = setupClassNode(
+      "div",
+      "decentral-grid-container",
+      () => {}
+    );
+    this.__verticalContainer.append(
+      setupClassNode("div", "decentral-modal-title", (node) => {
+        node.append(icon);
+        node.append(
+          setupClassNode("p", "decental-modal-title-text", (node) => {
+            node.innerText = title;
+          })
+        );
+        node.append(
+          setupClassNode("div", "decentral-modal-button-container", (node) => {
+            node.append(
+              setupNode("div", (svgNode) => {
+                svgNode.innerHTML = DECENTRAL_CLOSE_ICON_SVG;
+              })
+            );
+          })
+        );
+      })
+    );
+    icon.outerHTML = svg;
+    icon.classList.add("decentral-modal-title-icon");
+    gridWrapper.append(this.__element);
+    this.__verticalContainer.append(gridWrapper);
+    this.__verticalContainer.append(this.__footer);
+  }
+
+  footer() {
+    return this.__footerAppender;
+  }
 
   asHTML() {
     return this.__verticalContainer;
   }
 }
-
 class TitleComponent extends HTMLComponentConvertable {}
 
 class ContentComponent extends HTMLComponentConvertable {}
