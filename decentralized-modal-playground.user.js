@@ -271,7 +271,7 @@ const DECENTRAL_CSS_VALUES = `
       position: relative;
     }
 
-    /* 컨텐츠 그리드 컨테이너*/
+    /* 컨텐츠 그리드 컨테이너 */
     .decentral-grid {
         display: grid;
         width: 100%;
@@ -279,7 +279,6 @@ const DECENTRAL_CSS_VALUES = `
         grid-template-columns: repeat(2, 1fr);
         gap: 3em;
         grid-row-gap: 0.3em;
-        overflow: scroll; 
         padding: 8px 16px;
         min-height: 0;
         min-width: 0; 
@@ -461,7 +460,9 @@ const DECENTRAL_CSS_VALUES = `
       height: 64px;
     }
 
-    /* 데이터 표시용 수정 불가능 textarea */
+    /* 
+     * 데이터 표시용 수정 불가능 textarea
+     */
     .decentral-logging-area {
       background-color: var(--decentral-text-background);
       border: 1px solid var(--decentral-text-border);
