@@ -57,7 +57,7 @@
     manager
       .createMenu("C2 Ignitor", (modal) => {})
       .createSubMenu("Test Menu", (modal) => {});
-    manager.withLicenseCredential().display(false);
+    manager.withLicenseCredential().display(true);
   };
 })();
 // decentralized-modal.js - 탈중앙화된 임베딩 집중 모달 프레임워크
@@ -1573,10 +1573,6 @@ class ContentPanel extends ComponentAppender {
     return this.__verticalContainer;
   }
 }
-class TitleComponent extends HTMLComponentConvertable {}
-
-class ContentComponent extends HTMLComponentConvertable {}
-
 // =================================================
 //                 노드 생성 유틸리티
 // =================================================
