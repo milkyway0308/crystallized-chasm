@@ -210,6 +210,7 @@ const DECENTRAL_CSS_VALUES = `
 
     .decentral-menu-element-container[active="true"] .decentral-sub-menu-container {
         display: flex;
+        flex-direction: column;
         margin-top: 5px;
     }
 
