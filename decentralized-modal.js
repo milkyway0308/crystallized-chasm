@@ -1417,10 +1417,9 @@ class ComponentAppender extends HTMLComponentConvertable {
    *
    * @param {*} id
    * @param {*} titleText
-   * @param {*} onChange
    * @returns {ComponentAppender}
    */
-  addLoggingArea(id, titleText, onChange) {
+  addLoggingArea(id, titleText) {
     this.parentElement.append(
       createLongGridElement(titleText, (node) => {
         node.append(
@@ -1442,19 +1441,15 @@ class ComponentAppender extends HTMLComponentConvertable {
    *
    * @param {*} id
    * @param {*} titleText
-   * @param {*} onChange
    * @returns {ComponentAppender}
    */
-  addButton(id, titleText, onChange) {
+  addButton(id, titleText) {
     this.parentElement.append(
       createLongGridElement(undefined, (node) => {
         node.append(
           setupClassNode("button", "decentral-button", (button) => {
             button.id = id;
             button.innerText = titleText;
-            button.onchange = () => {
-              onChange(button.value);
-            };
           })
         );
       })
@@ -1496,7 +1491,7 @@ class ComponentAppender extends HTMLComponentConvertable {
                     switcher.setAttribute("type", "checkbox");
                     switcher.setAttribute("role", "switch");
                     switcher.onchange = () => {
-                      onChange(switcher.value);
+                      onChange(switcher.checked);
                     };
                   })
                 );
