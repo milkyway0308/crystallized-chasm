@@ -493,7 +493,7 @@ const DECENTRAL_CSS_VALUES = `
             display: flex;
          }
     }
-    @media screen and (max-width:700px) {
+    @media screen and (max-width:850px) {
         
         .decentral-grid {
             grid-template-columns: minmax(250px, 1fr); column-count: 1;
