@@ -672,7 +672,7 @@ class ModalMenu {
    *
    * @param {async (modal: DecentrallizedModal) => any} action
    */
-  constructor(action) {
+  constructor(action, parent) {
     this.action = action;
   }
 
@@ -694,10 +694,10 @@ class ModalMenu {
   createSubMenu(menuName, menuAction) {
     let menuItem = this.__subMenus.get(menuName);
     if (!menuItem) {
-      menuItem = new ModalMenu(menuAction);
+      menuItem = new ModalMenu(menuAction, this);
       this.__subMenus.set(menuName, menuItem);
     }
-    return menuItem;
+    return this;
   }
 }
 
