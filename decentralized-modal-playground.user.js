@@ -451,7 +451,7 @@ const DECENTRAL_CSS_VALUES = `
     .decentral-text-area {
       background-color: var(--decentral-text-background);
       border: 1px solid var(--decentral-text-border);
-      resize: false;
+      resize: none;
       width: 100%;
       padding: 4px 8px;
       color: var(--decentral-text);
@@ -462,7 +462,7 @@ const DECENTRAL_CSS_VALUES = `
     .decentral-logging-area {
       background-color: var(--decentral-text-background);
       border: 1px solid var(--decentral-text-border);
-      resize: false;
+      resize: none;
       width: 100%;
       padding: 4px 8px;
       color: var(--decentral-text);
@@ -701,7 +701,10 @@ class DecentrallizedModal {
       (this.__contentPanel = new ContentPanel(
         `decentral-content-${this.baseId}`,
         "여기에 텍스트 입력",
-        DECENTRAL_DEFAULT_ICON_SVG
+        DECENTRAL_DEFAULT_ICON_SVG,
+        () => {
+          this.close();
+        }
       )).asHTML()
     );
     this.__modal.append(verticalPanel);
@@ -719,7 +722,10 @@ class DecentrallizedModal {
     this.__contentPanel = new ContentPanel(
       `decentral-content-${this.baseId}`,
       title,
-      iconSvg
+      iconSvg ?? DECENTRAL_DEFAULT_ICON_SVG,
+      () => {
+        this.close();
+      }
     );
     lambda(this.__contentPanel);
 
@@ -1066,7 +1072,7 @@ class ContentPanel extends ComponentAppender {
   __footer = setupClassNode("div", "decentral-modal-footer", () => {});
   __footerAppender = new ComponentAppender(this.__footer);
 
-  constructor(id, title, svg) {
+  constructor(id, title, svg, closeAction) {
     super(setupClassNode("div", "decentral-grid", () => {}));
     this.__element = this.parentElement;
     this.__verticalContainer.id = id;
@@ -1093,6 +1099,7 @@ class ContentPanel extends ComponentAppender {
             node.append(
               setupNode("div", (svgNode) => {
                 svgNode.innerHTML = DECENTRAL_CLOSE_ICON_SVG;
+                svgNode.onclick = closeAction;
               })
             );
           })
