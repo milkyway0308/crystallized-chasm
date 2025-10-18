@@ -28,7 +28,16 @@
             panel.addInputGrid("Test4", "Hello, World!", (action) => {});
             panel.addInputGrid("Test4", "Hello, World!", (action) => {});
             panel.addInputGrid("Test4", "Hello, World!", (action) => {});
-            panel.footer().addLongInputGrid("Test Footer", "WTF!", (action) => {})
+            panel.addTextAreaGrid("test13", "Type text here", (action) => {});
+            panel
+              .footer()
+              .addLoggingArea("logs", "Logs", (action) => {})
+              .addSwitchGrid(
+                "test188",
+                "Hello",
+                "This is test switch.\nAnd this is multilined.\n Not bad, isn't it?\nI'm writing here to test something long, long text render, so it can move down. Can it be fixed with switch?",
+                () => {}
+              );
           },
           "C2 Burner+",
           DECENTRAL_DEFAULT_ICON_SVG
@@ -59,12 +68,13 @@ const DECENTRAL_CSS_VALUES = `
         --decentral-background: #FFFFFF;
         --decentral-background-menu: #EFF6FF;
         --decentral-hover: #F1F5F9;
-        --decentral-border: #E5E7EB;
+        --decentral-border: #CBD5E1;
         --decentral-active-item: #2563EB;
         --decentral-active-text: #2563EB;
         --decentral-background-active-item: #0EA5E910;
         --decentral-text-background: #F1F5F9;
         --decentral-text-border: #E2E8F0;
+        --decentral-switch-background: #F8FAFC;
         font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
     }
 
@@ -253,15 +263,49 @@ const DECENTRAL_CSS_VALUES = `
     }
 
     .decentral-grid-element-long {
-        display: flex;
-        flex-direction: column;
-        grid-column: 1 / 3;
-        max-width: 100%;
-        height: fit-content;
-        padding: 10px 5px;
-        margin-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      grid-column: 1 / 3;
+      max-width: 100%;
+      height: fit-content;
+      padding: 10px 5px;
+      margin-bottom: 8px;
       min-height: 0;
       min-width: 0; 
+    }
+
+    .decentral-switch-field {
+      display: flex;
+      width: 100%;
+      background-color: var(--decentral-switch-background);
+    }
+
+    .decentral-switch-field .element-text-container {
+      display: flex;
+      flex-direction: column;
+      justify-items: center;
+      padding: 8px 16px;
+    }
+
+    .decentral-switch-field .element-title {
+      font-size: 14px;
+      font-weight: normal;
+      margin-bottom: 4px;
+      color: var(--decentral-text);
+    }
+
+    .decentral-switch-field .element-description {
+      font-size: 13px;
+      font-weight: light;
+      color: var(--decentral-text-formal);
+    }
+
+    
+    .decentral-switch-field .element-switch-container {
+      display: flex;
+      margin-left: auto;
+      align-items: center;
+      padding: 4px 16px;
     }
 
     .decentral-text-field {
@@ -271,8 +315,88 @@ const DECENTRAL_CSS_VALUES = `
       width: 100%;
       padding: 4px 8px;
       color: var(--decentral-text);
-      height: 36px;      
+      height: 36px;
     }
+
+    .decentral-text-area {
+      background-color: var(--decentral-text-background);
+      border: 1px solid var(--decentral-text-border);
+      resizable: false;
+      width: 100%;
+      padding: 4px 8px;
+      color: var(--decentral-text);
+      height: 64px;
+    }
+
+    
+    .decentral-logging-area {
+      background-color: var(--decentral-text-background);
+      border: 1px solid var(--decentral-text-border);
+      resizable: false;
+      width: 100%;
+      padding: 4px 8px;
+      color: var(--decentral-text);
+      height: 128px;
+    }
+
+    label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+
+    /*
+        Switch Checkbox source code from:
+        https://www.daleseo.com/css-toggle-switch/
+    */
+    [type="checkbox"] {
+      appearance: none;
+      position: relative;
+      border-radius: 1.25em;
+      width: 4em;
+      height: 2em;
+      background-color: #CBD5E1;
+      border-color: #CBD5E1;
+    }
+
+    [type="checkbox"]::before {
+      content: "";
+      position: absolute;
+      top: -0.05em;
+      left: 0;
+      width: 2em;
+      height: 2em;
+      border-radius: 50%;
+      transform: scale(0.6);
+      background-color: white;
+      transition: left 50ms linear;
+    }
+
+    [type="checkbox"]:checked {
+      background-color: var(--decentral-active-item);
+      border-color: var(--decentral-active-item);
+    }
+
+    [type="checkbox"]:checked::before {
+      left: 2em;
+    }
+
+    [type="checkbox"]:disabled {
+      border-color: lightgray;
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    [type="checkbox"]:disabled:before {
+      background-color: var(--decentral-text-inactive);
+    }
+
+    [type="checkbox"]:disabled + span {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
         
     @media screen and (max-width:600px) {
         .decentral-menu-container {
@@ -696,20 +820,30 @@ class ComponentAppender extends HTMLComponentConvertable {
    *
    * @param {string | undefined} titleText
    * @param {((node: HTMLElement, title: HTMLElement | undefined) => any) | undefined} lambda
+   * @returns {ComponentAppender}
    */
   addGrid(titleText, lambda) {
     this.parentElement.appendChild(createGridElement(titleText, lambda));
+    return this;
   }
 
   /**
    *
    * @param {string | undefined} titleText
    * @param {((node: HTMLElement, title: HTMLElement | undefined) => any) | undefined} lambda
+   * @returns {ComponentAppender}
    */
   addLongGrid(titleText, lambda) {
     this.parentElement.appendChild(createLongGridElement(titleText, lambda));
   }
 
+  /**
+   *
+   * @param {*} id
+   * @param {*} titleText
+   * @param {*} onChange
+   * @returns {ComponentAppender}
+   */
   addInputGrid(id, titleText, onChange) {
     this.parentElement.append(
       createGridElement(titleText, (node) => {
@@ -724,8 +858,16 @@ class ComponentAppender extends HTMLComponentConvertable {
         );
       })
     );
+    return this;
   }
 
+  /**
+   *
+   * @param {*} id
+   * @param {*} titleText
+   * @param {*} onChange
+   * @returns {ComponentAppender}
+   */
   addLongInputGrid(id, titleText, onChange) {
     this.parentElement.append(
       createLongGridElement(titleText, (node) => {
@@ -740,6 +882,103 @@ class ComponentAppender extends HTMLComponentConvertable {
         );
       })
     );
+    return this;
+  }
+
+  /**
+   *
+   * @param {*} id
+   * @param {*} titleText
+   * @param {*} onChange
+   * @returns {ComponentAppender}
+   */
+  addTextAreaGrid(id, titleText, onChange) {
+    this.parentElement.append(
+      createLongGridElement(titleText, (node) => {
+        node.append(
+          setupClassNode("textarea", "decentral-text-area", (area) => {
+            area.id = id;
+            area.setAttribute("type", "text");
+            area.onchange = () => {
+              onChange(area.value);
+            };
+          })
+        );
+      })
+    );
+    return this;
+  }
+
+  /**
+   *
+   * @param {*} id
+   * @param {*} titleText
+   * @param {*} onChange
+   * @returns {ComponentAppender}
+   */
+  addLoggingArea(id, titleText, onChange) {
+    this.parentElement.append(
+      createLongGridElement(titleText, (node) => {
+        node.append(
+          setupClassNode("textarea", "decentral-logging-area", (area) => {
+            area.id = id;
+            area.setAttribute("type", "text");
+            area.setAttribute("readonly", "true");
+            area.onchange = () => {
+              onChange(area.value);
+            };
+          })
+        );
+      })
+    );
+    return this;
+  }
+
+  /**
+   *
+   * @param {*} id
+   * @param {*} titleText
+   * @param {*} onChange
+   * @returns {ComponentAppender}
+   */
+  addSwitchGrid(id, title, description, onChange) {
+    this.parentElement.append(
+      createLongGridElement(undefined, (node) => {
+        node.append(
+          setupClassNode("div", "decentral-switch-field", (area) => {
+            area.append(
+              setupClassNode("div", "element-text-container", (field) => {
+                field.append(
+                  setupClassNode("p", "element-title", (text) => {
+                    text.innerText = title;
+                  })
+                );
+                field.append(
+                  setupClassNode("p", "element-description", (text) => {
+                    text.innerText = description;
+                  })
+                );
+              })
+            );
+            area.append(
+              setupClassNode("div", "element-switch-container", (container) => {
+                container.append(
+                  setupClassNode("input", "element-switch", (switcher) => {
+                    switcher.id = id;
+                    switcher.setAttribute("type", "checkbox");
+                    switcher.setAttribute("role", "switch");
+                    switcher.onchange = () => {
+                      onChange(switcher.value);
+                    };
+                  })
+                );
+              })
+            );
+          })
+        );
+      })
+    );
+    return this;
   }
 }
 
