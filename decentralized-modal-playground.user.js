@@ -847,6 +847,26 @@ class MenuPanel extends HTMLComponentConvertable {
   }
 
   runSelected(item) {
+    if (this.selectedMenu.length === 0 && this.menus.size > 0) {
+      this.__hideAllActive(item);
+      this.menus.entries().next().value[1]?.onDisplay(this.modal);
+      return;
+    }
+    if (this.selectedMenu.length === 1) {
+      this.__hideAllActive(item);
+      this.menus.get(this.selectedMenu[0])?.onDisplay(this.modal);
+      return;
+    }
+    if (this.selectedMenu.length === 2) {
+      this.__hideAllActive(item);
+      this.menus
+        .get(this.selectedMenu[0])
+        ?.__subMenus?.get(this.selectedMenu[1])
+        ?.onDisplay(this.modal);
+    }
+  }
+
+  __hideAllActive(item) {
     if (item) {
       for (let menu of document.getElementsByClassName(
         "decentral-menu-element-container"
@@ -865,21 +885,6 @@ class MenuPanel extends HTMLComponentConvertable {
         menu.removeAttribute("active");
       }
       item.setAttribute("active", "true");
-    }
-    if (this.selectedMenu.length === 0 && this.menus.size > 0) {
-      this.menus.entries().next().value[1]?.onDisplay(this.modal);
-      return;
-    }
-    if (this.selectedMenu.length === 1) {
-      this.menus.get(this.selectedMenu[0])?.onDisplay(this.modal);
-      return;
-    }
-
-    if (this.selectedMenu.length === 2) {
-      this.menus
-        .get(this.selectedMenu[0])
-        ?.__subMenus?.get(this.selectedMenu[1])
-        ?.onDisplay(this.modal);
     }
   }
 
