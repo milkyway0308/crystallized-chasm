@@ -81,38 +81,6 @@
     });
   }
 
-  function getIndexedDB() {
-    if (window.indexedDB) {
-      return window.indexedDB;
-    }
-    window.indexedDB = window.indexedDB =
-      window.indexedDB ||
-      window.mozIndexedDB ||
-      window.webkitIndexedDB ||
-      window.msIndexedDB;
-    return window.indexedDB;
-  }
-
-  /**
-   * @param {string} name
-   * @param {(db: IDBDatabase) => any} onUpgradeRequired
-   * @returns {Promise<IDBDatabase>}
-   */
-  async function openDB(name, onUpgradeRequired) {
-    return new Promise((resolve, reject) => {
-      const opener = getIndexedDB().open(name);
-      opener.onupgradeneeded = (event) => {
-        onUpgradeRequired(event.target.result);
-      };
-      opener.onsuccess = (event) => {
-        resolve(opener.result);
-      };
-      opener.onerror = (event) => {
-        reject(event);
-      };
-    });
-  }
-
   // =====================================================
   //                  크랙 종속 유틸리티
   // =====================================================
