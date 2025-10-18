@@ -910,7 +910,11 @@ class DecentrallizedModal {
     this.__container.appendChild(this.__modal);
     let selectedMenu = [];
     this.__modal.appendChild(
-      (this.__menuPanel = new MenuPanel(this, this.__menuItems, selectedMenu)).asHTML()
+      (this.__menuPanel = new MenuPanel(
+        this,
+        this.__menuItems,
+        selectedMenu
+      )).asHTML()
     );
     const verticalPanel = setupClassNode("div", "decentral-vertical-container");
     verticalPanel.appendChild(
@@ -962,8 +966,7 @@ class DecentrallizedModal {
     element.remove();
   }
 }
-
-class MenuPanel extends HTMLComponentConvertable {
+class BaseMenuPanel extends HTMLComponentConvertable {
   /**
    *
    * @param {DecentrallizedModal} modal
@@ -994,272 +997,323 @@ class MenuPanel extends HTMLComponentConvertable {
         ?.onDisplay(this.modal);
     }
   }
+
   replaceSelected(selected) {
-    while (this.selectedMenu.pop()) {}
-    for (let item of selected) {
-      this.selectedMenu.push(item);
-    }
+    this.selectedMenu.length = 0;
+    this.selectedMenu.push(...selected);
   }
 
-  __hideAllActive() {
-    for (let menu of document.getElementsByClassName(
-      "decentral-menu-element-container"
-    )) {
-      menu.removeAttribute("active");
-    }
-    for (let menu of document.getElementsByClassName(
-      "decentral-menu-element"
-    )) {
-      menu.removeAttribute("active");
-      menu.removeAttribute("child-active");
-    }
-    for (let menu of document.getElementsByClassName(
-      "decentral-sub-menu-element"
-    )) {
-      menu.removeAttribute("active");
-    }
-  }
-
-  asHTML() {
-    let isElementActiveSelected = false;
-    const container = setupClassNode("div", "decentral-menu-container");
-    try {
-      for (let item of this.menus) {
-        const menuItem = item[1];
-        const menuContainer = setupClassNode(
-          "div",
-          "decentral-menu-element-container"
-        );
-        const menuText = setupClassNode(
-          "span",
-          "decentral-menu-element",
-          (node) => {
-            node.textContent = item[0];
-            item[1].__activiator = () => {
-              node.setAttribute("active", "true");
-              menuContainer.setAttribute("active", "true");
-            };
-            node.onclick = () => {
-              this.__hideAllActive();
-              this.replaceSelected([item[0]]);
-              this.runSelected(menuContainer);
-            };
-          }
-        );
-        menuContainer.appendChild(menuText);
-
-        if (menuItem.__subMenus.size > 0) {
-          const subMenuContainer = setupClassNode(
-            "div",
-            "decentral-sub-menu-container"
-          );
-          for (let subItem of menuItem.__subMenus) {
-            subMenuContainer.appendChild(
-              setupClassNode("span", "decentral-sub-menu-element", (node) => {
-                node.textContent = subItem[0];
-                const expectedSubmenu = [item[0], subItem[0]];
-                subItem[1].__activiator = () => {
-                  this.__hideAllActive();
-                  menuContainer.setAttribute("active", "true");
-                  menuText.setAttribute("child-active", "true");
-                  node.setAttribute("active", "true");
-                };
-                node.onclick = () => {
-                  this.replaceSelected(expectedSubmenu);
-                  this.runSelected(node);
-                };
-              })
-            );
-            menuContainer.append(subMenuContainer);
-            if (!isElementActiveSelected && this.selectedMenu.length === 2) {
-              if (
-                this.selectedMenu[0] === item[0] &&
-                this.selectedMenu[1] === subItem[0]
-              ) {
-                isElementActiveSelected = true;
-                subMenuContainer.setAttribute("active", "true");
-              }
-            }
-          }
-        }
-        container.append(menuContainer);
-        if (!isElementActiveSelected) {
-          if (this.selectedMenu.length === 0) {
-            isElementActiveSelected = true;
-            menuContainer.setAttribute("active", "true");
-            menuText.setAttribute("active", "true");
-          } else if (this.selectedMenu.length === 1) {
-            if (this.selectedMenu[0] === item[0]) {
-              isElementActiveSelected = true;
-              menuContainer.setAttribute("active", "true");
-              menuText.setAttribute("active", "true");
-            }
-          }
+  hideAllActive(selectors) {
+    for (const selector of selectors) {
+      for (const menu of document.getElementsByClassName(selector)) {
+        menu.removeAttribute("active");
+        if (selector.includes("-element")) {
+          menu.removeAttribute("child-active");
         }
       }
-    } catch (ex) {
-      console.error(ex);
     }
-    return container;
   }
 }
 
-class MobileMenuPanel extends HTMLComponentConvertable {
-  /**
-   *
-   * @param {DecentrallizedModal} modal
-   * @param {Map<string, ModalMenu>} menus
-   * @param {string[]} selectedMenu
-   */
+class MenuPanel extends BaseMenuPanel {
+  hideAllActive() {
+    super.hideAllActive([
+      "decentral-menu-element-container",
+      "decentral-menu-element",
+      "decentral-sub-menu-element",
+    ]);
+  }
+
+  asHTML() {
+    const container = setupClassNode("div", "decentral-menu-container");
+    let isElementActiveSelected = false;
+
+    for (const [itemName, menuItem] of this.menus) {
+      const menuContainer = this.createMenuContainer(
+        itemName,
+        menuItem,
+        (isActive) => {
+          isElementActiveSelected = isActive;
+        }
+      );
+      container.append(menuContainer);
+    }
+
+    this.setDefaultActiveState(isElementActiveSelected, container);
+
+    return container;
+  }
+
+  createMenuContainer(itemName, menuItem, setActiveSelected) {
+    const menuContainer = setupClassNode(
+      "div",
+      "decentral-menu-element-container"
+    );
+    const menuText = setupClassNode(
+      "span",
+      "decentral-menu-element",
+      (node) => {
+        node.textContent = itemName;
+        menuItem.__activiator = () => {
+          this.hideAllActive();
+          node.setAttribute("active", "true");
+          menuContainer.setAttribute("active", "true");
+        };
+        node.onclick = () => {
+          this.hideAllActive();
+          this.replaceSelected([itemName]);
+          this.runSelected();
+        };
+      }
+    );
+    menuContainer.appendChild(menuText);
+    if (menuItem.__subMenus.size > 0) {
+      const subMenuContainer = this.createSubMenuContainer(
+        itemName,
+        menuItem,
+        menuContainer,
+        menuText,
+        setActiveSelected
+      );
+      menuContainer.append(subMenuContainer);
+    }
+
+    return menuContainer;
+  }
+
+  createSubMenuContainer(
+    itemName,
+    menuItem,
+    menuContainer,
+    menuText,
+    setActiveSelected
+  ) {
+    const subMenuContainer = setupClassNode(
+      "div",
+      "decentral-sub-menu-container"
+    );
+    for (const [subItemName, subItem] of menuItem.__subMenus) {
+      const subMenuNode = setupClassNode(
+        "span",
+        "decentral-sub-menu-element",
+        (node) => {
+          node.textContent = subItemName;
+          const expectedSubmenu = [itemName, subItemName];
+          subItem.__activiator = () => {
+            this.hideAllActive();
+            menuContainer.setAttribute("active", "true");
+            menuText.setAttribute("child-active", "true");
+            node.setAttribute("active", "true");
+          };
+          node.onclick = () => {
+            this.replaceSelected(expectedSubmenu);
+            this.runSelected();
+          };
+        }
+      );
+      subMenuContainer.appendChild(subMenuNode);
+      if (
+        !setActiveSelected(false) &&
+        this.selectedMenu.length === 2 &&
+        this.selectedMenu[0] === itemName &&
+        this.selectedMenu[1] === subItemName
+      ) {
+        setActiveSelected(true);
+        subMenuContainer.setAttribute("active", "true");
+      }
+    }
+    return subMenuContainer;
+  }
+
+  setDefaultActiveState(isElementActiveSelected, container) {
+    if (!isElementActiveSelected) {
+      const selectedItemName = this.selectedMenu[0];
+      let targetMenuContainer;
+
+      if (this.selectedMenu.length === 0) {
+        targetMenuContainer = container.querySelector(
+          ".decentral-menu-element-container"
+        );
+      } else if (this.selectedMenu.length === 1) {
+        const menuElements = container.querySelectorAll(
+          ".decentral-menu-element"
+        );
+        for (const menuText of menuElements) {
+          if (menuText.textContent === selectedItemName) {
+            targetMenuContainer = menuText.parentElement;
+            break;
+          }
+        }
+      }
+      if (targetMenuContainer) {
+        targetMenuContainer.setAttribute("active", "true");
+        targetMenuContainer
+          .querySelector(".decentral-menu-element")
+          ?.setAttribute("active", "true");
+      }
+    }
+  }
+}
+
+class MobileMenuPanel extends BaseMenuPanel {
   constructor(modal, menus, selectedMenu) {
-    super();
-    /** @type {Map<string, ModalMenu>} */
-    this.menus = menus;
-    this.modal = modal;
-    this.selectedMenu = selectedMenu;
+    super(modal, menus, selectedMenu);
     this.__menu = undefined;
   }
 
   open() {
-    this.__menu.setAttribute("active", "true");
+    this.__menu?.setAttribute("active", "true");
   }
 
   close() {
-    this.__menu.removeAttribute("active");
-  }
-  runSelected() {
-    if (this.selectedMenu.length === 0 && this.menus.size > 0) {
-      this.menus.entries().next().value[1]?.onDisplay(this.modal);
-      return;
-    }
-    if (this.selectedMenu.length === 1) {
-      this.menus.get(this.selectedMenu[0])?.onDisplay(this.modal);
-      return;
-    }
-    if (this.selectedMenu.length === 2) {
-      this.menus
-        .get(this.selectedMenu[0])
-        ?.__subMenus?.get(this.selectedMenu[1])
-        ?.onDisplay(this.modal);
-    }
-  }
-  replaceSelected(selected) {
-    while (this.selectedMenu.pop()) {}
-    for (let item of selected) {
-      this.selectedMenu.push(item);
-    }
+    this.__menu?.removeAttribute("active");
   }
 
-  __hideAllActive() {
-    for (let menu of document.getElementsByClassName(
-      "decentral-mobile-menu-element-container"
-    )) {
-      menu.removeAttribute("active");
-    }
-    for (let menu of document.getElementsByClassName(
-      "decentral-mobile-menu-element"
-    )) {
-      menu.removeAttribute("active");
-      menu.removeAttribute("child-active");
-    }
-    for (let menu of document.getElementsByClassName(
-      "decentral-mobile-sub-menu-element"
-    )) {
-      menu.removeAttribute("active");
-    }
+  hideAllActive() {
+    super.hideAllActive([
+      "decentral-mobile-menu-element-container",
+      "decentral-mobile-menu-element",
+      "decentral-mobile-sub-menu-element",
+    ]);
   }
 
   asHTML() {
-    let isElementActiveSelected = false;
-    const container = this.__menu = setupClassNode(
+    const container = (this.__menu = setupClassNode(
       "div",
       "decentral-mobile-menu-container"
-    );
-    try {
-      for (let item of this.menus) {
-        const menuItem = item[1];
-        const menuContainer = setupClassNode(
-          "div",
-          "decentral-mobile-menu-element-container"
-        );
-        const menuText = setupClassNode(
-          "span",
-          "decentral-mobile-menu-element",
-          (node) => {
-            node.textContent = item[0];
-            item[1].__activiatorMobile = () => {
-              this.__hideAllActive();
-              node.setAttribute("active", "true");
-              menuContainer.setAttribute("active", "true");
-            };
-            node.onclick = () => {
-              this.close();
-              this.__hideAllActive();
-              this.replaceSelected([item[0]]);
-              this.runSelected(menuContainer);
-            };
-          }
-        );
-        menuContainer.appendChild(menuText);
+    ));
+    let isElementActiveSelected = false;
 
-        if (menuItem.__subMenus.size > 0) {
-          const subMenuContainer = setupClassNode(
-            "div",
-            "decentral-mobile-sub-menu-container"
-          );
-          for (let subItem of menuItem.__subMenus) {
-            subMenuContainer.appendChild(
-              setupClassNode(
-                "span",
-                "decentral-mobile-sub-menu-element",
-                (node) => {
-                  node.textContent = subItem[0];
-                  const expectedSubmenu = [item[0], subItem[0]];
-                  subItem[1].__activiatorMobile = () => {
-                    this.__hideAllActive();
-                    menuContainer.setAttribute("active", "true");
-                    menuText.setAttribute("child-active", "true");
-                    node.setAttribute("active", "true");
-                  };
-                  node.onclick = () => {
-                    this.close();
-                    this.replaceSelected(expectedSubmenu);
-                    this.runSelected(node);
-                  };
-                }
-              )
-            );
-            menuContainer.append(subMenuContainer);
-            if (!isElementActiveSelected && this.selectedMenu.length === 2) {
-              if (
-                this.selectedMenu[0] === item[0] &&
-                this.selectedMenu[1] === subItem[0]
-              ) {
-                isElementActiveSelected = true;
-                subMenuContainer.setAttribute("active", "true");
-              }
-            }
-          }
+    for (const [itemName, menuItem] of this.menus) {
+      const menuContainer = this.createMenuContainer(
+        itemName,
+        menuItem,
+        (isActive) => {
+          isElementActiveSelected = isActive;
         }
-        container.append(menuContainer);
-        if (!isElementActiveSelected) {
-          if (this.selectedMenu.length === 0) {
-            isElementActiveSelected = true;
+      );
+      container.append(menuContainer);
+    }
+
+    this.setDefaultActiveState(isElementActiveSelected, container);
+
+    return container;
+  }
+
+  createMenuContainer(itemName, menuItem, setActiveSelected) {
+    const menuContainer = setupClassNode(
+      "div",
+      "decentral-mobile-menu-element-container"
+    );
+    const menuText = setupClassNode(
+      "span",
+      "decentral-mobile-menu-element",
+      (node) => {
+        node.textContent = itemName;
+        menuItem.__activiatorMobile = () => {
+          this.hideAllActive();
+          node.setAttribute("active", "true");
+          menuContainer.setAttribute("active", "true");
+        };
+        node.onclick = () => {
+          this.close();
+          this.hideAllActive();
+          this.replaceSelected([itemName]);
+          this.runSelected();
+        };
+      }
+    );
+
+    menuContainer.appendChild(menuText);
+
+    if (menuItem.__subMenus.size > 0) {
+      const subMenuContainer = this.createSubMenuContainer(
+        itemName,
+        menuItem,
+        menuContainer,
+        menuText,
+        setActiveSelected
+      );
+      menuContainer.append(subMenuContainer);
+    }
+
+    return menuContainer;
+  }
+
+  createSubMenuContainer(
+    itemName,
+    menuItem,
+    menuContainer,
+    menuText,
+    setActiveSelected
+  ) {
+    const subMenuContainer = setupClassNode(
+      "div",
+      "decentral-mobile-sub-menu-container"
+    );
+    for (const [subItemName, subItem] of menuItem.__subMenus) {
+      const subMenuNode = setupClassNode(
+        "span",
+        "decentral-mobile-sub-menu-element",
+        (node) => {
+          node.textContent = subItemName;
+          const expectedSubmenu = [itemName, subItemName];
+          subItem.__activiatorMobile = () => {
+            this.hideAllActive();
             menuContainer.setAttribute("active", "true");
-            menuText.setAttribute("active", "true");
-          } else if (this.selectedMenu.length === 1) {
-            if (this.selectedMenu[0] === item[0]) {
-              isElementActiveSelected = true;
-              menuContainer.setAttribute("active", "true");
-              menuText.setAttribute("active", "true");
-            }
+            menuText.setAttribute("child-active", "true");
+            node.setAttribute("active", "true");
+          };
+          node.onclick = () => {
+            this.close();
+            this.replaceSelected(expectedSubmenu);
+            this.runSelected();
+          };
+        }
+      );
+      subMenuContainer.appendChild(subMenuNode);
+
+      if (
+        !setActiveSelected(false) &&
+        this.selectedMenu.length === 2 &&
+        this.selectedMenu[0] === itemName &&
+        this.selectedMenu[1] === subItemName
+      ) {
+        setActiveSelected(true);
+        subMenuContainer.setAttribute("active", "true");
+      }
+    }
+    return subMenuContainer;
+  }
+
+  setDefaultActiveState(isElementActiveSelected, container) {
+    if (!isElementActiveSelected) {
+      const selectedItemName = this.selectedMenu[0];
+      let targetMenuContainer;
+
+      if (this.selectedMenu.length === 0) {
+        targetMenuContainer = container.querySelector(
+          ".decentral-mobile-menu-element-container"
+        );
+      } else if (this.selectedMenu.length === 1) {
+        const menuElements = container.querySelectorAll(
+          ".decentral-mobile-menu-element"
+        );
+        for (const menuText of menuElements) {
+          if (menuText.textContent === selectedItemName) {
+            targetMenuContainer = menuText.parentElement;
+            break;
           }
         }
       }
-    } catch (ex) {
-      console.error(ex);
+
+      if (targetMenuContainer) {
+        targetMenuContainer.setAttribute("active", "true");
+        targetMenuContainer
+          .querySelector(".decentral-mobile-menu-element")
+          ?.setAttribute("active", "true");
+      }
     }
-    return container;
   }
 }
 
