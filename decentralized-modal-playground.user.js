@@ -451,7 +451,7 @@ const DECENTRAL_CSS_VALUES = `
     .decentral-text-area {
       background-color: var(--decentral-text-background);
       border: 1px solid var(--decentral-text-border);
-      resizable: false;
+      resize: false;
       width: 100%;
       padding: 4px 8px;
       color: var(--decentral-text);
@@ -462,7 +462,7 @@ const DECENTRAL_CSS_VALUES = `
     .decentral-logging-area {
       background-color: var(--decentral-text-background);
       border: 1px solid var(--decentral-text-border);
-      resizable: false;
+      resize: false;
       width: 100%;
       padding: 4px 8px;
       color: var(--decentral-text);
