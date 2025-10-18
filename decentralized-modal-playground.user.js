@@ -37,8 +37,8 @@
                 "Hello",
                 "This is test switch.\nAnd this is multilined.\n Not bad, isn't it?\nI'm writing here to test something long, long text render, so it can move down. Can it be fixed with switch?",
                 () => {}
-              ).addButton("test-button", "Hello, World!")
-              ;
+              )
+              .addButton("test-button", "Hello, World!");
           },
           "C2 Burner+",
           DECENTRAL_DEFAULT_ICON_SVG
@@ -50,7 +50,7 @@
     manager
       .createMenu("C2 Ignitor", (modal) => {})
       .createSubMenu("Test Menu", (modal) => {});
-    manager.display();
+    manager.withLicenseCredential().display();
   };
 })();
 // decentralized-modal.js - 탈중앙화된 임베딩 집중 모달 프레임워크
@@ -329,6 +329,18 @@ const DECENTRAL_CSS_VALUES = `
       min-width: 0; 
     }
 
+    /* 동시 적재 불가능한 속성 요소 */
+    .decentral-grid-element-long-flat {
+      display: flex;
+      flex-direction: column;
+      grid-column: 1 / 3;
+      max-width: 100%;
+      height: fit-content;
+      padding: 0px 5px;
+      min-height: 0;
+      min-width: 0; 
+    }
+
     
     /*
      * 범용 클래스 선언 
@@ -492,6 +504,19 @@ const DECENTRAL_CSS_VALUES = `
       cursor: not-allowed;
     }
 
+    .decentral-text-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--decentral-text);
+      margin-top: 4px;
+    }
+
+    .decentral-text-plain {
+      font-size: 14px;
+      font-weight: light;
+      color: var(--decentral-text-formal);
+    }
+
     /**
      *  모바일 레이아웃 대응 
      */
@@ -606,6 +631,32 @@ class ModalManager {
     }
     console.log(this.__modal.__menuItems);
     return menuItem;
+  }
+
+  /**
+   *
+   * @param {*} menuName
+   * @returns {ModalManager}
+   */
+  withLicenseCredential(menuName) {
+    this.createMenu(menuName ?? "프레임워크에 대하여", (modal) => {
+      modal.replaceContentPanel((panel) => {
+        panel
+          .addTitleText("decentralized.js")
+          .addText("decentralized.js는 IGX 팀에서 제작되었습니다.")
+          .addText(
+            "이 프레임워크는 임베딩 가능한 탈중앙화된 모달 프레임워크입니다."
+          )
+          .addTitleText("SVG 아이콘 디자인")
+          .addText("decentralized.js의 모든 아이콘은 SVGRepo에서 가져왔습니다.")
+          .addText(
+            "- 설정 아이콘 (https://www.svgrepo.com/svg/458353/setting-line)"
+          )
+          .addText("- 닫기 아이콘 (https://www.svgrepo.com/svg/494725/close)")
+          .addText("- 메뉴 아이콘 (https://www.svgrepo.com/svg/522418/menu)");
+      }, "decentralized.js");
+    });
+    return this;
   }
 }
 
@@ -962,6 +1013,46 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {*} onChange
    * @returns {ComponentAppender}
    */
+  addTitleText(titleText) {
+    this.parentElement.append(
+      createLongFlatGridElement(undefined, (node) => {
+        node.append(
+          setupClassNode("p", "decentral-text-title", (textNode) => {
+            textNode.innerText = titleText;
+          })
+        );
+      })
+    );
+    return this;
+  }
+
+  /**
+   *
+   * @param {*} id
+   * @param {*} titleText
+   * @param {*} onChange
+   * @returns {ComponentAppender}
+   */
+  addText(titleText) {
+    this.parentElement.append(
+      createLongFlatGridElement(undefined, (node) => {
+        node.append(
+          setupClassNode("p", "decentral-text-plain", (textNode) => {
+            textNode.innerText = titleText;
+          })
+        );
+      })
+    );
+    return this;
+  }
+
+  /**
+   *
+   * @param {*} id
+   * @param {*} titleText
+   * @param {*} onChange
+   * @returns {ComponentAppender}
+   */
   addInputGrid(id, titleText, onChange) {
     this.parentElement.append(
       createGridElement(titleText, (node) => {
@@ -1052,7 +1143,6 @@ class ComponentAppender extends HTMLComponentConvertable {
     return this;
   }
 
-  
   /**
    *
    * @param {*} id
@@ -1382,6 +1472,37 @@ function createGridElement(titleText, lambda) {
  */
 function createLongGridElement(titleText, lambda) {
   return setupClassNode("div", "decentral-grid-element-long", (node) => {
+    if (titleText) {
+      const title = setupClassNode(
+        "div",
+        "decentral-element-title",
+        (elementTitle) => {
+          elementTitle.append(
+            setupNode("p", (node) => {
+              node.textContent = titleText;
+            })
+          );
+        }
+      );
+      node.append(title);
+      if (lambda) {
+        lambda(node, title);
+      }
+    } else {
+      if (lambda) {
+        lambda(node, undefined);
+      }
+    }
+  });
+}
+
+/**
+ *
+ * @param {string | undefined} titleText
+ * @param {((node: HTMLElement, title: HTMLElement | undefined) => any) | undefined} lambda
+ */
+function createLongFlatGridElement(titleText, lambda) {
+  return setupClassNode("div", "decentral-grid-element-long-flat", (node) => {
     if (titleText) {
       const title = setupClassNode(
         "div",
