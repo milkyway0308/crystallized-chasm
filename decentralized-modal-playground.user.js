@@ -236,16 +236,20 @@ const DECENTRAL_CSS_VALUES = `
       background-color: var(--decentral-hover);
     }
 
+    
+    .decentral-menu-element:is([active="true"], [child-active="true"]),.decentral-sub-menu-element[active="true"] {
+      color: var(--decentral-active-text); 
+      background-color: var(--decentral-background-active-item);
+    }
+      
     /* 선택된 메뉴 색상 및 볼드 적용 */
-    .decentral-menu-container .decentral-menu-element[active="true"] {
+    .decentral-menu-container .decentral-menu-element[active="true"],.decentral-sub-menu-element[active="true"] {
         position: relative;
-        color: var(--decentral-active-text); 
-        background-color: var(--decentral-background-active-item);
         font-weight: 700;
     }
 
     /* 선택된 메뉴 좌측 보더 적용 */
-    .decentral-menu-container .decentral-menu-element[active="true"]:before {
+    .decentral-menu-container .decentral-menu-element[active="true"]:before,.decentral-sub-menu-element[active="true"]:before {
       top: 20%;
       content: '';
       position: absolute;
@@ -848,7 +852,6 @@ class MenuPanel extends HTMLComponentConvertable {
         "decentral-menu-element-container"
       )) {
         menu.removeAttribute("active");
-        menu.removeAttribute("child-active");
       }
       for (let menu of document.getElementsByClassName(
         "decentral-menu-element"
@@ -913,14 +916,17 @@ class MenuPanel extends HTMLComponentConvertable {
             "decentral-sub-menu-container"
           );
           for (let subItem of menuItem.__subMenus) {
-            console.log("Appending subitem" + subItem + " (" + menuItem.__subMenus + ")");
+            console.log(
+              "Appending subitem" + subItem + " (" + menuItem.__subMenus + ")"
+            );
             const subMenuItem = subItem[1];
             subMenuContainer.appendChild(
               setupClassNode("span", "decentral-sub-menu-element", (node) => {
                 node.textContent = subItem[0];
                 const expectedSubmenu = [item[0], subItem[0]];
                 subItem[1].__activiator = () => {
-                  menuContainer.setAttribute("child-active", "true");
+                  menuContainer.setAttribute("active", "true");
+                  menuText.setAttribute("child-active", "true");
                   node.setAttribute("active", "true");
                 };
                 node.onclick = () => {
