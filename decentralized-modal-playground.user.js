@@ -7,7 +7,7 @@
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/decentralized-modal-playground.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/decentralized-modal-playground.user.js
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@218ec165592a217cd16428075af22e87cf3dc664/decentralized-modal.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@preview-unsweetened-flame-bottle/decentralized-modal.js
 // @grant       GM_addStyle
 // ==/UserScript==
 
