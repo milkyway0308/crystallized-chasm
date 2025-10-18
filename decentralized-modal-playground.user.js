@@ -37,7 +37,8 @@
                 "Hello",
                 "This is test switch.\nAnd this is multilined.\n Not bad, isn't it?\nI'm writing here to test something long, long text render, so it can move down. Can it be fixed with switch?",
                 () => {}
-              );
+              ).addButton("test-button", "Hello, World!")
+              ;
           },
           "C2 Burner+",
           DECENTRAL_DEFAULT_ICON_SVG
@@ -65,6 +66,7 @@ const DECENTRAL_CSS_VALUES = `
      */
     .decentral-modal-container[theme="light"] {
         --decentral-text: #000000;
+        --decentral-text-inverted: #FFFFFF;
         --decentral-text-formal: #64748B;
         --decentral-text-inactive-hover: #64748B;
         --decentral-text-inactive: #64748B;
@@ -73,6 +75,7 @@ const DECENTRAL_CSS_VALUES = `
         --decentral-hover: #F1F5F9;
         --decentral-border: #CBD5E1;
         --decentral-active-item: #2563EB;
+        --decentral-inactive-item: #94A3B8;
         --decentral-active-text: #2563EB;
         --decentral-background-active-item: #0EA5E910;
         --decentral-text-background: #F1F5F9;
@@ -473,6 +476,21 @@ const DECENTRAL_CSS_VALUES = `
       height: 128px;
     }
 
+    .decentral-button {
+      background-color: var(--decentral-active-item);
+      color: var(--decentral-text-inverted);
+      width: 100%;
+      height: 32px;
+      padding: 4px 16px;
+      border-radius: 3px;
+      font-weight: normal;
+      font-size: 14px;
+    }
+
+    .decentral-button[disabled="true"] {
+      background-color: var(--decentral-inactive-item);
+      cursor: not-allowed;
+    }
 
     /**
      *  모바일 레이아웃 대응 
@@ -1026,6 +1044,31 @@ class ComponentAppender extends HTMLComponentConvertable {
             area.setAttribute("readonly", "true");
             area.onchange = () => {
               onChange(area.value);
+            };
+          })
+        );
+      })
+    );
+    return this;
+  }
+
+  
+  /**
+   *
+   * @param {*} id
+   * @param {*} titleText
+   * @param {*} onChange
+   * @returns {ComponentAppender}
+   */
+  addButton(id, titleText, onChange) {
+    this.parentElement.append(
+      createLongGridElement(undefined, (node) => {
+        node.append(
+          setupClassNode("button", "decentral-button", (button) => {
+            button.id = id;
+            button.innerText = titleText;
+            button.onchange = () => {
+              onChange(button.value);
             };
           })
         );
