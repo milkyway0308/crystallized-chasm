@@ -302,6 +302,7 @@ const DECENTRAL_CSS_VALUES = `
       font-weight: light;
       padding: 8px 0px;
       color: var(--decentral-text-formal);
+      user-select: none;
     }
     
     /* 2단 적재 가능한 속성 요소 */
@@ -361,6 +362,7 @@ const DECENTRAL_CSS_VALUES = `
       display: flex;
       width: 100%;
       background-color: var(--decentral-switch-background);
+      user-select: none;
     }
 
     /* 스위치 텍스트 컨테이너 */
