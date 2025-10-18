@@ -45,8 +45,8 @@
         );
         return true;
       })
-      .createSubMenu("Test submenu 1", (moda) => {})
-      .createSubMenu("Test submenu 2", (moda) => {});
+      .createSubMenu("Test submenu 1", (modal) => {})
+      .createSubMenu("Test submenu 2", (modal) => {});
     manager
       .createMenu("C2 Ignitor", (modal) => {})
       .createSubMenu("Test Menu", (modal) => {});
@@ -666,6 +666,8 @@ class ModalMenu {
   /** @type {Map<string, SubModalMenu>} */
   __subMenus = new Map();
 
+  __activiator = undefined;
+
   /**
    *
    * @param {async (modal: DecentrallizedModal) => any} action
@@ -680,6 +682,7 @@ class ModalMenu {
    */
   async onDisplay(modal) {
     this.action(modal);
+    if (this.__activiator) this.__activiator();
   }
 
   /**
@@ -838,7 +841,27 @@ class MenuPanel extends HTMLComponentConvertable {
     this.selectedMenu = selectedMenu;
   }
 
-  runSelected() {
+  runSelected(item) {
+    if (item) {
+      for (let menu of document.getElementsByClassName(
+        "decentral-menu-element-container"
+      )) {
+        menu.removeAttribute("active");
+        menu.removeAttribute("child-active");
+      }
+      for (let menu of document.getElementsByClassName(
+        "decentral-menu-element"
+      )) {
+        menu.removeAttribute("active");
+        menu.removeAttribute("child-active");
+      }
+      for (let menu of document.getElementsByClassName(
+        "decentral-sub-menu-element"
+      )) {
+        menu.removeAttribute("active");
+      }
+      item.setAttribute("active", "true");
+    }
     if (this.selectedMenu.length === 0 && this.menus.size > 0) {
       this.menus.entries().next().value[1]?.onDisplay(this.modal);
       return;
@@ -871,8 +894,13 @@ class MenuPanel extends HTMLComponentConvertable {
           "decentral-menu-element",
           (node) => {
             node.textContent = item[0];
+            item[1].__activiator = () => {
+              node.setAttribute("active", "true");
+              menuContainer.setAttribute("active", "true");
+            };
             node.onclick = () => {
-              menuItem.onDisplay(this.modal);
+              this.selectedMenu = [item[0]];
+              this.runSelected(menuContainer);
             };
           }
         );
@@ -884,12 +912,19 @@ class MenuPanel extends HTMLComponentConvertable {
             "decentral-sub-menu-container"
           );
           for (let subItem of menuItem.__subMenus) {
+            console.log("Appending subitem" + subItem + " (" + menuItem.__subMenus + ")");
             const subMenuItem = subItem[1];
             subMenuContainer.appendChild(
               setupClassNode("span", "decentral-sub-menu-element", (node) => {
                 node.textContent = subItem[0];
+                const expectedSubmenu = [item[0], subItem[0]];
+                subItem[1].__activiator = () => {
+                  menuContainer.setAttribute("child-active", "true");
+                  node.setAttribute("active", "true");
+                };
                 node.onclick = () => {
-                  subMenuItem.onDisplay(this.modal);
+                  this.selectedMenu = expectedSubmenu;
+                  this.runSelected(node);
                 };
               })
             );
