@@ -1593,9 +1593,14 @@ class ComponentAppender extends HTMLComponentConvertable {
     id,
     title,
     description,
-    { defaultValue = false, initializer = undefined, action = undefined, __proxy = this } = {}
+    {
+      defaultValue = false,
+      initializer = undefined,
+      action = undefined,
+      __proxy = this,
+    } = {}
   ) {
-    __proxy.addBoxedField(id, title, description, (node) => {
+    __proxy.addBoxedField(title, description, (node) => {
       node.append(
         setupClassNode("div", "element-input-container", (container) => {
           container.append(
@@ -1644,7 +1649,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       max = 1000,
       initializer = undefined,
       onChange = undefined,
-      __proxy = this
+      __proxy = this,
     } = {}
   ) {
     __proxy.addBoxedField(title, description, (node) => {
