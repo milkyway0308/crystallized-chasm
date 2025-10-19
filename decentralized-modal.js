@@ -1,4 +1,3 @@
-
 // decentralized-modal.js - 탈중앙화된 임베딩 집중 모달 프레임워크
 //
 // decentrallized-modal.js는 서드 파티 스크립트들을 위한 임베드 가능한 모달 프레임워크입니다.
@@ -638,6 +637,7 @@ const DECENTRAL_CLOSE_ICON_SVG = `
 const DECENTRAL_MENU_ICON_SVG = `
 <svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <rect width="24" height="24" fill="none"></rect> <path d="M6 12H18" stroke="var(--decentral-text)" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M6 15.5H18" stroke="var(--decentral-text)" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M6 8.5H18" stroke="var(--decentral-text)" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
 `;
+
 class ModalManager {
   static doesInit = false;
   /** @type {Map<string, ModalManager>} */
@@ -1347,28 +1347,38 @@ class ComponentAppender extends HTMLComponentConvertable {
   }
 
   /**
-   *
-   * @param {*} id
-   * @param {*} titleText
-   * @param {*} onChange
-   * @returns {ComponentAppender}
+   * @param {string} id
+   * @param {string} titleText
+   * @param {{defaultValue: string | undefined, initializer: (function(HTMLElement):void) | undefined, onChange: ((HTMLElement, string):void) | undefined}}
    */
-  addInputGrid(id, titleText, onChange) {
+  addInputGrid = function (
+    id,
+    titleText,
+    { defaultValue = undefined, initializer = undefined, onChange = undefined }
+  ) {
     this.parentElement.append(
       createGridElement(titleText, (node) => {
         node.append(
           setupClassNode("input", "decentral-text-field", (area) => {
             area.id = id;
             area.setAttribute("type", "text");
-            area.onchange = () => {
-              onChange(area.value);
-            };
+            if (defaultValue) {
+              area.value = defaultValue;
+            }
+            if (onChange) {
+              area.onchange = () => {
+                onChange(area, area.value);
+              };
+            }
+            if (initializer) {
+              initializer(area);
+            }
           })
         );
       })
     );
     return this;
-  }
+  };
 
   /**
    *
@@ -1509,14 +1519,14 @@ class ComponentAppender extends HTMLComponentConvertable {
     return this;
   }
 
-   /**
+  /**
    *
    * @param {*} id
    * @param {*} titleText
    * @param {*} onChange
    * @returns {ComponentAppender}
    */
-  addSmallNumberBox(id, title, description, onChange) {
+  addSmallNumberBox(id, title, description, min, max, onChange) {
     this.parentElement.append(
       createLongGridElement(undefined, (node) => {
         node.append(
@@ -1540,8 +1550,9 @@ class ComponentAppender extends HTMLComponentConvertable {
                 container.append(
                   setupClassNode("input", "element-small-input", (switcher) => {
                     switcher.id = id;
-                    switcher.setAttribute("type", "checkbox");
-                    switcher.setAttribute("role", "switch");
+                    switcher.setAttribute("type", "number");
+                    switcher.setAttribute("min", min);
+                    switcher.setAttribute("min", max);
                     switcher.onchange = () => {
                       onChange(switcher.value);
                     };
