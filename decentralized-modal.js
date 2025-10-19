@@ -393,6 +393,19 @@ const DECENTRAL_CSS_VALUES = `
     }
 
     /* 동시 적재 불가능한 속성 요소 */
+    .decentral-grid-element-long-semi-flat {
+      display: flex;
+      flex-direction: column;
+      grid-column: 1 / 3;
+      max-width: 100%;
+      height: fit-content;
+      padding: 5px 5px;
+      min-height: 0;
+      min-width: 0; 
+    }
+
+
+    /* 동시 적재 불가능한 속성 요소 */
     .decentral-grid-element-long-flat {
       display: flex;
       flex-direction: column;
@@ -1550,7 +1563,7 @@ class ComponentAppender extends HTMLComponentConvertable {
    */
   addBoxedField(title, description, initializer) {
     this.parentElement.append(
-      createGridElement(undefined, true, (node) => {
+      createLongSemiFlatGridElement(undefined, true, (node) => {
         node.append(
           setupClassNode("div", "decentral-boxed-field", (area) => {
             area.append(
@@ -1940,6 +1953,37 @@ function createGridElement(titleText, isLongField, lambda) {
  */
 function createLongFlatGridElement(titleText, lambda) {
   return setupClassNode("div", "decentral-grid-element-long-flat", (node) => {
+    if (titleText) {
+      const title = setupClassNode(
+        "div",
+        "decentral-element-title",
+        (elementTitle) => {
+          elementTitle.append(
+            setupNode("p", (node) => {
+              node.textContent = titleText;
+            })
+          );
+        }
+      );
+      node.append(title);
+      if (lambda) {
+        lambda(node, title);
+      }
+    } else {
+      if (lambda) {
+        lambda(node, undefined);
+      }
+    }
+  });
+}
+
+/**
+ *
+ * @param {string | undefined} titleText
+ * @param {((node: HTMLElement, title: HTMLElement | undefined) => any) | undefined} lambda
+ */
+function createLongSemiFlatGridElement(titleText, lambda) {
+  return setupClassNode("div", "decentral-grid-element-long-semi-flat", (node) => {
     if (titleText) {
       const title = setupClassNode(
         "div",
