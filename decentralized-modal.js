@@ -463,7 +463,32 @@ const DECENTRAL_CSS_VALUES = `
     }
 
     .decentral-boxed-field .element-small-input {
-        width: 16px;
+        background: var(--decentral-text-background);
+        border: 1px solid var(--decentral-text-border);
+        border-radius: 3px;
+        width: 64px;
+        height: 36px;
+        padding: 4px 8px;
+    }
+
+    
+    .decentral-boxed-field .element-medium-input {
+        background: var(--decentral-text-background);
+        border: 1px solid var(--decentral-text-border);
+        border-radius: 3px;
+        width: 96px;
+        height: 36px;
+        padding: 4px 8px;
+    }
+
+    
+    .decentral-boxed-field .element-large-input {
+        background: var(--decentral-text-background);
+        border: 1px solid var(--decentral-text-border);
+        border-radius: 3px;
+        width: 128px;
+        height: 36px;
+        padding: 4px 8px;
     }
 
     
@@ -1503,22 +1528,13 @@ class ComponentAppender extends HTMLComponentConvertable {
   };
 
   /**
-   * 박스로 감싸진 스위치 형태의 체크박스 필드를 추가합니다.
+   * 박스로 감싸진 필드를 추가합니다.
    * @param {string} id 필드의 ID
    * @param {string} title 제목 텍스트
-   * @param {string} description 설명 텍스트
-   * @param {Object} param 옵션 파라미터
-   * @param {boolean | undefined} param.defaultValue 필드의 기본 텍스트 값
-   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
-   * @param {(function(HTMLElement, boolean):void) | undefined} param.action 체크박스 클릭시 실행될 펑션
+   * @param {function(HTMLElement, boolean):void} initializer 필드 초기화시 호출될 펑션
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
-  addSwitchBox = function (
-    id,
-    title,
-    description,
-    { defaultValue = false, initializer = undefined, action = undefined } = {}
-  ) {
+  addBoxedField(title, description, initializer) {
     this.parentElement.append(
       createGridElement(undefined, true, (node) => {
         node.append(
@@ -1539,33 +1555,58 @@ class ComponentAppender extends HTMLComponentConvertable {
             );
             area.append(
               setupClassNode("div", "element-input-container", (container) => {
-                container.append(
-                  setupClassNode("input", "element-switch", (switcher) => {
-                    switcher.id = id;
-                    switcher.setAttribute("type", "checkbox");
-                    switcher.setAttribute("role", "switch");
-                    switcher.checked = defaultValue;
-                    if (initializer) {
-                      initializer(switcher);
-                    }
-                    if (action) {
-                      switcher.onchange = () => {
-                        action(switcher, switcher.checked);
-                      };
-                    }
-                  })
-                );
+                initializer(container);
               })
             );
           })
         );
       })
     );
+  }
+  /**
+   * 박스로 감싸진 스위치 형태의 체크박스 필드를 추가합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} title 제목 텍스트
+   * @param {string} description 설명 텍스트
+   * @param {Object} param 옵션 파라미터
+   * @param {boolean | undefined} param.defaultValue 필드의 기본 텍스트 값
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement, boolean):void) | undefined} param.action 체크박스 클릭시 실행될 펑션
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
+   */
+  addSwitchBox = function (
+    id,
+    title,
+    description,
+    { defaultValue = false, initializer = undefined, action = undefined } = {}
+  ) {
+    this.addBoxedField(id, title, description, (node) => {
+      node.append(
+        setupClassNode("div", "element-input-container", (container) => {
+          container.append(
+            setupClassNode("input", "element-switch", (switcher) => {
+              switcher.id = id;
+              switcher.setAttribute("type", "checkbox");
+              switcher.setAttribute("role", "switch");
+              switcher.checked = defaultValue;
+              if (initializer) {
+                initializer(switcher);
+              }
+              if (action) {
+                switcher.onchange = () => {
+                  action(switcher, switcher.checked);
+                };
+              }
+            })
+          );
+        })
+      );
+    });
     return this;
   };
 
   /**
-   * 박스로 감싸진 숫자 입력 필드를 추가합니다.
+   * 박스로 감싸진 숫자 입력 필드를 추가합니다. 최대 3자리 숫자에 적합합니다.
    * @param {string} id 필드의 ID
    * @param {string} title 제목 텍스트
    * @param {string} description 설명 텍스트
@@ -1589,55 +1630,31 @@ class ComponentAppender extends HTMLComponentConvertable {
       onChange = undefined,
     } = {}
   ) {
-    this.parentElement.append(
-      createGridElement(undefined, true, (node) => {
-        node.append(
-          setupClassNode("div", "decentral-boxed-field", (area) => {
-            area.append(
-              setupClassNode("div", "element-text-container", (field) => {
-                field.append(
-                  setupClassNode("p", "element-title", (text) => {
-                    text.innerText = title;
-                  })
-                );
-                field.append(
-                  setupClassNode("p", "element-description", (text) => {
-                    text.innerText = description;
-                  })
-                );
-              })
-            );
-            area.append(
-              setupClassNode("div", "element-input-container", (container) => {
-                container.append(
-                  setupClassNode(
-                    "input",
-                    "element-small-input",
-                    (inputField) => {
-                      inputField.id = id;
-                      inputField.setAttribute("type", "number");
-                      inputField.setAttribute("min", min);
-                      inputField.setAttribute("min", max);
-                      if (defaultValue) {
-                        inputField.value = defaultValue;
-                      }
-                      if (initializer) {
-                        initializer(inputField);
-                      }
-                      if (onChange) {
-                        inputField.onchange = () => {
-                          onChange(inputField);
-                        };
-                      }
-                    }
-                  )
-                );
-              })
-            );
-          })
-        );
-      })
-    );
+    this.addBoxedField(title, description, (node) => {
+      node.append(
+        setupClassNode("div", "element-input-container", (container) => {
+          container.append(
+            setupClassNode("input", "element-small-input", (inputField) => {
+              inputField.id = id;
+              inputField.setAttribute("type", "number");
+              inputField.setAttribute("min", min);
+              inputField.setAttribute("min", max);
+              if (defaultValue) {
+                inputField.value = defaultValue;
+              }
+              if (initializer) {
+                initializer(inputField);
+              }
+              if (onChange) {
+                inputField.onchange = () => {
+                  onChange(inputField);
+                };
+              }
+            })
+          );
+        })
+      );
+    });
     return this;
   };
 }
