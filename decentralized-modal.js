@@ -1354,7 +1354,7 @@ class ComponentAppender extends HTMLComponentConvertable {
   addInputGrid = function (
     id,
     titleText,
-    { defaultValue = undefined, initializer = undefined, onChange = undefined }
+    { defaultValue = undefined, initializer = undefined, onChange = undefined } = {}
   ) {
     this.parentElement.append(
       createGridElement(titleText, (node) => {
