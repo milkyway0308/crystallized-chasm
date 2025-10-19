@@ -1581,7 +1581,7 @@ class ComponentAppender extends HTMLComponentConvertable {
    */
   addBoxedField(title, description, initializer) {
     this.parentElement.append(
-      createLongSemiFlatGridElement(undefined, true, (node) => {
+      createLongSemiFlatGridElement(undefined, (node) => {
         node.append(
           setupClassNode("div", "decentral-boxed-field", (area) => {
             area.append(
@@ -1618,7 +1618,7 @@ class ComponentAppender extends HTMLComponentConvertable {
    */
   addLongBoxedField(title, description, initializer) {
     this.parentElement.append(
-      createLongSemiFlatGridElement(undefined, true, (node) => {
+      createLongSemiFlatGridElement(undefined, (node) => {
         node.append(
           setupClassNode("div", "decentral-boxed-field", (area) => {
             area.append(
