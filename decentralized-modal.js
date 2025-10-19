@@ -451,6 +451,17 @@ const DECENTRAL_CSS_VALUES = `
       padding: 8px 16px;
     }
 
+    
+    /* 긴 스위치 텍스트 컨테이너 */
+    .decentral-boxed-field .element-text-container-full {
+      display: flex;
+      flex-direction: column;
+      justify-items: center;
+      padding: 8px 16px;
+      width: 100%;
+    }
+
+
     /* 스위치 제목 */
     .decentral-boxed-field .element-title {
       font-size: 14px;
@@ -473,6 +484,13 @@ const DECENTRAL_CSS_VALUES = `
       margin-left: auto;
       align-items: center;
       padding: 4px 8px;
+    }
+
+    .decentral-boxed-field .element-input-container-long {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      margin-top: 8px;
     }
 
     .decentral-boxed-field .element-small-input {
@@ -1590,6 +1608,47 @@ class ComponentAppender extends HTMLComponentConvertable {
       })
     );
   }
+
+  /**
+   * 박스로 감싸진 긴 필드를 추가합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} title 제목 텍스트
+   * @param {function(HTMLElement, boolean):void} initializer 필드 초기화시 호출될 펑션
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
+   */
+  addLongBoxedField(title, description, initializer) {
+    this.parentElement.append(
+      createLongSemiFlatGridElement(undefined, true, (node) => {
+        node.append(
+          setupClassNode("div", "decentral-boxed-field", (area) => {
+            area.append(
+              setupClassNode("div", "element-text-container-full", (field) => {
+                field.append(
+                  setupClassNode("p", "element-title", (text) => {
+                    text.innerText = title;
+                  })
+                );
+                field.append(
+                  setupClassNode("p", "element-description", (text) => {
+                    text.innerText = description;
+                  })
+                );
+                field.append(
+                  setupClassNode(
+                    "div",
+                    "element-input-container-long",
+                    (inputContainer) => {
+                      initializer(inputContainer);
+                    }
+                  )
+                );
+              })
+            );
+          })
+        );
+      })
+    );
+  }
   /**
    * 박스로 감싸진 스위치 형태의 체크박스 필드를 추가합니다.
    * @param {string} id 필드의 ID
@@ -1637,7 +1696,70 @@ class ComponentAppender extends HTMLComponentConvertable {
     });
     return this;
   };
-
+  /**
+   * 박스로 감싸진 숫자 입력 필드를 추가합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} title 제목 텍스트
+   * @param {string} description 설명 텍스트
+   * @param {number} type 길이 타입 (0 / 1 / 2)
+   * @param {Object} param 옵션 파라미터
+   * @param {number | undefined} param.defaultValue 필드의 기본 텍스트 값
+   * @param {number} param.min 필드의 최소값
+   * @param {number} param.max 필드의 최댓값
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement, boolean):void) | undefined} param.onChange 체크박스 클릭시 실행될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
+   */
+  __addNumberBox = function (
+    id,
+    title,
+    description,
+    type,
+    {
+      defaultValue = false,
+      min = 0,
+      max = 1000,
+      initializer = undefined,
+      onChange = undefined,
+      __proxy = this,
+    } = {}
+  ) {
+    __proxy.addBoxedField(title, description, (node) => {
+      node.append(
+        setupClassNode("div", "element-input-container", (container) => {
+          container.append(
+            setupClassNode(
+              "input",
+              type === 0
+                ? "element-small-input"
+                : type === 1
+                ? "element-medium-input"
+                : "element-large-input",
+              (inputField) => {
+                inputField.id = id;
+                inputField.setAttribute("type", "number");
+                inputField.setAttribute("min", min);
+                inputField.setAttribute("min", max);
+                if (defaultValue) {
+                  inputField.value = defaultValue;
+                }
+                if (initializer) {
+                  initializer(inputField);
+                }
+                if (onChange) {
+                  inputField.onchange = () => {
+                    onChange(inputField);
+                  };
+                }
+              }
+            )
+          );
+        })
+      );
+    });
+    return this;
+  };
   /**
    * 박스로 감싸진 숫자 입력 필드를 추가합니다. 최대 3자리 숫자에 적합합니다.
    * @param {string} id 필드의 ID
@@ -1665,28 +1787,126 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
-    __proxy.addBoxedField(title, description, (node) => {
+    return __proxy.__addNumberBox(id, title, description, 0, {
+      defaultValue: defaultValue,
+      min: min,
+      max: max,
+      initializer: initializer,
+      onChange: onChange,
+    });
+  };
+
+  /**
+   * 박스로 감싸진 숫자 입력 필드를 추가합니다. 최대 6자리 숫자에 적합합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} title 제목 텍스트
+   * @param {string} description 설명 텍스트
+   * @param {Object} param 옵션 파라미터
+   * @param {number | undefined} param.defaultValue 필드의 기본 텍스트 값
+   * @param {number} param.min 필드의 최소값
+   * @param {number} param.max 필드의 최댓값
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement, boolean):void) | undefined} param.onChange 체크박스 클릭시 실행될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
+   */
+  addMediumNumberBox = function (
+    id,
+    title,
+    description,
+    {
+      defaultValue = false,
+      min = 0,
+      max = 1000,
+      initializer = undefined,
+      onChange = undefined,
+      __proxy = this,
+    } = {}
+  ) {
+    return __proxy.__addNumberBox(id, title, description, 1, {
+      defaultValue: defaultValue,
+      min: min,
+      max: max,
+      initializer: initializer,
+      onChange: onChange,
+    });
+  };
+
+  /**
+   * 박스로 감싸진 긴 숫자 입력 필드를 추가합니다. 최대 12자리 숫자에 적합합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} title 제목 텍스트
+   * @param {string} description 설명 텍스트
+   * @param {Object} param 옵션 파라미터
+   * @param {number | undefined} param.defaultValue 필드의 기본 텍스트 값
+   * @param {number} param.min 필드의 최소값
+   * @param {number} param.max 필드의 최댓값
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement, boolean):void) | undefined} param.onChange 체크박스 클릭시 실행될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
+   */
+  addNumberBox = function (
+    id,
+    title,
+    description,
+    {
+      defaultValue = false,
+      min = 0,
+      max = 1000,
+      initializer = undefined,
+      onChange = undefined,
+      __proxy = this,
+    } = {}
+  ) {
+    return __proxy.__addNumberBox(id, title, description, 2, {
+      defaultValue: defaultValue,
+      min: min,
+      max: max,
+      initializer: initializer,
+      onChange: onChange,
+    });
+  };
+
+  /**
+   * 박스로 감싸진 2줄을 사용하는 텍스트 필드를 추가합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} title 제목 텍스트
+   * @param {string} description 설명 텍스트
+   * @param {Object} param 옵션 파라미터
+   * @param {string | undefined} param.defaultValue 필드의 기본 텍스트 값
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement, string):void) | undefined} param.onChange 텍스트 변경시 호출될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
+   */
+  addBoxedInputGrid = function (
+    id,
+    title,
+    description,
+    {
+      defaultValue = undefined,
+      initializer = undefined,
+      onChange = undefined,
+      __proxy = this,
+    } = {}
+  ) {
+    __proxy.addLongBoxedField(title, description, (node) => {
       node.append(
-        setupClassNode("div", "element-input-container", (container) => {
-          container.append(
-            setupClassNode("input", "element-small-input", (inputField) => {
-              inputField.id = id;
-              inputField.setAttribute("type", "number");
-              inputField.setAttribute("min", min);
-              inputField.setAttribute("min", max);
-              if (defaultValue) {
-                inputField.value = defaultValue;
-              }
-              if (initializer) {
-                initializer(inputField);
-              }
-              if (onChange) {
-                inputField.onchange = () => {
-                  onChange(inputField);
-                };
-              }
-            })
-          );
+        setupClassNode("input", "decentral-text-field", (inputField) => {
+          inputField.id = id;
+          inputField.setAttribute("type", "text");
+          if (defaultValue) {
+            inputField.value = defaultValue;
+          }
+          if (onChange) {
+            inputField.onchange = () => {
+              onChange(inputField, inputField.value);
+            };
+          }
+          if (initializer) {
+            initializer(inputField);
+          }
         })
       );
     });
@@ -1983,27 +2203,31 @@ function createLongFlatGridElement(titleText, lambda) {
  * @param {((node: HTMLElement, title: HTMLElement | undefined) => any) | undefined} lambda
  */
 function createLongSemiFlatGridElement(titleText, lambda) {
-  return setupClassNode("div", "decentral-grid-element-long-semi-flat", (node) => {
-    if (titleText) {
-      const title = setupClassNode(
-        "div",
-        "decentral-element-title",
-        (elementTitle) => {
-          elementTitle.append(
-            setupNode("p", (node) => {
-              node.textContent = titleText;
-            })
-          );
+  return setupClassNode(
+    "div",
+    "decentral-grid-element-long-semi-flat",
+    (node) => {
+      if (titleText) {
+        const title = setupClassNode(
+          "div",
+          "decentral-element-title",
+          (elementTitle) => {
+            elementTitle.append(
+              setupNode("p", (node) => {
+                node.textContent = titleText;
+              })
+            );
+          }
+        );
+        node.append(title);
+        if (lambda) {
+          lambda(node, title);
         }
-      );
-      node.append(title);
-      if (lambda) {
-        lambda(node, title);
-      }
-    } else {
-      if (lambda) {
-        lambda(node, undefined);
+      } else {
+        if (lambda) {
+          lambda(node, undefined);
+        }
       }
     }
-  });
+  );
 }
