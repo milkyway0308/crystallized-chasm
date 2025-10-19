@@ -422,7 +422,7 @@ const DECENTRAL_CSS_VALUES = `
      * 체크박스-스위치 선언 
      */
     /* 스위치 최상단 컨테이너 */
-    .decentral-switch-field {
+    .decentral-boxed-field {
       display: flex;
       width: 100%;
       background-color: var(--decentral-switch-background);
@@ -431,7 +431,7 @@ const DECENTRAL_CSS_VALUES = `
     }
 
     /* 스위치 텍스트 컨테이너 */
-    .decentral-switch-field .element-text-container {
+    .decentral-boxed-field .element-text-container {
       display: flex;
       flex-direction: column;
       justify-items: center;
@@ -439,7 +439,7 @@ const DECENTRAL_CSS_VALUES = `
     }
 
     /* 스위치 제목 */
-    .decentral-switch-field .element-title {
+    .decentral-boxed-field .element-title {
       font-size: 14px;
       font-weight: normal;
       margin-bottom: 4px;
@@ -447,7 +447,7 @@ const DECENTRAL_CSS_VALUES = `
     }
 
     /* 스위치 설명 */
-    .decentral-switch-field .element-description {
+    .decentral-boxed-field .element-description {
       font-size: 13px;
       font-weight: light;
       color: var(--decentral-text-formal);
@@ -455,7 +455,7 @@ const DECENTRAL_CSS_VALUES = `
 
     
     /* 스위치 내 체크박스 컨테이너 */
-    .decentral-switch-field .element-switch-container {
+    .decentral-boxed-field .element-input-container {
       display: flex;
       margin-left: auto;
       align-items: center;
@@ -1468,7 +1468,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     this.parentElement.append(
       createLongGridElement(undefined, (node) => {
         node.append(
-          setupClassNode("div", "decentral-switch-field", (area) => {
+          setupClassNode("div", "decentral-boxed-field", (area) => {
             area.append(
               setupClassNode("div", "element-text-container", (field) => {
                 field.append(
@@ -1484,7 +1484,7 @@ class ComponentAppender extends HTMLComponentConvertable {
               })
             );
             area.append(
-              setupClassNode("div", "element-switch-container", (container) => {
+              setupClassNode("div", "element-input-container", (container) => {
                 container.append(
                   setupClassNode("input", "element-switch", (switcher) => {
                     switcher.id = id;
