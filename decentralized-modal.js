@@ -1871,7 +1871,7 @@ function setupFullNode(name, cls, style, setupLambda) {
 function createGridElement(titleText, isLongField, lambda) {
   return setupClassNode(
     "div",
-    isLongField ? "decentral-grid-element" : "decentral-grid-element-long",
+    isLongField ? "decentral-grid-element-long" : "decentral-grid-element",
     (node) => {
       if (titleText) {
         const title = setupClassNode(
