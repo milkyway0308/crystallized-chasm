@@ -428,6 +428,7 @@ const DECENTRAL_CSS_VALUES = `
       background-color: var(--decentral-switch-background);
       border: 1px solid var(--decentral-text-border);
       user-select: none;
+      padding: 12px 0px;
     }
 
     /* 스위치 텍스트 컨테이너 */
