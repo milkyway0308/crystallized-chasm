@@ -1520,7 +1520,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     { defaultValue = false, initializer = undefined, action = undefined } = {}
   ) {
     this.parentElement.append(
-      createLongGridElement(undefined, (node) => {
+      createGridElement(undefined, true, (node) => {
         node.append(
           setupClassNode("div", "decentral-boxed-field", (area) => {
             area.append(
@@ -1590,7 +1590,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     } = {}
   ) {
     this.parentElement.append(
-      createLongGridElement(undefined, (node) => {
+      createGridElement(undefined, true, (node) => {
         node.append(
           setupClassNode("div", "decentral-boxed-field", (area) => {
             area.append(
@@ -1610,20 +1610,27 @@ class ComponentAppender extends HTMLComponentConvertable {
             area.append(
               setupClassNode("div", "element-input-container", (container) => {
                 container.append(
-                  setupClassNode("input", "element-small-input", (inputField) => {
-                    inputField.id = id;
-                    inputField.setAttribute("type", "number");
-                    inputField.setAttribute("min", min);
-                    inputField.setAttribute("min", max);
-                    if (defaultValue) {
-                      inputField.value = defaultValue;
-                    }
-                    if (onChange) {
+                  setupClassNode(
+                    "input",
+                    "element-small-input",
+                    (inputField) => {
+                      inputField.id = id;
+                      inputField.setAttribute("type", "number");
+                      inputField.setAttribute("min", min);
+                      inputField.setAttribute("min", max);
+                      if (defaultValue) {
+                        inputField.value = defaultValue;
+                      }
+                      if (initializer) {
+                        initializer(inputField);
+                      }
+                      if (onChange) {
                         inputField.onchange = () => {
-                            onChange(inputField)
+                          onChange(inputField);
                         };
+                      }
                     }
-                  })
+                  )
                 );
               })
             );
