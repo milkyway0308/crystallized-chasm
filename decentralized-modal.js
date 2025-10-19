@@ -1416,7 +1416,7 @@ class ComponentAppender extends HTMLComponentConvertable {
           setupClassNode("textarea", "decentral-text-area", (area) => {
             area.id = id;
             if (defaultValue) {
-              area.value = innerText;
+              area.value = defaultValue;
             }
             if (onChange) {
               area.onchange = () => {
@@ -1455,7 +1455,7 @@ class ComponentAppender extends HTMLComponentConvertable {
             area.id = id;
             area.setAttribute("readonly", "true");
             if (defaultValue) {
-              area.value = innerText;
+              area.value = defaultValue;
             }
             if (initializer) {
               initializer(area);
