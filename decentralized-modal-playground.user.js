@@ -7,7 +7,7 @@
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/decentralized-modal-playground.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/decentralized-modal-playground.user.js
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@preview-unsweetened-flame-bottle/decentralized-modal.js
+// @require      https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/preview-unsweetened-flame-bottle/decentralized-modal.js
 // @grant       GM_addStyle
 // ==/UserScript==
 
@@ -63,8 +63,8 @@
       .addText("이 테스트 스크립트에는 추가적으로 표기될 라이선스가 없습니다.");
   });
 
-  document.testModal = () => {
-    const testManager = ModalManager.getOrCreateManager("test");
-    testManager.withLicenseCredential().display(true);
+  document.testModal = (name) => {
+    const testManager = ModalManager.getOrCreateManager(name);
+    testManager.withLicenseCredential().display(false);
   };
 })();

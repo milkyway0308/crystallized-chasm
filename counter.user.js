@@ -1,14 +1,15 @@
 // ==UserScript==
 // @name        Chasm Crystallized Counter (결정화 캐즘 계수기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-CNTR-v1.1.2
+// @version     CRYS-CNTR-v1.2.0p
 // @description 채팅에 캐릭터 채팅 턴 계수기 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
-// @grant       none
+// @require      https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/preview-unsweetened-flame-bottle/decentralized-modal.js
+// @grant       GM_addStyle
 // ==/UserScript==
 !(async function () {
   let lastDetectedMessageCount = {};
@@ -502,6 +503,41 @@
     });
   }
 
+  function addMenu() {
+    const manager = ModalManager.getOrCreateManager("c2");
+    manager.createMenu("결정화 캐즘 계수기", (modal) => {
+      modal.replaceContentPanel((panel) => {
+        let changed = false;
+        panel.addSwitchGrid(
+          "cntr-story",
+          "스토리 채팅 계수기",
+          "스토리 채팅에서의 계수기 표시를 활성화합니다.",
+          () => {}
+        );
+        panel.addSwitchGrid(
+          "cntr-character",
+          "캐릭터 채팅 계수기",
+          "캐릭터 채팅에서의 계수기 표시를 활성화합니다.",
+          () => {}
+        );
+      }, "결정화 캐즘 계수기");
+    });
+    manager.addLicenseDisplay((panel) => {
+      panel.addTitleText("결정화 캐즘 계수기");
+      panel
+        .addText(
+          "결정화 캐즘 계수기는 모든 아이콘을 SVGRepo의 컨텐츠로 사용하고 있습니다."
+        )
+        .addText(
+          "또한, 일부의 외부 프레임워크를 통해 웹 내부 데이터베이스를 관리하고 있습니다."
+        )
+        .addText(
+          "- 시계 아이콘 (https://www.svgrepo.com/svg/446075/time-history)"
+        )
+        .addText("- dexie.js 프레임워크 (https://dexie.org/)");
+    });
+  }
+
   document.testClear = async () => {
     return await db.chatStore.clear();
   };
@@ -510,4 +546,6 @@
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
     window.addEventListener("load", prepare);
+
+  addMenu();
 })();
