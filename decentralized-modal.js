@@ -1277,8 +1277,8 @@ class MobileMenuPanel extends BaseMenuPanel {
 
 class ComponentAppender extends HTMLComponentConvertable {
   /**
-   *
-   * @param {HTMLElement} parentElement
+   * 새 ComponentAppender을 생성합니다.
+   * @param {HTMLElement} parentElement 필드를 삽입할 부모 요소.
    */
   constructor(parentElement) {
     super();
@@ -1286,78 +1286,89 @@ class ComponentAppender extends HTMLComponentConvertable {
   }
 
   /**
-   *
-   * @param {string | undefined} titleText
-   * @param {((node: HTMLElement, title: HTMLElement | undefined) => any) | undefined} lambda
-   * @returns {ComponentAppender}
+   * 필드에 새 그리드 요소를 삽입합니다.
+   * 이 그리드 요소는 모달의 길이에 따라 한 행에 최대 2개가 존재할 수 있습니다.
+   * @param {string | undefined} titleText 그리드 제목. undefined일 경우, 제목이 생략됩니다.
+   * @param {boolean} isLongField 긴 필드를 사용할지의 여부. 긴 필드는 한 행에 최대 1개, 짧은 필드는 최대 2개가 존재할 수 있습니다.
+   * @param {((node: HTMLElement, title: HTMLElement | undefined) => any) | undefined} lambda 초기화 람다
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
-  addGrid(titleText, lambda) {
-    this.parentElement.appendChild(createGridElement(titleText, lambda));
+  addGrid(titleText, isLongField, lambda) {
+    this.parentElement.appendChild(
+      createGridElement(titleText, isLongField, lambda)
+    );
     return this;
   }
 
   /**
-   *
-   * @param {string | undefined} titleText
-   * @param {((node: HTMLElement, title: HTMLElement | undefined) => any) | undefined} lambda
-   * @returns {ComponentAppender}
+   * 제목 포맷의 텍스트를 추가합니다.
+   * @param {string} text 텍스트 내용
+   * @param {Object} param 옵션 파라미터
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
-  addLongGrid(titleText, lambda) {
-    this.parentElement.appendChild(createLongGridElement(titleText, lambda));
-  }
-
-  /**
-   *
-   * @param {*} id
-   * @param {*} titleText
-   * @param {*} onChange
-   * @returns {ComponentAppender}
-   */
-  addTitleText(titleText) {
+  addTitleText = function (text, { initializer = undefined } = {}) {
     this.parentElement.append(
       createLongFlatGridElement(undefined, (node) => {
         node.append(
           setupClassNode("p", "decentral-text-title", (textNode) => {
-            textNode.innerText = titleText;
+            textNode.innerText = text;
+            if (initializer) {
+              initializer(textNode);
+            }
           })
         );
       })
     );
     return this;
-  }
+  };
 
   /**
-   *
-   * @param {*} id
-   * @param {*} titleText
-   * @param {*} onChange
-   * @returns {ComponentAppender}
+   * 설명 포맷의 텍스트를 추가합니다.
+   * @param {string} text 텍스트 내용
+   * @param {Object} param 옵션 파라미터
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
-  addText(titleText) {
+  addTitleText = function (text, { initializer = undefined } = {}) {
     this.parentElement.append(
       createLongFlatGridElement(undefined, (node) => {
         node.append(
           setupClassNode("p", "decentral-text-plain", (textNode) => {
-            textNode.innerText = titleText;
+            textNode.innerText = text;
+            if (initializer) {
+              initializer(textNode);
+            }
           })
         );
       })
     );
     return this;
-  }
+  };
 
   /**
-   * @param {string} id
-   * @param {string} titleText
-   * @param {{defaultValue: string | undefined, initializer: (function(HTMLElement):void) | undefined, onChange: ((HTMLElement, string):void) | undefined}}
+   * 이름과 필드를 쌍으로 가지는 입력 필드를 추가합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} titleText 필드의 텍스트 제목
+   * @param {boolean} isLongField 긴 필드를 사용할지의 여부. 긴 필드는 한 행에 최대 1개, 짧은 필드는 최대 2개가 존재할 수 있습니다.
+   * @param {Object} param 옵션 파라미터
+   * @param {string | undefined} param.defaultValue 필드의 기본 텍스트 값
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement, string):void) | undefined} param.onChange 필드 내용 변경시 호출될 펑션
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
   addInputGrid = function (
     id,
     titleText,
-    { defaultValue = undefined, initializer = undefined, onChange = undefined } = {}
+    isLongField,
+    {
+      defaultValue = undefined,
+      initializer = undefined,
+      onChange = undefined,
+    } = {}
   ) {
     this.parentElement.append(
-      createGridElement(titleText, (node) => {
+      createGridElement(titleText, isLongField, (node) => {
         node.append(
           setupClassNode("input", "decentral-text-field", (area) => {
             area.id = id;
@@ -1381,105 +1392,133 @@ class ComponentAppender extends HTMLComponentConvertable {
   };
 
   /**
-   *
-   * @param {*} id
-   * @param {*} titleText
-   * @param {*} onChange
-   * @returns {ComponentAppender}
+   * 이름과 필드를 쌍으로 가지는 텍스트에이리어 필드를 추가합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} titleText 필드의 텍스트 제목
+   * @param {Object} param 옵션 파라미터
+   * @param {string | undefined} param.defaultValue 필드의 기본 텍스트 값
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement, string):void) | undefined} param.onChange 필드 내용 변경시 호출될 펑션
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
-  addLongInputGrid(id, titleText, onChange) {
+  addTextAreaGrid = function (
+    id,
+    titleText,
+    {
+      defaultValue = undefined,
+      initializer = undefined,
+      onChange = undefined,
+    } = {}
+  ) {
     this.parentElement.append(
-      createLongGridElement(titleText, (node) => {
-        node.append(
-          setupClassNode("input", "decentral-text-field", (area) => {
-            area.id = id;
-            area.setAttribute("type", "text");
-            area.onchange = () => {
-              onChange(area.value);
-            };
-          })
-        );
-      })
-    );
-    return this;
-  }
-
-  /**
-   *
-   * @param {*} id
-   * @param {*} titleText
-   * @param {*} onChange
-   * @returns {ComponentAppender}
-   */
-  addTextAreaGrid(id, titleText, onChange) {
-    this.parentElement.append(
-      createLongGridElement(titleText, (node) => {
+      createGridElement(titleText, true, (node) => {
         node.append(
           setupClassNode("textarea", "decentral-text-area", (area) => {
             area.id = id;
-            area.setAttribute("type", "text");
-            area.onchange = () => {
-              onChange(area.value);
-            };
+            if (defaultValue) {
+              area.value = innerText;
+            }
+            if (onChange) {
+              area.onchange = () => {
+                onChange(area, area.innerText);
+              };
+            }
+            if (initializer) {
+              initializer(area);
+            }
           })
         );
       })
     );
     return this;
-  }
+  };
 
   /**
-   *
-   * @param {*} id
-   * @param {*} titleText
-   * @returns {ComponentAppender}
+   * 이름과 필드를 쌍으로 가지는 편집 불가능한 텍스트에이리어 필드를 추가합니다.
+   * 이 필드는 일반 텍스트에이리어보다 높이가 더 높습니다.
+   * @param {string} id 필드의 ID
+   * @param {string} titleText 필드의 텍스트 제목
+   * @param {Object} param 옵션 파라미터
+   * @param {string | undefined} param.defaultValue 필드의 기본 텍스트 값
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
-  addLoggingArea(id, titleText) {
+  addLoggingArea = function (
+    id,
+    titleText,
+    { defaultValue = undefined, initializer = undefined } = {}
+  ) {
     this.parentElement.append(
-      createLongGridElement(titleText, (node) => {
+      createGridElement(titleText, true, (node) => {
         node.append(
           setupClassNode("textarea", "decentral-logging-area", (area) => {
             area.id = id;
-            area.setAttribute("type", "text");
             area.setAttribute("readonly", "true");
-            area.onchange = () => {
-              onChange(area.value);
-            };
+            if (defaultValue) {
+              area.value = innerText;
+            }
+            if (initializer) {
+              initializer(area);
+            }
           })
         );
       })
     );
     return this;
-  }
+  };
 
   /**
-   *
-   * @param {*} id
-   * @param {*} titleText
-   * @returns {ComponentAppender}
+   * 클릭 가능한 버튼을 추가합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} titleText 버튼의 텍스트
+   * @param {Object} param 옵션 파라미터
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement):void) | undefined} param.action 버튼 클릭시 실행될 펑션
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
-  addButton(id, titleText) {
+  addButton = function (
+    id,
+    titleText,
+    { initializer = undefined, action = undefined } = {}
+  ) {
     this.parentElement.append(
-      createLongGridElement(undefined, (node) => {
+      createGridElement(undefined, true, (node) => {
         node.append(
           setupClassNode("button", "decentral-button", (button) => {
             button.id = id;
             button.innerText = titleText;
+            if (initializer) {
+              initializer(area);
+            }
+            if (action) {
+              button.onclick = () => {
+                action(area);
+              };
+            }
           })
         );
       })
     );
     return this;
-  }
+  };
 
   /**
-   *
-   * @param {*} id
-   * @param {*} titleText
-   * @param {*} onChange
-   * @returns {ComponentAppender}
+   * 박스로 감싸진 스위치 형태의 체크박스 필드를 추가합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} title 제목 텍스트
+   * @param {string} description 설명 텍스트
+   * @param {Object} param 옵션 파라미터
+   * @param {boolean | undefined} param.defaultValue 필드의 기본 텍스트 값
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement, boolean):void) | undefined} param.action 체크박스 클릭시 실행될 펑션
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
-  addSwitchBox(id, title, description, onChange) {
+  addSwitchBox = function (
+    id,
+    title,
+    description,
+    { defaultValue = false, initializer = undefined, action = undefined } = {}
+  ) {
     this.parentElement.append(
       createLongGridElement(undefined, (node) => {
         node.append(
@@ -1505,9 +1544,15 @@ class ComponentAppender extends HTMLComponentConvertable {
                     switcher.id = id;
                     switcher.setAttribute("type", "checkbox");
                     switcher.setAttribute("role", "switch");
-                    switcher.onchange = () => {
-                      onChange(switcher.checked);
-                    };
+                    switcher.checked = defaultValue;
+                    if (initializer) {
+                      initializer(switcher);
+                    }
+                    if (action) {
+                      switcher.onchange = () => {
+                        action(switcher, switcher.checked);
+                      };
+                    }
                   })
                 );
               })
@@ -1517,16 +1562,33 @@ class ComponentAppender extends HTMLComponentConvertable {
       })
     );
     return this;
-  }
+  };
 
   /**
-   *
-   * @param {*} id
-   * @param {*} titleText
-   * @param {*} onChange
-   * @returns {ComponentAppender}
+   * 박스로 감싸진 숫자 입력 필드를 추가합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} title 제목 텍스트
+   * @param {string} description 설명 텍스트
+   * @param {Object} param 옵션 파라미터
+   * @param {number | undefined} param.defaultValue 필드의 기본 텍스트 값
+   * @param {number} param.min 필드의 최소값
+   * @param {number} param.max 필드의 최댓값
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement, boolean):void) | undefined} param.onChange 체크박스 클릭시 실행될 펑션
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
-  addSmallNumberBox(id, title, description, min, max, onChange) {
+  addShortNumberBox = function (
+    id,
+    title,
+    description,
+    {
+      defaultValue = false,
+      min = 0,
+      max = 1000,
+      initializer = undefined,
+      onChange = undefined,
+    } = {}
+  ) {
     this.parentElement.append(
       createLongGridElement(undefined, (node) => {
         node.append(
@@ -1548,14 +1610,19 @@ class ComponentAppender extends HTMLComponentConvertable {
             area.append(
               setupClassNode("div", "element-input-container", (container) => {
                 container.append(
-                  setupClassNode("input", "element-small-input", (switcher) => {
-                    switcher.id = id;
-                    switcher.setAttribute("type", "number");
-                    switcher.setAttribute("min", min);
-                    switcher.setAttribute("min", max);
-                    switcher.onchange = () => {
-                      onChange(switcher.value);
-                    };
+                  setupClassNode("input", "element-small-input", (inputField) => {
+                    inputField.id = id;
+                    inputField.setAttribute("type", "number");
+                    inputField.setAttribute("min", min);
+                    inputField.setAttribute("min", max);
+                    if (defaultValue) {
+                      inputField.value = defaultValue;
+                    }
+                    if (onChange) {
+                        inputField.onchange = () => {
+                            onChange(inputField)
+                        };
+                    }
                   })
                 );
               })
@@ -1565,7 +1632,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       })
     );
     return this;
-  }
+  };
 }
 
 class ContentPanel extends ComponentAppender {
@@ -1791,59 +1858,33 @@ function setupFullNode(name, cls, style, setupLambda) {
 /**
  *
  * @param {string} titleText
+ * @param {boolean} isLong
  * @param {((node: HTMLElement, title: HTMLElement | undefined) => any) | undefined} lambda
  */
-function createGridElement(titleText, lambda) {
-  return setupClassNode("div", "decentral-grid-element", (node) => {
-    if (titleText) {
-      const title = setupClassNode(
-        "div",
-        "decentral-element-title",
-        (elementTitle) => {
-          elementTitle.append(
-            setupNode("p", (node) => {
-              node.textContent = titleText;
-            })
-          );
-        }
-      );
-      node.append(title);
-      lambda(node, title);
-    } else {
-      lambda(node, undefined);
-    }
-  });
-}
-
-/**
- *
- * @param {string | undefined} titleText
- * @param {((node: HTMLElement, title: HTMLElement | undefined) => any) | undefined} lambda
- */
-function createLongGridElement(titleText, lambda) {
-  return setupClassNode("div", "decentral-grid-element-long", (node) => {
-    if (titleText) {
-      const title = setupClassNode(
-        "div",
-        "decentral-element-title",
-        (elementTitle) => {
-          elementTitle.append(
-            setupNode("p", (node) => {
-              node.textContent = titleText;
-            })
-          );
-        }
-      );
-      node.append(title);
-      if (lambda) {
+function createGridElement(titleText, isLongField, lambda) {
+  return setupClassNode(
+    "div",
+    isLongField ? "decentral-grid-element" : "decentral-grid-element-long",
+    (node) => {
+      if (titleText) {
+        const title = setupClassNode(
+          "div",
+          "decentral-element-title",
+          (elementTitle) => {
+            elementTitle.append(
+              setupNode("p", (node) => {
+                node.textContent = titleText;
+              })
+            );
+          }
+        );
+        node.append(title);
         lambda(node, title);
-      }
-    } else {
-      if (lambda) {
+      } else {
         lambda(node, undefined);
       }
     }
-  });
+  );
 }
 
 /**
