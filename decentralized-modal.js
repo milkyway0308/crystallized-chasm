@@ -1330,10 +1330,14 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {string} text 텍스트 내용
    * @param {Object} param 옵션 파라미터
    * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
-  addTitleText = function (text, { initializer = undefined } = {}) {
-    this.parentElement.append(
+  addTitleText = function (
+    text,
+    { initializer = undefined, __proxy = this } = {}
+  ) {
+    __proxy.parentElement.append(
       createLongFlatGridElement(undefined, (node) => {
         node.append(
           setupClassNode("p", "decentral-text-title", (textNode) => {
@@ -1353,10 +1357,14 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {string} text 텍스트 내용
    * @param {Object} param 옵션 파라미터
    * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
-  addTitleText = function (text, { initializer = undefined } = {}) {
-    this.parentElement.append(
+  addTitleText = function (
+    text,
+    { initializer = undefined, __proxy = this } = {}
+  ) {
+    __proxy.parentElement.append(
       createLongFlatGridElement(undefined, (node) => {
         node.append(
           setupClassNode("p", "decentral-text-plain", (textNode) => {
@@ -1380,6 +1388,7 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {string | undefined} param.defaultValue 필드의 기본 텍스트 값
    * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
    * @param {(function(HTMLElement, string):void) | undefined} param.onChange 필드 내용 변경시 호출될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
   addInputGrid = function (
@@ -1390,9 +1399,10 @@ class ComponentAppender extends HTMLComponentConvertable {
       defaultValue = undefined,
       initializer = undefined,
       onChange = undefined,
+      __proxy = this,
     } = {}
   ) {
-    this.parentElement.append(
+    __proxy.parentElement.append(
       createGridElement(titleText, isLongField, (node) => {
         node.append(
           setupClassNode("input", "decentral-text-field", (inputField) => {
@@ -1424,6 +1434,7 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {string | undefined} param.defaultValue 필드의 기본 텍스트 값
    * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
    * @param {(function(HTMLElement, string):void) | undefined} param.onChange 필드 내용 변경시 호출될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
   addTextAreaGrid = function (
@@ -1433,9 +1444,10 @@ class ComponentAppender extends HTMLComponentConvertable {
       defaultValue = undefined,
       initializer = undefined,
       onChange = undefined,
+      __proxy = this,
     } = {}
   ) {
-    this.parentElement.append(
+    __proxy.parentElement.append(
       createGridElement(titleText, true, (node) => {
         node.append(
           setupClassNode("textarea", "decentral-text-area", (area) => {
@@ -1466,14 +1478,15 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {Object} param 옵션 파라미터
    * @param {string | undefined} param.defaultValue 필드의 기본 텍스트 값
    * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
   addLoggingArea = function (
     id,
     titleText,
-    { defaultValue = undefined, initializer = undefined } = {}
+    { defaultValue = undefined, initializer = undefined, __proxy = this } = {}
   ) {
-    this.parentElement.append(
+    __proxy.parentElement.append(
       createGridElement(titleText, true, (node) => {
         node.append(
           setupClassNode("textarea", "decentral-logging-area", (area) => {
@@ -1499,14 +1512,15 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {Object} param 옵션 파라미터
    * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
    * @param {(function(HTMLElement):void) | undefined} param.action 버튼 클릭시 실행될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
   addButton = function (
     id,
     titleText,
-    { initializer = undefined, action = undefined } = {}
+    { initializer = undefined, action = undefined, __proxy = this } = {}
   ) {
-    this.parentElement.append(
+    __proxy.parentElement.append(
       createGridElement(undefined, true, (node) => {
         node.append(
           setupClassNode("button", "decentral-button", (button) => {
@@ -1572,15 +1586,16 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {boolean | undefined} param.defaultValue 필드의 기본 텍스트 값
    * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
    * @param {(function(HTMLElement, boolean):void) | undefined} param.action 체크박스 클릭시 실행될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
   addSwitchBox = function (
     id,
     title,
     description,
-    { defaultValue = false, initializer = undefined, action = undefined } = {}
+    { defaultValue = false, initializer = undefined, action = undefined, __proxy = this } = {}
   ) {
-    this.addBoxedField(id, title, description, (node) => {
+    __proxy.addBoxedField(id, title, description, (node) => {
       node.append(
         setupClassNode("div", "element-input-container", (container) => {
           container.append(
@@ -1616,6 +1631,7 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {number} param.max 필드의 최댓값
    * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
    * @param {(function(HTMLElement, boolean):void) | undefined} param.onChange 체크박스 클릭시 실행될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
   addShortNumberBox = function (
@@ -1628,9 +1644,10 @@ class ComponentAppender extends HTMLComponentConvertable {
       max = 1000,
       initializer = undefined,
       onChange = undefined,
+      __proxy = this
     } = {}
   ) {
-    this.addBoxedField(title, description, (node) => {
+    __proxy.addBoxedField(title, description, (node) => {
       node.append(
         setupClassNode("div", "element-input-container", (container) => {
           container.append(
