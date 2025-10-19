@@ -463,6 +463,10 @@ const DECENTRAL_CSS_VALUES = `
       padding: 4px 16px;
     }
 
+    .decentral-boxed-field .element-small-input {
+        width: 16px;
+    }
+
     
     /*
         Switch Checkbox source code from:
@@ -1465,7 +1469,7 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {*} onChange
    * @returns {ComponentAppender}
    */
-  addSwitchGrid(id, title, description, onChange) {
+  addSwitchBox(id, title, description, onChange) {
     this.parentElement.append(
       createLongGridElement(undefined, (node) => {
         node.append(
@@ -1493,6 +1497,53 @@ class ComponentAppender extends HTMLComponentConvertable {
                     switcher.setAttribute("role", "switch");
                     switcher.onchange = () => {
                       onChange(switcher.checked);
+                    };
+                  })
+                );
+              })
+            );
+          })
+        );
+      })
+    );
+    return this;
+  }
+
+   /**
+   *
+   * @param {*} id
+   * @param {*} titleText
+   * @param {*} onChange
+   * @returns {ComponentAppender}
+   */
+  addSmallNumberBox(id, title, description, onChange) {
+    this.parentElement.append(
+      createLongGridElement(undefined, (node) => {
+        node.append(
+          setupClassNode("div", "decentral-boxed-field", (area) => {
+            area.append(
+              setupClassNode("div", "element-text-container", (field) => {
+                field.append(
+                  setupClassNode("p", "element-title", (text) => {
+                    text.innerText = title;
+                  })
+                );
+                field.append(
+                  setupClassNode("p", "element-description", (text) => {
+                    text.innerText = description;
+                  })
+                );
+              })
+            );
+            area.append(
+              setupClassNode("div", "element-input-container", (container) => {
+                container.append(
+                  setupClassNode("input", "element-small-input", (switcher) => {
+                    switcher.id = id;
+                    switcher.setAttribute("type", "checkbox");
+                    switcher.setAttribute("role", "switch");
+                    switcher.onchange = () => {
+                      onChange(switcher.value);
                     };
                   })
                 );
