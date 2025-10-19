@@ -1370,19 +1370,19 @@ class ComponentAppender extends HTMLComponentConvertable {
     this.parentElement.append(
       createGridElement(titleText, isLongField, (node) => {
         node.append(
-          setupClassNode("input", "decentral-text-field", (area) => {
-            area.id = id;
-            area.setAttribute("type", "text");
+          setupClassNode("input", "decentral-text-field", (inputField) => {
+            inputField.id = id;
+            inputField.setAttribute("type", "text");
             if (defaultValue) {
-              area.value = defaultValue;
+              inputField.value = defaultValue;
             }
             if (onChange) {
-              area.onchange = () => {
-                onChange(area, area.value);
+              inputField.onchange = () => {
+                onChange(inputField, inputField.value);
               };
             }
             if (initializer) {
-              initializer(area);
+              initializer(inputField);
             }
           })
         );
@@ -1492,7 +1492,7 @@ class ComponentAppender extends HTMLComponentConvertable {
             }
             if (action) {
               button.onclick = () => {
-                action(area);
+                action(button);
               };
             }
           })
