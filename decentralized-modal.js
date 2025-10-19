@@ -459,7 +459,7 @@ const DECENTRAL_CSS_VALUES = `
       display: flex;
       margin-left: auto;
       align-items: center;
-      padding: 4px 16px;
+      padding: 4px 8px;
     }
 
     .decentral-boxed-field .element-small-input {
