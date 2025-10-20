@@ -8,7 +8,7 @@
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
-// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/b26a06f8080afb30b425303103817bb23188fb5e/decentralized-modal.js
+// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/6fe6a18fccb9da6806e3891ac18110f880b7c3bc/decentralized-modal.js
 // @grant       GM_addStyle
 // ==/UserScript==
 !(async function () {
@@ -563,7 +563,7 @@
           "캐릭터 채팅 계수기",
           "캐릭터 채팅에서의 계수기 표시를 활성화합니다.",
           {
-            defaultValue: settings.enableStoryCounter,
+            defaultValue: settings.enableCharacterCounter,
             action: (_, value) => {
               settings.enableCharacterCounter = value;
               saveSettings();
