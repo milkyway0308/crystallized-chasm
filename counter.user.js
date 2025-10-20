@@ -8,7 +8,7 @@
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/preview-unsweetened-flame-bottle/decentralized-modal.js
+// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/b26a06f8080afb30b425303103817bb23188fb5e/decentralized-modal.js
 // @grant       GM_addStyle
 // ==/UserScript==
 !(async function () {
@@ -185,6 +185,44 @@
       isDarkMode() ? "css-1ifxcjt" : "css-1ifxcjt"
     ).length;
   }
+
+  // =====================================================
+  //                      설정
+  // =====================================================
+  const settings = {
+    enableStoryCounter: true,
+    enableCharacterCounter: true,
+  };
+
+  // It's good to use IndexedDB, but we have to use LocalStorage to block site
+  // cause of risk from unloaded environment and unexpected behavior
+  function loadSettings() {
+    const loadedSettings = localStorage.getItem("chasm-cntr-settings");
+    if (loadedSettings) {
+      const json = JSON.parse(loadedSettings);
+      for (let key of Object.keys(json)) {
+        // Merge setting for version compatibility support
+        settings[key] = json[key];
+      }
+    }
+  }
+
+  function saveSettings() {
+    log("설정 저장중..");
+    // Yay, no need to filtering anything!
+    localStorage.setItem("chasm-cntr-settings", JSON.stringify(settings));
+    log("설정 저장 완료");
+  }
+
+  function isCharacterCounterEnabled() {
+    return settings.enableCharacterCounter && isCharacterPath();
+  }
+
+  
+  function isStoryCounterEnabled() {
+    return settings.enableStoryCounter && isStoryPath();
+  }
+
 
   // =====================================================
   //                      로직
@@ -483,7 +521,7 @@
   // =====================================================
 
   function setup() {
-    if (!isStoryPath() && !isCharacterPath()) return;
+    if (!isStoryCounterEnabled() && !isCharacterCounterEnabled()) return;
     injectElement();
   }
 
@@ -508,33 +546,46 @@
     manager.createMenu("결정화 캐즘 계수기", (modal) => {
       modal.replaceContentPanel((panel) => {
         let changed = false;
-        panel.addSwitchGrid(
+        panel.addSwitchBox(
           "cntr-story",
           "스토리 채팅 계수기",
           "스토리 채팅에서의 계수기 표시를 활성화합니다.",
-          () => {}
+          {
+            defaultValue: settings.enableStoryCounter,
+            action: (_, value) => {
+              settings.enableStoryCounter = value;
+              saveSettings();
+            },
+          }
         );
-        panel.addSwitchGrid(
+        panel.addSwitchBox(
           "cntr-character",
           "캐릭터 채팅 계수기",
           "캐릭터 채팅에서의 계수기 표시를 활성화합니다.",
-          () => {}
+          {
+            defaultValue: settings.enableStoryCounter,
+            action: (_, value) => {
+              settings.enableCharacterCounter = value;
+              saveSettings();
+            },
+          }
         );
       }, "결정화 캐즘 계수기");
     });
     manager.addLicenseDisplay((panel) => {
       panel.addTitleText("결정화 캐즘 계수기");
       panel
-        .addText(
-          "결정화 캐즘 계수기는 모든 아이콘을 SVGRepo의 컨텐츠로 사용하고 있습니다."
-        )
+        .addTitleText("결정화 캐즘 계수기의 모든 아이콘은 SVGRepo에서 가져왔습니다.")
         .addText(
           "또한, 일부의 외부 프레임워크를 통해 웹 내부 데이터베이스를 관리하고 있습니다."
         )
         .addText(
           "- 시계 아이콘 (https://www.svgrepo.com/svg/446075/time-history)"
         )
-        .addText("- dexie.js 프레임워크 (https://dexie.org/)");
+        .addText("- dexie.js 프레임워크 (https://dexie.org/)")
+        .addText(
+          "- decentralized-modal.js 프레임워크 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)"
+        );
     });
   }
 
@@ -542,6 +593,7 @@
     return await db.chatStore.clear();
   };
 
+  loadSettings();
   "loading" === document.readyState
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
