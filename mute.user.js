@@ -1,72 +1,24 @@
 // ==UserScript==
 // @name         Chasm Crystallized Mute (결정화 캐즘 뮤트)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-MUTE-v1.0.2
+// @version      CRYS-MUTE-v1.1.0p
 // @description  TTS 버튼 제거. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/mute.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/mute.user.js
-// @grant        none
+// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/6fe6a18fccb9da6806e3891ac18110f880b7c3bc/decentralized-modal.js
+// @grant       GM_addStyle
 // ==/UserScript==
-(async function () {
-  let checkEnabled = false;
-  let updating = false;
-  let lastSelected = 0;
-  function check() {
-    if (updating) return;
-    const elements = document.querySelectorAll(".css-n55rwb .css-1bamzls");
-    if (!elements) {
-      return;
-    }
-    if (lastSelected === elements.length) return;
-
-    updating = true;
-    lastSelected = elements.length;
-    for (let element of elements) {
-      if (!element.hasAttribute("chasm-mute-disabled")) {
-        element.style.cssText = "display: none;";
-        element.setAttribute("chasm-mute-disabled", "true");
-        const emptyDiv = document.createElement("div");
-        emptyDiv.className = "chasm-mute-placeholder";
-        element.parentElement.insertBefore(emptyDiv, element);
-      }
-    }
-    updating = false;
-  }
-  function prepare() {
-    check();
-    attachChatChangeObserver();
-    let oldHref = location.href;
-    attachObserver(document, () => {
-      // Check last page href and test path
-      if (location.href !== oldHref && isChattingPath()) {
-        oldHref = location.href;
-        checkEnabled = true;
-        attachChatChangeObserver();
-      } else {
-        checkEnabled = false;
-        lastSelected = 0;
-      }
-    });
-  }
-
-  function attachChatChangeObserver() {
-    let observableElement = document.getElementById("character-message-list");
-    if (!observableElement) {
-      logError(
-        "Cannot find character message list. Does Crack updated, or bug occured?"
-      );
-      return;
-    }
-    if (observableElement.hasAttribute("chasm-mute-attached")) {
-      return;
-    }
-    observableElement.setAttribute("chasm-mute-attached", "true");
-    attachObserver(observableElement, () => {
-      check();
-    });
-  }
+GM_addStyle(`
+  .chasm-mute-disabled {
+    display: none !important;
+  }  
+`);
+(function () {
+  // =====================================================
+  //                     유틸리티
+  // =====================================================
 
   function attachObserver(observeTarget, lambda) {
     const Observer = window.MutationObserver || window.WebKitMutationObserver;
@@ -79,6 +31,7 @@
       });
     }
   }
+
   function log(message) {
     console.log(
       "%cChasm Crystallized Mute: %cInfo: %c" + message,
@@ -88,41 +41,185 @@
     );
   }
 
-  function logWarning(message) {
-    console.log(
-      "%cChasm Crystallized Mute: %cWarning: %c" + message,
-      "color: cyan;",
-      "color: yellow;",
-      "color: inherit;"
-    );
-  }
+  // =====================================================
+  //                  크랙 종속 유틸리티
+  // =====================================================
 
-  function logError(message) {
-    console.log(
-      "%cChasm Crystallized Mute: %cError: %c" + message,
-      "color: cyan;",
-      "color: red;",
-      "color: inherit;"
-    );
-  }
-
-  
   /**
-   * 현재 URL이 채팅방의 URL인지 반환합니다.
+   * 현재 URL이 스토리챗의 URL인지 반환합니다.
    * @returns 채팅 URL 일치 여부
    */
-  function isChattingPath() {
+  function isStoryPath() {
     // 2025-09-17 Path
     return (
       /\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname) ||
-      // 2025-09-11 Path
-      /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname) ||
       // Legacy Path
       /\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)
     );
   }
+
+  /**
+   * 현재 URL이 캐릭터챗의 URL인지 반환합니다.
+   * @returns 채팅 URL 일치 여부
+   */
+  function isCharacterPath() {
+    return /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname);
+  }
+
+  /**
+   * 현재 크랙의 테마가 다크 모드인지 반환합니다.
+   * @returns 다크 모드가 적용되었는지의 여부
+   */
+  function isDarkMode() {
+    return document.body.getAttribute("data-theme") === "dark";
+  }
+  // =====================================================
+  //                      설정
+  // =====================================================
+  const settings = {
+    enableStoryMute: true,
+    enableCharacterMute: true,
+  };
+
+  // It's good to use IndexedDB, but we have to use LocalStorage to block site
+  // cause of risk from unloaded environment and unexpected behavior
+  function loadSettings() {
+    const loadedSettings = localStorage.getItem("chasm-mute-settings");
+    if (loadedSettings) {
+      const json = JSON.parse(loadedSettings);
+      for (let key of Object.keys(json)) {
+        // Merge setting for version compatibility support
+        settings[key] = json[key];
+      }
+    }
+  }
+
+  function saveSettings() {
+    log("설정 저장중..");
+    // Yay, no need to filtering anything!
+    localStorage.setItem("chasm-mute-settings", JSON.stringify(settings));
+    log("설정 저장 완료");
+  }
+
+  function isCharacterMuteEnabled() {
+    return settings.enableCharacterMute && isCharacterPath();
+  }
+
+  function isStoryMuteEnabled() {
+    return settings.enableStoryMute && isStoryPath();
+  }
+
+  // =====================================================
+  //                      로직
+  // =====================================================
+  let __updating = false;
+
+  /**
+   * 현재 페이지에서 캐즘 뮤트가 적용되지 않은 TTS 버튼을 확인하고, 제거합니다.
+   */
+  function check() {
+    if (__updating) return;
+    try {
+      __updating = true;
+      const dropdown = document.getElementById("web-dropdown");
+      if (dropdown && dropdown.childNodes.length > 0) {
+        const dropdownContainer = dropdown.childNodes[0];
+        for (let button of dropdownContainer.childNodes) {
+          const buttonText = button.getElementsByTagName("p");
+          if (
+            buttonText &&
+            buttonText.length > 0 &&
+            buttonText[0].innerText === "목소리 재생"
+          ) {
+            const expectedHeight = button.getBoundingClientRect().height;
+            button.remove();
+            const top = dropdownContainer.getBoundingClientRect().top;
+            dropdownContainer.style.cssText = `position: fixed; width: fit-content; top: ${
+              top + expectedHeight
+            };`;
+            break;
+          }
+        }
+      }
+      const elements = document.querySelectorAll(
+        ".css-n55rwb .css-1bamzls :not(.chasm-mute-disabled)"
+      );
+      if (!elements || elements.length <= 0) {
+        return;
+      }
+      for (let element of elements) {
+        if (!element.classList.contains("chasm-mute-disabled")) {
+          element.classList.add(".chasm-mute-disabled");
+          const emptyDiv = document.createElement("div");
+          emptyDiv.classList.add("chasm-mute-placeholder");
+          element.parentElement.insertBefore(emptyDiv, element);
+        }
+      }
+    } finally {
+      __updating = false;
+    }
+  }
+
+  function prepare() {
+    if (isCharacterMuteEnabled() || isStoryMuteEnabled()) {
+      check();
+    }
+    attachObserver(document, () => {
+      if (isCharacterMuteEnabled() || isStoryMuteEnabled()) {
+        check();
+      }
+    });
+  }
+
+  // =====================================================
+  //                       초기화
+  // =====================================================
+  loadSettings();
   "loading" === document.readyState
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
     window.addEventListener("load", prepare);
+
+  // =====================================================
+  //                     설정 메뉴
+  // =====================================================
+  function addMenu() {
+    const manager = ModalManager.getOrCreateManager("c2");
+    manager.createMenu("결정화 캐즘 뮤트", (modal) => {
+      modal.replaceContentPanel((panel) => {
+        panel.addSwitchBox(
+          "story-mute-enabled",
+          "스토리 TTS 버튼 제거",
+          "스토리 작품에서 TTS 버튼을 제거할지의 여부입니다.",
+          {
+            defaultValue: settings.enableStoryMute,
+            action: (_, value) => {
+              settings.enableStoryMute = value;
+              saveSettings();
+            },
+          }
+        );
+
+        panel.addSwitchBox(
+          "character-mute-enabled",
+          "캐릭터 TTS 버튼 제거",
+          "캐릭터 작품에서 TTS 버튼을 제거할지의 여부입니다.",
+          {
+            defaultValue: settings.enableCharacterMute,
+            action: (_, value) => {
+              settings.enableCharacterMute = value;
+              saveSettings();
+            },
+          }
+        );
+      }, "결정화 캐즘 뮤트");
+    });
+    manager.addLicenseDisplay((panel) => {
+      panel.addTitleText("결정화 캐즘 뮤트");
+      panel.addText(
+        "- decentralized-modal.js 프레임워크 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)"
+      );
+    });
+  }
+  addMenu();
 })();
