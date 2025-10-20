@@ -1391,7 +1391,7 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
-  addTitleText = function (
+  addText = function (
     text,
     { initializer = undefined, __proxy = this } = {}
   ) {
