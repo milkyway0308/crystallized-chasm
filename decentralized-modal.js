@@ -366,6 +366,17 @@ const DECENTRAL_CSS_VALUES = `
       color: var(--decentral-text-formal);
       user-select: none;
     }
+
+    .decentral-element-title-footer {
+      font-size: 13px;
+      font-weight: light;
+      padding: 8px 0px;
+      color: var(--decentral-text-formal);
+      user-select: none;
+      margin-left: auto;
+      width: fit-content;
+      height: fit-content;
+    }
     
     /* 2단 적재 가능한 속성 요소 */
     .decentral-grid-element {
@@ -1391,10 +1402,7 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
-  addText = function (
-    text,
-    { initializer = undefined, __proxy = this } = {}
-  ) {
+  addText = function (text, { initializer = undefined, __proxy = this } = {}) {
     __proxy.parentElement.append(
       createLongFlatGridElement(undefined, (node) => {
         node.append(
@@ -1419,6 +1427,8 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {string | undefined} param.defaultValue 필드의 기본 텍스트 값
    * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
    * @param {(function(HTMLElement, string):void) | undefined} param.onChange 필드 내용 변경시 호출될 펑션
+   * @param {(function(HTMLElement):void) | undefined} param.titleModifier 제목 초기화시 호출될 펑션
+   * @param {(function(HTMLElement):void) | undefined} param.suffixModifier 제목 말꼬리(suffix) 초기화시 호출될 펑션
    * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
@@ -1430,11 +1440,15 @@ class ComponentAppender extends HTMLComponentConvertable {
       defaultValue = undefined,
       initializer = undefined,
       onChange = undefined,
+      titleModifier = undefined,
+      suffixModifier = undefined,
       __proxy = this,
     } = {}
   ) {
     __proxy.parentElement.append(
-      createGridElement(titleText, isLongField, (node) => {
+      createGridElement(titleText, isLongField, (node, title, suffix) => {
+        if (title && titleModifier) titleModifier(title);
+        if (suffix && suffixModifier) suffixModifier(suffix);
         node.append(
           setupClassNode("input", "decentral-text-field", (inputField) => {
             inputField.id = id;
@@ -1465,6 +1479,8 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {string | undefined} param.defaultValue 필드의 기본 텍스트 값
    * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
    * @param {(function(HTMLElement, string):void) | undefined} param.onChange 필드 내용 변경시 호출될 펑션
+   * @param {(function(HTMLElement):void) | undefined} param.titleModifier 제목 초기화시 호출될 펑션
+   * @param {(function(HTMLElement):void) | undefined} param.suffixModifier 제목 말꼬리(suffix) 초기화시 호출될 펑션
    * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
@@ -1475,11 +1491,15 @@ class ComponentAppender extends HTMLComponentConvertable {
       defaultValue = undefined,
       initializer = undefined,
       onChange = undefined,
+      titleModifier = undefined,
+      suffixModifier = undefined,
       __proxy = this,
     } = {}
   ) {
     __proxy.parentElement.append(
-      createGridElement(titleText, true, (node) => {
+      createGridElement(titleText, true, (node, title, suffix) => {
+        if (title && titleModifier) titleModifier(title);
+        if (suffix && suffixModifier) suffixModifier(suffix);
         node.append(
           setupClassNode("textarea", "decentral-text-area", (area) => {
             area.id = id;
@@ -1509,16 +1529,26 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {Object} param 옵션 파라미터
    * @param {string | undefined} param.defaultValue 필드의 기본 텍스트 값
    * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement):void) | undefined} param.titleModifier 제목 초기화시 호출될 펑션
+   * @param {(function(HTMLElement):void) | undefined} param.suffixModifier 제목 말꼬리(suffix) 초기화시 호출될 펑션
    * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
   addLoggingArea = function (
     id,
     titleText,
-    { defaultValue = undefined, initializer = undefined, __proxy = this } = {}
+    {
+      defaultValue = undefined,
+      initializer = undefined,
+      titleModifier = undefined,
+      suffixModifier = undefined,
+      __proxy = this,
+    } = {}
   ) {
     __proxy.parentElement.append(
-      createGridElement(titleText, true, (node) => {
+      createGridElement(titleText, true, (node, title, suffix) => {
+        if (title && titleModifier) titleModifier(title);
+        if (suffix && suffixModifier) suffixModifier(suffix);
         node.append(
           setupClassNode("textarea", "decentral-logging-area", (area) => {
             area.id = id;
@@ -1549,10 +1579,14 @@ class ComponentAppender extends HTMLComponentConvertable {
   addButton = function (
     id,
     titleText,
-    { initializer = undefined, action = undefined, __proxy = this } = {}
+    {
+      initializer = undefined,
+      action = undefined,
+      __proxy = this,
+    } = {}
   ) {
     __proxy.parentElement.append(
-      createGridElement(undefined, true, (node) => {
+      createGridElement(undefined, true, (node,) => {
         node.append(
           setupClassNode("button", "decentral-button", (button) => {
             button.id = id;
@@ -2138,7 +2172,7 @@ function setupFullNode(name, cls, style, setupLambda) {
  *
  * @param {string} titleText
  * @param {boolean} isLong
- * @param {((node: HTMLElement, title: HTMLElement | undefined) => any) | undefined} lambda
+ * @param {((node: HTMLElement, title: HTMLElement | undefined, suffix: HTMLElement | undefined) => any) | undefined} lambda
  */
 function createGridElement(titleText, isLongField, lambda) {
   return setupClassNode(
@@ -2146,6 +2180,11 @@ function createGridElement(titleText, isLongField, lambda) {
     isLongField ? "decentral-grid-element-long" : "decentral-grid-element",
     (node) => {
       if (titleText) {
+        const suffix = setupClassNode(
+          "div",
+          "decentral-element-title-suffix",
+          () => {}
+        );
         const title = setupClassNode(
           "div",
           "decentral-element-title",
@@ -2155,12 +2194,17 @@ function createGridElement(titleText, isLongField, lambda) {
                 node.textContent = titleText;
               })
             );
+            elementTitle.append(suffix);
           }
         );
         node.append(title);
-        lambda(node, title);
+        if (lambda) {
+          lambda(node, title, suffix);
+        }
       } else {
-        lambda(node, undefined);
+        if (lambda) {
+          lambda(node, undefined, undefined);
+        }
       }
     }
   );
@@ -2169,11 +2213,16 @@ function createGridElement(titleText, isLongField, lambda) {
 /**
  *
  * @param {string | undefined} titleText
- * @param {((node: HTMLElement, title: HTMLElement | undefined) => any) | undefined} lambda
+ * @param {((node: HTMLElement, title: HTMLElement | undefined, suffix: HTMLElement | undefined) => any) | undefined} lambda
  */
 function createLongFlatGridElement(titleText, lambda) {
   return setupClassNode("div", "decentral-grid-element-long-flat", (node) => {
     if (titleText) {
+      const suffix = setupClassNode(
+        "div",
+        "decentral-element-title-suffix",
+        () => {}
+      );
       const title = setupClassNode(
         "div",
         "decentral-element-title",
@@ -2183,11 +2232,12 @@ function createLongFlatGridElement(titleText, lambda) {
               node.textContent = titleText;
             })
           );
+          elementTitle.append(suffix);
         }
       );
       node.append(title);
       if (lambda) {
-        lambda(node, title);
+        lambda(node, title, suffix);
       }
     } else {
       if (lambda) {
@@ -2200,7 +2250,7 @@ function createLongFlatGridElement(titleText, lambda) {
 /**
  *
  * @param {string | undefined} titleText
- * @param {((node: HTMLElement, title: HTMLElement | undefined) => any) | undefined} lambda
+ * @param {((node: HTMLElement, title: HTMLElement | undefined, suffix: HTMLElement | undefined) => any) | undefined} lambda
  */
 function createLongSemiFlatGridElement(titleText, lambda) {
   return setupClassNode(
@@ -2208,6 +2258,11 @@ function createLongSemiFlatGridElement(titleText, lambda) {
     "decentral-grid-element-long-semi-flat",
     (node) => {
       if (titleText) {
+        const suffix = setupClassNode(
+          "div",
+          "decentral-element-title-suffix",
+          () => {}
+        );
         const title = setupClassNode(
           "div",
           "decentral-element-title",
@@ -2217,11 +2272,12 @@ function createLongSemiFlatGridElement(titleText, lambda) {
                 node.textContent = titleText;
               })
             );
+            elementTitle.append(suffix);
           }
         );
         node.append(title);
         if (lambda) {
-          lambda(node, title);
+          lambda(node, title, suffix);
         }
       } else {
         if (lambda) {
