@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         Chasm Crystallized TMI (캐즘 과포화)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-TMI-v1.3.4
+// @version      CRYS-TMI-v1.4.0p
 // @description  크랙 UI에 추가 정보 제공. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/tmi.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/tmi.user.js
-// @grant        none
+// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/6fe6a18fccb9da6806e3891ac18110f880b7c3bc/decentralized-modal.js
+// @grant        GM_addStyle
 // ==/UserScript==
 (async function () {
   let initialCracker = undefined;
@@ -17,13 +18,41 @@
   let fetched = false;
   let requireReupdate = false;
 
-  function updateCracker(cracker) {
-    initialCracker = cracker;
-    updateCrackerText(cracker);
-    updateARPGRemainingText(cracker);
-    updateRemainingText(cracker);
-    updateModalText(cracker);
+  // =====================================================
+  //                      유틸리티
+  // =====================================================
+
+  function log(message) {
+    console.log(
+      "%cChasm Crystallized TMI: %cInfo: %c" + message,
+      "color: yellow;",
+      "color: blue;",
+      "color: inherit;"
+    );
   }
+
+  function logWarning(message) {
+    console.log(
+      "%cChasm Crystallized TMI: %cWarning: %c" + message,
+      "color: yellow;",
+      "color: yellow;",
+      "color: inherit;"
+    );
+  }
+
+  function logError(message) {
+    console.log(
+      "%cChasm Crystallized TMI: %cError: %c" + message,
+      "color: yellow;",
+      "color: red;",
+      "color: inherit;"
+    );
+  }
+
+  // =====================================================
+  //                   크랙 종속 유틸리티
+  // =====================================================
+
   /**
    * 쿠키에서 액세스 토큰을 추출해 반환합니다.
    * @returns 액세스 토큰
@@ -37,10 +66,125 @@
     return null;
   }
 
+  function isDarkMode() {
+    return document.body.getAttribute("data-theme") === "dark";
+  }
+
+  function isARPGPath() {
+    return /\/arpg\/[a-f0-9]+\/[a-f0-9]+\/play/.test(location.pathname);
+  }
+
+  function isARPGBuilderPath() {
+    return /\/arpg\/[a-f0-9]+\/builder/.test(location.pathname);
+  }
+
+  /**
+   * 현재 URL이 스토리챗의 URL인지 반환합니다.
+   * @returns 채팅 URL 일치 여부
+   */
+  function isStoryPath() {
+    // 2025-09-17 Path
+    return (
+      /\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname) ||
+      // Legacy Path
+      /\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)
+    );
+  }
+
+  /**
+   * 현재 URL이 캐릭터챗의 URL인지 반환합니다.
+   * @returns 채팅 URL 일치 여부
+   */
+  function isCharacterPath() {
+    return /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname);
+  }
+
+  // =====================================================
+  //                  크랙 데이터 통신 펑션
+  // =====================================================
+  async function getCrackerFromServer() {
+    let result = await fetch(
+      "https://contents-api.wrtn.ai/superchat/crackers",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${extractAccessToken()}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!result.ok) {
+      logWarning("서버에서 크래커 개수를 가져오는데에 실패하였습니다.");
+      return -1;
+    }
+    let json = await result.json();
+    return json.data.quantity;
+  }
+
+  // =====================================================
+  //                      설정
+  // =====================================================
+  const settings = {
+    enableLeftCracker: true,
+    enableCrackerDelta: true,
+    enableStoryChatLeft: true,
+    enableModelPopupLeft: true,
+    enableArpgRerollLeft: true,
+    enableArpgChatLeft: true,
+  };
+
+  // It's good to use IndexedDB, but we have to use LocalStorage to block site
+  // cause of risk from unloaded environment and unexpected behavior
+  function loadSettings() {
+    const loadedSettings = localStorage.getItem("chasm-tmi-settings");
+    if (loadedSettings) {
+      const json = JSON.parse(loadedSettings);
+      for (let key of Object.keys(json)) {
+        // Merge setting for version compatibility support
+        settings[key] = json[key];
+      }
+    }
+  }
+
+  function saveSettings() {
+    log("설정 저장중..");
+    // Yay, no need to filtering anything!
+    localStorage.setItem("chasm-tmi-settings", JSON.stringify(settings));
+    log("설정 저장 완료");
+  }
+
+  function doStoryChatCalc() {
+    return isStoryPath() && settings.enableStoryChatLeft;
+  }
+
+  function doStoryModelCalc() {
+    return isStoryPath() && settings.enableModelPopupLeft;
+  }
+
+  function doArpgRerollCalc() {
+    return isARPGBuilderPath() && settings.enableArpgRerollLeft;
+  }
+
+  function doArpgChatCalc() {
+    return isARPGPath() && settings.enableArpgChatLeft;
+  }
+
+  // =====================================================
+  //                      로직
+  // =====================================================
+
+  function updateCracker(cracker) {
+    initialCracker = cracker;
+    updateCrackerText(cracker);
+    updateARPGRemainingText(cracker);
+    updateRemainingText(cracker);
+    updateModalText(cracker);
+  }
+
   function updateCrackerText(cracker) {
+    if (!settings.enableLeftCracker) return;
     const buttonElements = document.getElementsByClassName("css-5q07im");
     if (!buttonElements || buttonElements.length <= 0) {
-      logWarning("No cracker button found; Does crack updated?");
       return;
     }
     if (cracker === undefined) {
@@ -65,7 +209,16 @@
         maximumFractionDigits: 0,
       });
       tag.textContent = nextText;
-      tag.setAttribute("chasm-tmi-current", cracker.toString());
+      if (settings.enableCrackerDelta) {
+        tag.setAttribute("chasm-tmi-current", cracker.toString());
+      } else {
+        tag.setAttribute("chasm-tmi-current", cracker.toString());
+        tag.setAttribute("chasm-tmi-target", cracker.toString());
+        tag.textContent = cracker.toLocaleString(undefined, {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        });
+      }
       buttonElements[0].append(tag);
       elementsText = document.getElementsByClassName("chasm-cracker-text");
     }
@@ -87,9 +240,9 @@
   }
 
   function updateARPGRemainingText(cracker) {
-    if (isARPGPath()) {
+    if (doArpgChatCalc()) {
       const leftButton = document.getElementsByClassName(
-        isDarkMode() ?  "css-7xxnit" : "css-1w6u7sl"
+        isDarkMode() ? "css-7xxnit" : "css-1w6u7sl"
       );
       if (leftButton && leftButton.length > 0) {
         if (leftButton[0].getAttribute("last-cracker") !== cracker.toString()) {
@@ -107,7 +260,7 @@
           "55 | " + parseInt(cracker / 55) + "회";
       }
     }
-    if (isARPGBuilderPath()) {
+    if (doArpgRerollCalc()) {
       const confirmButton = document.getElementsByClassName(
         isDarkMode() ? "css-7xxnit" : "css-1w6u7sl"
       );
@@ -129,6 +282,7 @@
   }
 
   function updateRemainingText(cracker) {
+    if (!doStoryChatCalc()) return;
     let targets = document.getElementsByClassName("css-1bhbevm");
     if (!targets || targets.length <= 0) {
       return;
@@ -162,6 +316,7 @@
   }
 
   function updateModalText(cracker) {
+    if (!doStoryModelCalc()) return;
     const elements = document.getElementsByClassName(
       isDarkMode() ? "css-ef8yqo" : "css-1a5wekv"
     );
@@ -226,80 +381,12 @@
     return undefined;
   }
 
-  async function extractARPGCracker() {
-    const root = document.getElementsByClassName(
-      isDarkMode() ? "css-ywu28u" : "css-1akfzan"
-    );
-    if (!root || root.length <= 0) {
-      return undefined;
-    }
-    const expectedCrackerNodes = root[0].getElementsByTagName("p");
-    if (expectedCrackerNodes.length > 1) {
-      return parseInt(expectedCrackerNodes[1].textContent.replace(",", ""));
-    }
-    return undefined;
-  }
-
   async function extractCracker() {
-    // let cracker = extractARPGCracker();
-    // if (cracker && cracker !== NaN) {
-    //   return cracker;
-    // }
     cracker = extractCharacterCracker();
     if (cracker && cracker !== NaN) {
       return cracker;
     }
     return undefined;
-  }
-
-  async function getCrackerFromServer() {
-    let result = await fetch(
-      "https://contents-api.wrtn.ai/superchat/crackers",
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${extractAccessToken()}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    if (!result.ok) {
-      logWarning("서버에서 크래커 개수를 가져오는데에 실패하였습니다.");
-      return -1;
-    }
-    let json = await result.json();
-    return json.data.quantity;
-  }
-
-  function log(message) {
-    console.log(
-      "%cChasm Crystallized TMI: %cInfo: %c" + message,
-      "color: yellow;",
-      "color: blue;",
-      "color: inherit;"
-    );
-  }
-
-  function logWarning(message) {
-    console.log(
-      "%cChasm Crystallized TMI: %cWarning: %c" + message,
-      "color: yellow;",
-      "color: yellow;",
-      "color: inherit;"
-    );
-  }
-
-  function logError(message) {
-    console.log(
-      "%cChasm Crystallized TMI: %cError: %c" + message,
-      "color: yellow;",
-      "color: red;",
-      "color: inherit;"
-    );
-  }
-
-  function isDarkMode() {
-    return document.body.getAttribute("data-theme") === "dark";
   }
 
   async function doInitialize() {
@@ -317,7 +404,7 @@
         updating = false;
         return;
       }
-        updating = false;
+      updating = false;
     }
     if (requireReupdate) {
       requireReupdate = false;
@@ -338,14 +425,6 @@
         updateCracker(await extractCracker());
       }
     }
-  }
-
-  function isARPGPath() {
-    return /\/arpg\/[a-f0-9]+\/[a-f0-9]+\/play/.test(location.pathname);
-  }
-
-  function isARPGBuilderPath() {
-    return /\/arpg\/[a-f0-9]+\/builder/.test(location.pathname);
   }
 
   function runSchedule() {
@@ -399,6 +478,97 @@
       });
     }
   }
+
+  function addMenu() {
+    const manager = ModalManager.getOrCreateManager("c2");
+    manager.createMenu("결정화 캐즘 과포화", (modal) => {
+      modal.replaceContentPanel((panel) => {
+        panel.addTitleText("일반 설정");
+        panel.addSwitchBox(
+          "tmi-display-cracker",
+          "잔여 크래커 표시",
+          "잔여 크래커를 표시할지의 여부입니다.",
+          {
+            defaultValue: settings.enableLeftCracker,
+            action: (_, value) => {
+              settings.enableLeftCracker = value;
+              saveSettings();
+            },
+          }
+        );
+        panel.addSwitchBox(
+          "tmi-chat-calc",
+          "스토리 채팅 잔여 채팅 횟수 표시",
+          "스토리 채팅에서 잔여 채팅 횟수를 표시할지의 여부입니다.",
+          {
+            defaultValue: settings.enableStoryChatLeft,
+            action: (_, value) => {
+              settings.enableStoryChatLeft = value;
+              saveSettings();
+            },
+          }
+        );
+        panel.addSwitchBox(
+          "tmi-chat-model-calc",
+          "스토리 채팅 모델 팝업 잔여 채팅 횟수 표시",
+          "스토리 채팅 모델 팝업에서 잔여 채팅 횟수를 표시할지의 여부입니다.",
+          {
+            defaultValue: settings.enableModelPopupLeft,
+            action: (_, value) => {
+              settings.enableModelPopupLeft = value;
+              saveSettings();
+            },
+          }
+        );
+        panel.addSwitchBox(
+          "tmi-cracker-delta",
+          "델타 애니메이션",
+          "크래커의 감소 뎉라 애니메이션을 적용할지의 여부입니다.",
+          {
+            defaultValue: settings.enableCrackerDelta,
+            action: (_, value) => {
+              settings.enableStoryChatLeft = value;
+              saveSettings();
+            },
+          }
+        );
+        panel.addTitleText("ARPG 설정");
+        panel.addSwitchBox(
+          "tmi-arpg-left",
+          "ARPG 잔여 횟수 표시",
+          "ARPG의 잔여 횟수를 표시할지의 여부입니다.",
+          {
+            defaultValue: settings.enableArpgChatLeft,
+            action: (_, value) => {
+              settings.enableArpgChatLeft = value;
+              saveSettings();
+            },
+          }
+        );
+        panel.addSwitchBox(
+          "tmi-arpg-reroll-left",
+          "ARPG 리롤 잔여 횟수 표기",
+          "ARPG의 리롤 잔여 횟수를 표시할지의 여부입니다.",
+          {
+            defaultValue: settings.enableArpgRerollLeft,
+            action: (_, value) => {
+              settings.enableArpgRerollLeft = value;
+              saveSettings();
+            },
+          }
+        );
+      }, "결정화 캐즘 과포화");
+    });
+    manager.addLicenseDisplay((panel) => {
+      panel.addTitleText("결정화 캐즘 과포화");
+      panel.addText(
+        "- decentralized-modal.js 프레임워크 (https://github.com/milkyway0308/crystalized-chasm/decentralized-modal.js)"
+      );
+    });
+  }
+
+  loadSettings();
+  addMenu();
   "loading" === document.readyState
     ? (document.addEventListener("DOMContentLoaded", doInitialize),
       window.addEventListener("load", doInitialize))
