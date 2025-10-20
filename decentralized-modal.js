@@ -361,19 +361,19 @@ const DECENTRAL_CSS_VALUES = `
     /* 컨텐츠 제목 텍스트 */
     .decentral-element-title {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       font-size: 13px;
       font-weight: light;
       padding: 8px 0px;
       color: var(--decentral-text-formal);
       user-select: none;
       width: 100%;
+      align-items: bottom;
     }
 
     .decentral-element-title-suffix {
       font-size: 13px;
       font-weight: light;
-      padding: 8px 0px;
       color: var(--decentral-text-formal);
       user-select: none;
       margin-left: auto;
