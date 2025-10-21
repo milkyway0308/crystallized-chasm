@@ -106,6 +106,7 @@
   function isCharacterPath() {
     return /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname);
   }
+
   /**
    * 현재 크랙의 테마가 다크 모드인지 반환합니다.
    * @returns 다크 모드가 적용되었는지의 여부
@@ -218,11 +219,9 @@
     return settings.enableCharacterCounter && isCharacterPath();
   }
 
-  
   function isStoryCounterEnabled() {
     return settings.enableStoryCounter && isStoryPath();
   }
-
 
   // =====================================================
   //                      로직
@@ -575,7 +574,9 @@
     manager.addLicenseDisplay((panel) => {
       panel.addTitleText("결정화 캐즘 계수기");
       panel
-        .addTitleText("결정화 캐즘 계수기의 모든 아이콘은 SVGRepo에서 가져왔습니다.")
+        .addText(
+          "결정화 캐즘 계수기의 모든 아이콘은 SVGRepo에서 가져왔습니다."
+        )
         .addText(
           "또한, 일부의 외부 프레임워크를 통해 웹 내부 데이터베이스를 관리하고 있습니다."
         )
@@ -594,10 +595,9 @@
   };
 
   loadSettings();
+  addMenu();
   "loading" === document.readyState
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
     window.addEventListener("load", prepare);
-
-  addMenu();
 })();
