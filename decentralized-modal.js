@@ -1786,7 +1786,7 @@ class ComponentAppender extends HTMLComponentConvertable {
                 }
                 if (onChange) {
                   inputField.onchange = () => {
-                    onChange(inputField);
+                    onChange(inputField, parseInt(inputField.value));
                   };
                 }
               }
