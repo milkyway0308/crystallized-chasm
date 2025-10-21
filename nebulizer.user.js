@@ -635,13 +635,13 @@ GM_addStyle(
         .addTitleText("결정화 캐즘 네뷸라이저")
         .addText(
           "결정화 캐즘 네뷸라이저의 모든 아이콘은 SVGRepo에서 가져왔습니다."
+        )
+        .addText(
+          "- 쓰레기통 아이콘 (https://www.svgrepo.com/svg/341221/trash-can)"
+        )
+        .addText(
+          "- decentralized-modal.js 프레임워크 사용 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)"
         );
-      addText(
-        "- 쓰레기통 아이콘 (https://www.svgrepo.com/svg/341221/trash-can)"
-      );
-      addText(
-        "- decentralized-modal.js 프레임워크 사용 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)"
-      );
     });
   }
   // =================================================
