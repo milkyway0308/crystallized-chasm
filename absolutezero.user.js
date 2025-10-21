@@ -7,7 +7,8 @@
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/absolutezero.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/absolutezero.user.js
-// @grant       GM_addStyle
+// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/6fe6a18fccb9da6806e3891ac18110f880b7c3bc/decentralized-modal.js
+// @grant        GM_addStyle
 // ==/UserScript==
 
 // Code referenced from https://github.com/johan/stop-chrome-gifanim
@@ -23,42 +24,38 @@ GM_addStyle(
     return "/" === location.pathname;
   }
 
+  // =====================================================
+  //                      설정
+  // =====================================================
+  const settings = {
+    enableFreeze: true,
+    enableHoverResume: true,
+    enableStopDetailPage: false,
+  };
+
+  // It's good to use IndexedDB, but we have to use LocalStorage to block site
+  // cause of risk from unloaded environment and unexpected behavior
+  function loadSettings() {
+    const loadedSettings = localStorage.getItem("chasm-azro-settings");
+    if (loadedSettings) {
+      const json = JSON.parse(loadedSettings);
+      for (let key of Object.keys(json)) {
+        // Merge setting for version compatibility support
+        settings[key] = json[key];
+      }
+    }
+  }
+
+  function saveSettings() {
+    log("설정 저장중..");
+    // Yay, no need to filtering anything!
+    localStorage.setItem("chasm-azro-settings", JSON.stringify(settings));
+    log("설정 저장 완료");
+  }
+
   // =================================================
   //                유틸리티성 메서드
   // =================================================
-  /**
-   * 대상 노드의 필드에서 리액트 속성(React Property)를 찾아 람다에 파라미터로 전달합니다.
-   * @param {Node} node 리액트 속성을 찾을 대상 노드
-   * @param {Function} lambda 만약 리액트 속성이 존재한다면 실행될 람다
-   * @returns 람다의 결과값 혹은 undefined
-   */
-  function findReactProperty(node, lambda) {
-    for (let key of Object.keys(node)) {
-      if (key.startsWith("__reactProps")) {
-        return lambda(node[key]);
-      }
-    }
-    return undefined;
-  }
-  /**
-   * 크랙 페이지의 테마가 다크 모드인지 확인합니다.
-   * @returns 다크 모드 여부
-   */
-  function isDarkMode() {
-    return document.body.getAttribute("data-theme") === "dark";
-  }
-  /**
-   * 쿠키에서 액세스 토큰을 추출해 반환합니다.
-   * @returns 액세스 토큰
-   */
-  function extractAccessToken() {
-    const cookies = document.cookie.split(";");
-    for (let cookie of cookies) {
-      const [key, value] = cookie.trim().split("=");
-      if (key === "access_token") return value;
-    }
-    return null;
-  }
   /**
    * 지정한 노드 혹은 요소에 변경 옵저버를 등록합니다.
    * @param {*} observeTarget 변경 감지 대상
@@ -76,22 +73,6 @@ GM_addStyle(
     }
   }
   /**
-   * 지정한 노드 혹은 요소에 URL 변동 감지성 변경 옵저버를 등록합니다.
-   * 이 펑션으로 등록된 옵저버는 이전과 현재 URL이 다를때만 작동합니다.
-   * @param {*} runIfFirst 첫 초기화시 작동 여부
-   * @param {*} node 변경 감지 대상
-   * @param {*} lambda 실행할 람다
-   */
-  function attachHrefObserver(node, lambda) {
-    let oldHref = location.href;
-    attachObserver(node, () => {
-      if (oldHref !== location.href) {
-        oldHref = location.href;
-        lambda();
-      }
-    });
-  }
-  /**
    * 콘솔에 지정한 포맷으로 디버그를 출력합니다.
    * @param {*} message 출력할 메시지
    */
@@ -103,45 +84,25 @@ GM_addStyle(
       "color: inherit;"
     );
   }
-  /**
-   * 콘솔에 지정한 포맷으로 경고를 출력합니다.
-   * @param {*} message 출력할 메시지
-   */
-  function logWarning(message) {
-    console.log(
-      "%cChasm Crystallized Nebulizer: %cWarning: %c" + message,
-      "color: cyan;",
-      "color: yellow;",
-      "color: inherit;"
-    );
-  }
-  /**
-   * 콘솔에 지정한 포맷으로 오류를 출력합니다.
-   * @param {*} message 출력할 메시지
-   */
-  function logError(message) {
-    console.log(
-      "%cChasm Crystallized Nebulizer: %cError: %c" + message,
-      "color: cyan;",
-      "color: red;",
-      "color: inherit;"
-    );
-  }
 
+  // =================================================
+  //                     로직
+  // =================================================
   function getProceedImages() {
     return document.getElementsByClassName("chasm-absolute-zero-freeze").length;
   }
 
   function deleteIncompatibleImages() {
     const toRemove = [];
-    const freezed = document.querySelectorAll(
-      "img.chasm-absolute-zero-freeze"
-    );
+    const freezed = document.querySelectorAll("img.chasm-absolute-zero-freeze");
     for (let element of freezed) {
       const canvas = element.parentElement.getElementsByTagName("canvas");
       const img = element.parentElement.getElementsByTagName("img");
       if (canvas.length <= 0 || img.length <= 0) continue;
-      if (img[0].getAttribute("alt") && canvas[0].getAttribute("alt") !== img[0].getAttribute("alt")) {
+      if (
+        img[0].getAttribute("alt") &&
+        canvas[0].getAttribute("alt") !== img[0].getAttribute("alt")
+      ) {
         img[0].classList.remove("chasm-absolute-zero-freeze-prepare");
         img[0].classList.remove("chasm-absolute-zero-freeze");
         img[0].removeAttribute("freeze-out");
@@ -169,26 +130,27 @@ GM_addStyle(
     imageNode.classList.add("chasm-absolute-zero-freeze");
     for (var j = 0, a; (a = imageNode.attributes[j]); j++)
       c.setAttribute(a.name, a.value);
-    imageNode.setAttribute("freeze-out", "true");
-    const standardHoverAction = () => {
-      c.setAttribute("freeze-out", "true");
-      imageNode.setAttribute("melt-in", "true");
-      imageNode.onexittriggered = () => {
-        c.removeAttribute("freeze-out");
-        imageNode.removeAttribute("melt-in");
-        imageNode.onexittriggered = undefined;
-        c.onhovertriggered = standardHoverAction;
+    if (settings.enableHoverResume) {
+      const standardHoverAction = () => {
+        c.setAttribute("freeze-out", "true");
+        imageNode.setAttribute("melt-in", "true");
+        imageNode.onexittriggered = () => {
+          c.removeAttribute("freeze-out");
+          imageNode.removeAttribute("melt-in");
+          imageNode.onexittriggered = undefined;
+          c.onhovertriggered = standardHoverAction;
+        };
+        lastPointing.push(imageNode);
+        c.onhovertriggered = undefined;
       };
-      lastPointing.push(imageNode);
-      c.onhovertriggered = undefined;
-    };
-    c.onhovertriggered = standardHoverAction;
-
+      c.onhovertriggered = standardHoverAction;
+    }
     imageNode.setAttribute("freeze-out", "true");
     imageNode.parentNode.insertBefore(c, imageNode);
   }
 
   function setup() {
+    if (!settings.enableFreeze) return;
     if (!isDashboardPath() || lastProceedImages === document.images.length)
       return;
     deleteIncompatibleImages();
@@ -198,7 +160,7 @@ GM_addStyle(
       }
       if (
         !imageNode.src.includes("cloudfront.net") ||
-        imageNode.alt === "character_thumbnail" ||
+        (imageNode.alt === "character_thumbnail" && !settings.enableStopDetailPage) ||
         (!imageNode.src.endsWith("webp") && !imageNode.src.endsWith("gif"))
       ) {
         imageNode.classList.add("chasm-absolute-zero-freeze");
@@ -215,6 +177,9 @@ GM_addStyle(
     }
     lastProceedImages = getProceedImages();
   }
+  // =================================================
+  //                  초기화
+  // =================================================
 
   function prepare() {
     setup();
@@ -247,6 +212,58 @@ GM_addStyle(
     }, 20);
   }
 
+  function addMenu() {
+    const manager = ModalManager.getOrCreateManager("c2");
+    manager.createMenu("결정화 캐즘 절대영도", (modal) => {
+      modal.replaceContentPanel((panel) => {
+        panel.addSwitchBox(
+          "cntr-azro-enable",
+          "애니메이션 정지",
+          "메인 페이지에서의 GIF / WEBP 정지를 활성화합니다.",
+          {
+            defaultValue: settings.enableFreeze,
+            action: (_, value) => {
+              settings.enableFreeze = value;
+              saveSettings();
+            },
+          }
+        );
+        panel.addSwitchBox(
+          "cntr-azro-enable-hover",
+          "정지 애니메이션 호버링 재활성화",
+          "호버한 이미지에 한해 GIF / WEBP를 재생할지의 여부입니다.",
+          {
+            defaultValue: settings.enableHoverResume,
+            action: (_, value) => {
+              settings.enableHoverResume = value;
+              saveSettings();
+            },
+          }
+        );
+        panel.addSwitchBox(
+          "cntr-azro-disable-setting",
+          "상세 페이지 애니메이션 정지",
+          "상세 페이지의 애니메이션을 정지할지의 여부입니다.",
+          {
+            defaultValue: settings.enableStopDetailPage,
+            action: (_, value) => {
+              settings.enableStopDetailPage = value;
+              saveSettings();
+            },
+          }
+        );
+      }, "결정화 캐즘 뮤트");
+    });
+    manager.addLicenseDisplay((panel) => {
+      panel.addTitleText("결정화 캐즘 계수기");
+      panel.addText(
+        "- decentralized-modal.js 프레임워크 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)"
+      );
+    });
+  }
+
+  loadSettings();
+  addMenu();
   "loading" === document.readyState
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
