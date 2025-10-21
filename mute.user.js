@@ -1,3 +1,4 @@
+/// <reference path="decentralized-modal.js" />
 // ==UserScript==
 // @name         Chasm Crystallized Mute (결정화 캐즘 뮤트)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/

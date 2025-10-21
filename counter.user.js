@@ -1,3 +1,4 @@
+/// <reference path="decentralized-modal.js" />
 // ==UserScript==
 // @name        Chasm Crystallized Counter (결정화 캐즘 계수기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm

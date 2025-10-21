@@ -1,3 +1,4 @@
+/// <reference path="decentralized-modal.js" />
 // ==UserScript==
 // @name         Chasm Crystallized TMI (캐즘 과포화)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/

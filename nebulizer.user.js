@@ -1,3 +1,4 @@
+/// <reference path="decentralized-modal.js" />
 // ==UserScript==
 // @name        Chasm Crystallized Nebulizer (결정화 캐즘 네뷸라이저)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm

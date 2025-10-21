@@ -1,3 +1,4 @@
+/// <reference path="decentralized-modal.js" />
 // ==UserScript==
 // @name        Chasm Crystallized AbsoluteZero (결정화 캐즘 절대영도)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
