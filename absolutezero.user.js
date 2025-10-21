@@ -11,7 +11,6 @@
 // @grant        GM_addStyle
 // ==/UserScript==
 
-// Code referenced from https://github.com/johan/stop-chrome-gifanim
 GM_addStyle(
   "[freeze-out] { display: none; }" + "[melt-in] { display: block !important; }"
 );
@@ -257,7 +256,10 @@ GM_addStyle(
     manager.addLicenseDisplay((panel) => {
       panel.addTitleText("결정화 캐즘 절대영도");
       panel.addText(
-        "- decentralized-modal.js 프레임워크 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)"
+        "- stop-chrome-gifanim 애드온 소스 코드 (https://github.com/johan/stop-chrome-gifanim)"
+      );
+      panel.addText(
+        "- decentralized-modal.js 프레임워크 사용 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)"
       );
     });
   }
