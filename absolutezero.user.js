@@ -255,7 +255,7 @@ GM_addStyle(
       }, "결정화 캐즘 뮤트");
     });
     manager.addLicenseDisplay((panel) => {
-      panel.addTitleText("결정화 캐즘 계수기");
+      panel.addTitleText("결정화 캐즘 절대영도");
       panel.addText(
         "- decentralized-modal.js 프레임워크 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)"
       );
