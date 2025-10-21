@@ -189,6 +189,9 @@ if (!document.chasmApi) {
           chats.unshift(
             new ChattingLog(message.role === "user", message.content)
           );
+          if (maxGathering !== 0 && chats.length >= maxGathering) {
+            break;
+          }
         }
         cursor = json.data.nextCursor;
         if (cursor === undefined || cursor === null) {
@@ -826,7 +829,7 @@ if (!document.chasmApi) {
           "최대 허용 대화 개수",
           "차원이동시 최대로 가져올 대화 개수입니다. 대화 개수는 (사용자 대화 + 봇 대화)입니다.\n0으로 설정시, 모든 메시지를 가져옵니다.",
           {
-            defaultValue: settings.maxGatheringChatLog,
+            defaultValue: settings.maxGatheringChatLog ?? 0,
             min: 0,
             max: 99999,
             onChange: (_, value) => {
