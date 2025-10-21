@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name        Chasm Crystallized Nebulizer (결정화 캐즘 네뷸라이저)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-NEBL-v1.2.0
+// @version     CRYS-NEBL-v1.3.0
 // @description 차단 목록의 제작자의 댓글을 블러 처리 및 차단된 댓글 대량 삭제. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/nebulizer.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/nebulizer.user.js
+// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/6fe6a18fccb9da6806e3891ac18110f880b7c3bc/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 GM_addStyle(
@@ -25,6 +26,44 @@ GM_addStyle(
   let deleting = false;
   let filteredElements = [];
   let elementSize = 0;
+
+  // =====================================================
+  //                      설정
+  // =====================================================
+  const settings = {
+    enableStoryBlur: true,
+    enableCharacterBlur: true,
+    enableClickDeblur: true,
+  };
+
+  // It's good to use IndexedDB, but we have to use LocalStorage to block site
+  // cause of risk from unloaded environment and unexpected behavior
+  function loadSettings() {
+    const loadedSettings = localStorage.getItem("chasm-nebl-settings");
+    if (loadedSettings) {
+      const json = JSON.parse(loadedSettings);
+      for (let key of Object.keys(json)) {
+        // Merge setting for version compatibility support
+        settings[key] = json[key];
+      }
+    }
+  }
+
+  function saveSettings() {
+    log("설정 저장중..");
+    // Yay, no need to filtering anything!
+    localStorage.setItem("chasm-nebl-settings", JSON.stringify(settings));
+    log("설정 저장 완료");
+  }
+
+  function isStoryBlurEnabled() {
+    return isStoryCommentary() && settings.enableStoryBlur;
+  }
+
+  function isCharacterBlurEnabled() {
+    return isCharacterCommentary() && settings.enableCharacterBlur;
+  }
+
   function isStoryCommentary() {
     return /^\/detail(\/.*)?$/.test(location.pathname);
   }
@@ -36,9 +75,11 @@ GM_addStyle(
   async function setup() {
     appendSyncButton();
     if (updating) return;
-    if (isStoryCommentary() || isCharacterCommentary()) {
+    if (isStoryBlurEnabled() || isCharacterBlurEnabled()) {
       injectDestroyButtons();
-      let elements = isStoryCommentary() ? getAllCommentary() : getAllCommentary();
+      let elements = isStoryCommentary()
+        ? getAllCommentary()
+        : getAllCommentary();
       if (elementSize === elements.length) {
         return;
       }
@@ -72,8 +113,10 @@ GM_addStyle(
             childElement.classList.add(CLASS_COMMENT_HIDDEN);
             childElement.setAttribute("chasm-nebulizer-proceed", "true");
             childElement.onclick = () => {
-              childElement.onclick = null;
-              childElement.classList.remove(CLASS_COMMENT_HIDDEN);
+              if (settings.enableClickDeblur) {
+                childElement.onclick = null;
+                childElement.classList.remove(CLASS_COMMENT_HIDDEN);
+              }
             };
             break;
           }
@@ -234,8 +277,7 @@ GM_addStyle(
       const originTitleNode = rootNode[0].childNodes[0];
       originTitleNode.style.cssText = "display: none;";
       rootNode[0].insertBefore(top, originTitleNode);
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   function appendSyncButton() {
@@ -347,7 +389,6 @@ GM_addStyle(
     return undefined;
   }
 
-  
   /**
    * 댓글 내용을를 HTML 노드에서 가져옵니다.
    * @param {Node} commentary 댓글 노드
@@ -545,6 +586,65 @@ GM_addStyle(
   }
 
   // =================================================
+  //                     메뉴
+  // =================================================
+  function addMenu() {
+    const manager = ModalManager.getOrCreateManager("c2");
+    manager.createMenu("결정화 캐즘 네뷸라이저", (modal) => {
+      modal.replaceContentPanel((panel) => {
+        panel.addSwitchBox(
+          "cntr-nebl-story-blur",
+          "스토리 작품 댓글 블러",
+          "스토리 작품에서의 차단 댓글 블러를 활성화할지의 여부입니다.",
+          {
+            defaultValue: settings.enableStoryBlur,
+            action: (_, value) => {
+              settings.enableStoryBlur = value;
+              saveSettings();
+            },
+          }
+        );
+        panel.addSwitchBox(
+          "cntr-nebl-character-blur",
+          "캐릭터 작품 댓글 블러",
+          "캐릭터 작품에서의 차단 댓글 블러를 활성화할지의 여부입니다.",
+          {
+            defaultValue: settings.enableCharacterBlur,
+            action: (_, value) => {
+              settings.enableCharacterBlur = value;
+              saveSettings();
+            },
+          }
+        );
+        panel.addSwitchBox(
+          "cntr-nebl-click-deblur",
+          "필터된 댓글 클릭 블러 해제",
+          "블러된 댓글을 클릭할 시, 블러를 제거할지의 여부입니다.",
+          {
+            defaultValue: settings.enableClickDeblur,
+            action: (_, value) => {
+              settings.enableClickDeblur = value;
+              saveSettings();
+            },
+          }
+        );
+      }, "결정화 캐즘 네뷸라이저");
+    });
+    manager.addLicenseDisplay((panel) => {
+      panel
+        .addTitleText("결정화 캐즘 네뷸라이저")
+        .addText(
+          "결정화 캐즘 네뷸라이저의 모든 아이콘은 SVGRepo에서 가져왔습니다."
+        );
+      addText(
+        "- 쓰레기통 아이콘 (https://www.svgrepo.com/svg/341221/trash-can)"
+      );
+      addText(
+        "- decentralized-modal.js 프레임워크 사용 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)"
+      );
+    });
+  }
+  // =================================================
   //                  스크립트 초기화
   // =================================================
   function prepare() {
@@ -560,6 +660,8 @@ GM_addStyle(
   // =================================================
   //               스크립트 초기 실행
   // =================================================
+  loadSettings();
+  addMenu();
   "loading" === document.readyState
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
