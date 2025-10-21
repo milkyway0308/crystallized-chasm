@@ -1,12 +1,14 @@
+/// <reference path="decentralized-modal.js" />
 // ==UserScript==
 // @name        Chasm Crystallized Alternation (결정화 캐즘 차원이동)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-ALTR-v1.2.5
+// @version     CRYS-ALTR-v1.3.0p
 // @description 채팅 로그 복사 및 새 채팅방으로 포크. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/alternation.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/alternation.user.js
+// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/6fe6a18fccb9da6806e3891ac18110f880b7c3bc/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 
@@ -27,6 +29,34 @@ if (!document.chasmApi) {
   document.chasmApi = {};
 }
 !(async function () {
+  // =====================================================
+  //                      설정
+  // =====================================================
+  const settings = {
+    maxGatheringChatLog: 60,
+    includeUserNotes: false,
+  };
+
+  // It's good to use IndexedDB, but we have to use LocalStorage to block site
+  // cause of risk from unloaded environment and unexpected behavior
+  function loadSettings() {
+    const loadedSettings = localStorage.getItem("chasm-altr-settings");
+    if (loadedSettings) {
+      const json = JSON.parse(loadedSettings);
+      for (let key of Object.keys(json)) {
+        // Merge setting for version compatibility support
+        settings[key] = json[key];
+      }
+    }
+  }
+
+  function saveSettings() {
+    log("설정 저장중..");
+    // Yay, no need to filtering anything!
+    localStorage.setItem("chasm-altr-settings", JSON.stringify(settings));
+    log("설정 저장 완료");
+  }
+
   // =================================================
   //                    클래스 선언
   // =================================================
@@ -146,7 +176,8 @@ if (!document.chasmApi) {
     const chats = [];
     let errorCount = 0;
     let cursor = undefined;
-    while (chats.length < 50) {
+    const maxGathering = settings.maxGatheringChatLog;
+    while (maxGathering === 0 || chats.length < maxGathering) {
       const nextUrl =
         cursor === undefined
           ? `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${chatRoomId}/messages?limit=20`
@@ -465,7 +496,7 @@ if (!document.chasmApi) {
       alert("채팅방 데이터 가져오기에 실패하였습니다.");
       return;
     }
-    if (result.doesUserNoteExtended) {
+    if (result.doesUserNoteExtended && settings.includeUserNotes) {
       if (
         !confirm(
           "**경고: 유저 노트 확장이 활성화되어 있습니다.**\n유저노트 확장이 활성화된 채팅방은 삽입되는 대화당 10개의 크래커를 추가로 소모합니다.\n만약 이러한 지출을 원치 않으신다면, 유저노트 확장을 끄고 사용해주세요.\n\n정말로 이 상태로 차원 이동을 수행하시겠습니까?"
@@ -478,8 +509,8 @@ if (!document.chasmApi) {
     const createdChatRoomId = await createChat(
       characterId,
       result.baseSetId,
-      result.userNote,
-      result.doesUserNoteExtended
+      settings.includeUserNotes ? result.userNote : "",
+      settings.includeUserNotes ? result.userNote.length >= 1000 : false
     );
     if (!createdChatRoomId) {
       alert("생성에 실패하였습니다.");
@@ -661,8 +692,7 @@ if (!document.chasmApi) {
   //                    초기화
   // =================================================
   function setup() {
-    if (!isChattingPath())
-      return;
+    if (!isChattingPath()) return;
     const item = document.getElementsByClassName("chasm-altr-button");
     if (item && item.length !== 0) {
       return;
@@ -770,9 +800,64 @@ if (!document.chasmApi) {
     /**  */
     execute: (characterId, turn, phaseListener) => {},
   };
+
+  // =================================================
+  //                     메뉴
+  // =================================================
+  function addMenu() {
+    const manager = ModalManager.getOrCreateManager("c2");
+
+    manager.createMenu("결정화 캐즘 차원이동", (modal) => {
+      modal.replaceContentPanel((panel) => {
+        panel.addSwitchBox(
+          "cntr-altr-include-user-note",
+          "유저노트 첨부",
+          "차원이동 수행시, 유저노트를 첨부할지의 여부입니다.\n이 옵션은 권장되지 않습니다: 활성화시, 대화당 최소 10개의 크래커가 소모됩니다.",
+          {
+            defaultValue: settings.includeUserNotes,
+            action: (_, value) => {
+              settings.enableStoryBlur = value;
+              saveSettings();
+            },
+          }
+        );
+        panel.addShortNumberBox(
+          "cntr-altr-max-dialog",
+          "최대 허용 대화 개수",
+          "차원이동시 최대로 가져올 대화 개수입니다. 대화 개수는 (사용자 대화 + 봇 대화)입니다.\n0으로 설정시, 모든 메시지를 가져옵니다.",
+          {
+            defaultValue: settings.maxGatheringChatLog,
+            min: 0,
+            max: 99999,
+            onChange: (_, value) => {
+              settings.maxGatheringChatLog = value;
+              saveSettings();
+            },
+          }
+        );
+      }, "결정화 캐즘 차원이동");
+    });
+    manager.addLicenseDisplay((panel) => {
+      panel
+        .addTitleText("결정화 캐즘 차원이동")
+        .addText(
+          "결정화 캐즘 네뷸라이저의 모든 아이콘은 SVGRepo에서 가져왔습니다."
+        )
+        .addText(
+          "- 텔레포트 아이콘 (https://www.svgrepo.com/svg/321565/teleport)"
+        )
+        .addText("- 경고 아이콘 (https://www.svgrepo.com/svg/502912/warning-1)")
+        .addText("- 로딩 아이콘 (https://www.svgrepo.com/svg/448500/loading)")
+        .addText(
+          "- decentralized-modal.js 프레임워크 사용 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)"
+        );
+    });
+  }
   // =================================================
   //               스크립트 초기 실행
   // =================================================
+  loadSettings();
+  addMenu();
   "loading" === document.readyState
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
