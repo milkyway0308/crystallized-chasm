@@ -1,14 +1,16 @@
+/// <reference path="decentralized-modal.js" />
 // ==UserScript==
 // @name        Chasm Crystallized Counter (결정화 캐즘 계수기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-CNTR-v1.1.3
+// @version     CRYS-CNTR-v1.2.0
 // @description 채팅에 캐릭터 채팅 턴 계수기 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
-// @grant       none
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.0/decentralized-modal.js
+// @grant       GM_addStyle
 // ==/UserScript==
 !(async function () {
   let lastDetectedMessageCount = {};
@@ -81,38 +83,6 @@
     });
   }
 
-  function getIndexedDB() {
-    if (window.indexedDB) {
-      return window.indexedDB;
-    }
-    window.indexedDB = window.indexedDB =
-      window.indexedDB ||
-      window.mozIndexedDB ||
-      window.webkitIndexedDB ||
-      window.msIndexedDB;
-    return window.indexedDB;
-  }
-
-  /**
-   * @param {string} name
-   * @param {(db: IDBDatabase) => any} onUpgradeRequired
-   * @returns {Promise<IDBDatabase>}
-   */
-  async function openDB(name, onUpgradeRequired) {
-    return new Promise((resolve, reject) => {
-      const opener = getIndexedDB().open(name);
-      opener.onupgradeneeded = (event) => {
-        onUpgradeRequired(event.target.result);
-      };
-      opener.onsuccess = (event) => {
-        resolve(opener.result);
-      };
-      opener.onerror = (event) => {
-        reject(event);
-      };
-    });
-  }
-
   // =====================================================
   //                  크랙 종속 유틸리티
   // =====================================================
@@ -137,6 +107,7 @@
   function isCharacterPath() {
     return /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname);
   }
+
   /**
    * 현재 크랙의 테마가 다크 모드인지 반환합니다.
    * @returns 다크 모드가 적용되었는지의 여부
@@ -233,6 +204,42 @@
     return selectedFirst.length > selectedSecond.length
       ? selectedFirst
       : selectedSecond;
+  }
+
+  // =====================================================
+  //                      설정
+  // =====================================================
+  const settings = {
+    enableStoryCounter: true,
+    enableCharacterCounter: true,
+  };
+
+  // It's good to use IndexedDB, but we have to use LocalStorage to block site
+  // cause of risk from unloaded environment and unexpected behavior
+  function loadSettings() {
+    const loadedSettings = localStorage.getItem("chasm-cntr-settings");
+    if (loadedSettings) {
+      const json = JSON.parse(loadedSettings);
+      for (let key of Object.keys(json)) {
+        // Merge setting for version compatibility support
+        settings[key] = json[key];
+      }
+    }
+  }
+
+  function saveSettings() {
+    log("설정 저장중..");
+    // Yay, no need to filtering anything!
+    localStorage.setItem("chasm-cntr-settings", JSON.stringify(settings));
+    log("설정 저장 완료");
+  }
+
+  function isCharacterCounterEnabled() {
+    return settings.enableCharacterCounter && isCharacterPath();
+  }
+
+  function isStoryCounterEnabled() {
+    return settings.enableStoryCounter && isStoryPath();
   }
 
   // =====================================================
@@ -532,7 +539,7 @@
   // =====================================================
 
   function setup() {
-    if (!isStoryPath() && !isCharacterPath()) return;
+    if (!isStoryCounterEnabled() && !isCharacterCounterEnabled()) return;
     injectElement();
   }
 
@@ -552,12 +559,100 @@
     });
   }
 
+  function addMenu() {
+    const manager = ModalManager.getOrCreateManager("c2");
+    manager.createMenu("결정화 캐즘 계수기", (modal) => {
+      modal.replaceContentPanel((panel) => {
+        let changed = false;
+        panel.addSwitchBox(
+          "cntr-story",
+          "스토리 채팅 계수기",
+          "스토리 채팅에서의 계수기 표시를 활성화합니다.",
+          {
+            defaultValue: settings.enableStoryCounter,
+            action: (_, value) => {
+              settings.enableStoryCounter = value;
+              saveSettings();
+            },
+          }
+        );
+        panel.addSwitchBox(
+          "cntr-character",
+          "캐릭터 채팅 계수기",
+          "캐릭터 채팅에서의 계수기 표시를 활성화합니다.",
+          {
+            defaultValue: settings.enableCharacterCounter,
+            action: (_, value) => {
+              settings.enableCharacterCounter = value;
+              saveSettings();
+            },
+          }
+        );
+      }, "결정화 캐즘 계수기");
+    });
+    manager.addLicenseDisplay((panel) => {
+      panel.addTitleText("결정화 캐즘 계수기");
+      panel
+        .addText(
+          "결정화 캐즘 계수기의 모든 아이콘은 SVGRepo에서 가져왔습니다."
+        )
+        .addText(
+          "또한, 일부의 외부 프레임워크를 통해 웹 내부 데이터베이스를 관리하고 있습니다."
+        )
+        .addText(
+          "- 시계 아이콘 (https://www.svgrepo.com/svg/446075/time-history)"
+        )
+        .addText("- dexie.js 프레임워크 (https://dexie.org/)")
+        .addText(
+          "- decentralized-modal.js 프레임워크 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)"
+        );
+    });
+  }
+
   document.testClear = async () => {
     return await db.chatStore.clear();
   };
 
+  loadSettings();
+  addMenu();
   "loading" === document.readyState
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
     window.addEventListener("load", prepare);
+  // =================================================
+  //                  메뉴 강제 추가
+  // =================================================
+  function __updateModalMenu() {
+    const modal = document.getElementById("web-modal");
+    if (modal && !document.getElementById("chasm-decentral-menu")) {
+      const itemFound = modal.getElementsByTagName("a");
+      for (let item of itemFound) {
+        if (item.getAttribute("href") === "/setting") {
+          const clonedElement = item.cloneNode(true);
+          clonedElement.id = "chasm-decentral-menu";
+          const textElement = clonedElement.getElementsByTagName("p")[0];
+          textElement.innerText = "결정화 캐즘";
+          clonedElement.setAttribute("href", "javascript: void(0)");
+          clonedElement.onclick = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            ModalManager.getOrCreateManager("c2")
+              .withLicenseCredential()
+              .display(document.body.getAttribute("data-theme") !== "light");
+          };
+          item.parentElement.append(clonedElement);
+          break;
+        }
+      }
+    }
+  }
+
+  function __doModalMenuInit() {
+    if (document.c2ModalInit) return;
+    document.c2ModalInit = true;
+    attachObserver(document, () => {
+      __updateModalMenu();
+    });
+  }
+  __doModalMenuInit();
 })();
