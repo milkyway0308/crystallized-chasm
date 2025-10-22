@@ -829,9 +829,18 @@ class ModalManager {
   /**
    *
    * @param {boolean} isDarktheme
+   * @param {string[]} preSelected
    */
-  display(isDarktheme) {
-    this.__modal.display(isDarktheme);
+  display(isDarktheme, preSelected = undefined) {
+    this.__modal.display(isDarktheme, preSelected);
+  }
+
+  /**
+   *
+   * @returns {DecentrallizedModal}
+   */
+  getOpened() {
+    return this.__modal;
   }
 
   close() {
@@ -950,6 +959,7 @@ class HTMLComponentConvertable {
   }
 }
 class DecentrallizedModal {
+  selectedMenu = [];
   /** @type {Map<string, ModalMenu>} */
   __menuItems = new Map();
 
@@ -985,14 +995,35 @@ class DecentrallizedModal {
    * @param {isDarkTheme} isDarkTheme
    * @returns
    */
-  display(isDarkTheme) {
+  display(isDarkTheme, preSelected) {
     if (this.__container) {
       return;
+    }
+    if (preSelected) {
+      this.selectedMenu.length = 0;
+      this.selectedMenu.push(...preSelected);
     }
     this.close();
     this.init(isDarkTheme);
   }
 
+  /**
+   * 
+   * @param {string[]} preSelected 
+   */
+  triggerSelect(preSelected) {
+    this.selectedMenu.length = 0;
+    this.selectedMenu.push(preSelected);
+    if (preSelected.length === 1) {
+      this.__menuItems.get(preSelected[0])?.onDisplay(this);
+    } else if (preSelected.length === 2) {
+      this.__menuItems
+        .get(preSelected[0])
+        ?.__subMenus?.get(preSelected[1])
+        .onDisplay(this);
+    }
+  }
+  
   close() {
     if (this.__container) {
       this.__container.remove();
@@ -1017,7 +1048,6 @@ class DecentrallizedModal {
       node.id = `decentral-container-${this.baseId}`;
     });
     this.__container.appendChild(this.__modal);
-    let selectedMenu = [];
     this.__modal.appendChild(
       (this.__menuPanel = new MenuPanel(
         this,
@@ -2364,7 +2394,6 @@ class ComponentAppender extends HTMLComponentConvertable {
     );
     return this;
   };
-
 
   createOuterClickDetection(lambda) {
     return setupClassNode("div", "decentral-outer-click-detection", (node) => {
