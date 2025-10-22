@@ -100,7 +100,7 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 결정화 캐즘 버너+는 채팅방의 채팅을 외부 LLM에 의탁하여 요약하는 스크립트입니다.<br>
 채팅 내용을 축약하고 요약해 전소하여 크랙 AI의 기억력을 향상시킬 수 있습니다.<br>
 
-## 결정화 캐즘 - 과포화 (v1.4.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/tmi.user.js) ]<br>
+## 결정화 캐즘 - 과포화 (v1.4.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/tmi.user.js) ]<br>
 
 결정화 캐즘 과포화는 채팅의 소모 개수를 과거의 슈퍼챗 개수 표기로 변환하여 소모량 및 잔여량을 더욱 가시적으로 보여줍니다.<br>
 
@@ -109,11 +109,11 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 길고 긴 채팅창 세션 목록은 이제 안녕, 결정화 캐즘 폴드와 함께 더 짧은 세션 목록을 사용해보세요!<br>
 결정화 캐즘 폴드는 세션 목록을 같은 캐릭터 단위로 묶어 세션 목록에 대신 출력해줍니다.<br>
 
-## 결정화 캐즘 - 계수기 (v1.2.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js) ]<br>
+## 결정화 캐즘 - 계수기 (v1.2.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js) ]<br>
 
 결정화 캐즘 계수기는 채팅 입력 칸 위에 현재 채팅이 진행된 턴 수를 표시해줍니다.<br>
 
-## 결정화 캐즘 - 뮤트 (v1.1.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/mute.user.js) ]<br>
+## 결정화 캐즘 - 뮤트 (v1.1.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/mute.user.js) ]<br>
 
 결정화 캐즘 뮤트는 채팅창에서 TTS 버튼을 완전히 삭제해줍니다.<br>
 TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
@@ -121,18 +121,18 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 > ⚠ 결정화 캐즘 뮤트는 안정성을 위해 노드를 제거하지 않고 렌더에서 제거합니다.<br>
 > 이 기능으로 인해 많은 양의 반복 호출이 발생할 수 있으며, 이는 크랙 웹 사이트의 성능 저하를 불러올 수 있습니다.
 
-## 결정화 캐즘 - 절대 영도 (v1.1.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/absolutezero.user.js) ]<br>
+## 결정화 캐즘 - 절대 영도 (v1.1.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/absolutezero.user.js) ]<br>
 
 결정화 캐즘 절대영도는 랭킹 화면에서의 GIF / WEBP 재생을 중지하고, 호버하는 대상에만 적용시킵니다.<br>
 
-## 결정화 캐즘 - 네뷸라이저 (v1.3.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/nebulizer.user.js) ]<br>
+## 결정화 캐즘 - 네뷸라이저 (v1.3.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/nebulizer.user.js) ]<br>
 
 결정화 캐즘 네뷸라이저는 차단된 제작자의 댓글 숨김 및 대량 자동 삭제를 추가해줍니다.<br>
 
 > ⚠ 삭제 기능은 대단히 위험한 기능입니다. 결정화 캐즘의 개발자는 네뷸라이저의 대량 자동 삭제 기능을 사용함으로써 발생하는 문제에 대해 책임지지 않습니다.<br>
 > 로컬 환경에서는 문제 없이 정상 작동하는 것이 확인되었습니다.
 
-## 결정화 캐즘 - 차원이동 (v1.2.5) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/alternation.user.js) ]<br>
+## 결정화 캐즘 - 차원이동 (v1.3.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/alternation.user.js) ]<br>
 
 지금 그대로의 이야기의 또 다른 이야기를 듣고 싶지 않으신가요?<br>
 아니면, 내 실수로 인해 망가질 이 이야기를 위해 선택지를 보류하고 싶으신 경험, 있지 않으신가요?<br><br>
