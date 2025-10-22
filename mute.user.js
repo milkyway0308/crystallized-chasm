@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized Mute (결정화 캐즘 뮤트)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-MUTE-v1.1.0p
+// @version      CRYS-MUTE-v1.1.0
 // @description  TTS 버튼 제거. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
