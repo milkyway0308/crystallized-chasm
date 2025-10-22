@@ -714,7 +714,7 @@ const DECENTRAL_CSS_VALUES = `
     }
 
     .decentral-option:not(:nth-child(1)):hover { 
-        background-color: var(--decentral-text);  
+        background-color: var(--decentral-hover);  
         transition: color 0.1s ease, background-color 0.1s ease; 
     }
 
