@@ -2364,7 +2364,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     return this;
   };
 
-   /**
+  /**
    *
    * @returns 노드 수정 인스턴스
    */
@@ -2384,9 +2384,11 @@ class ComponentAppender extends HTMLComponentConvertable {
         );
         option.append(
           setupStyleNode("div", "margin-left: auto;", (iconNode) => {
-            iconNode.append(setupNode("div", (node) => {
-              node.outerHTML = DECENTRAL_ARROW_ICON_SVG;
-            }));
+            iconNode.append(
+              setupNode("div", (node) => {
+                node.innerHTML = DECENTRAL_ARROW_ICON_SVG;
+              })
+            );
           })
         );
         option.onclick = () => {
@@ -2415,7 +2417,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     topNode.append(optionContainer);
 
     this.addGrid(titleText, false, (node) => {
-      node.append(topNode)
+      node.append(topNode);
     });
 
     return {
