@@ -1052,7 +1052,7 @@ class DecentrallizedModal {
       (this.__menuPanel = new MenuPanel(
         this,
         this.__menuItems,
-        selectedMenu
+        this.selectedMenu
       )).asHTML()
     );
     const verticalPanel = setupClassNode("div", "decentral-vertical-container");
@@ -1060,7 +1060,7 @@ class DecentrallizedModal {
       (this.__mobileMenuPanel = new MobileMenuPanel(
         this,
         this.__menuItems,
-        selectedMenu
+        this.selectedMenu
       )).asHTML()
     );
     verticalPanel.appendChild(
