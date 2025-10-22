@@ -2017,6 +2017,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
+    console.log("Default value for " + title + ": " + defaultValue)
     __proxy.constructSwitchBox(
       id,
       title,
