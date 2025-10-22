@@ -2528,6 +2528,32 @@ class ContentPanel extends ComponentAppender {
     this.__verticalContainer.append(this.__footer);
   }
 
+  createOuterClickDetection(lambda) {
+    return setupClassNode("div", "chasm-ignt-outer-click-detection", (node) => {
+      node.id = "chasm-ignt-outer-click-detection";
+      node.onclick = lambda;
+    });
+  }
+
+  removeOuterClickDetection() {
+    const node = document.getElementById("chasm-ignt-outer-click-detection");
+    if (node) node.remove();
+  }
+
+  hasOuterClickDetection() {
+    if (document.getElementById("chasm-ignt-outer-click-detection")) {
+      return true;
+    }
+    return false;
+  }
+
+  triggerOuterClickDetection() {
+    const node = document.getElementById("chasm-ignt-outer-click-detection");
+    if (node) {
+      node.onclick();
+    }
+  }
+
   footer() {
     return this.__footerAppender;
   }
