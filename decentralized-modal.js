@@ -2430,7 +2430,8 @@ class ComponentAppender extends HTMLComponentConvertable {
             optionContainer.style.cssText = `top: ${
               topNode.getBoundingClientRect().top + topNode.clientHeight
             }px;`;
-            this.parentElement.append(
+            // No other way to do this :(
+            this.parentElement.parentElement.parentElement.parentElement.append(
               this.createOuterClickDetection(() => {
                 topNode.removeAttribute("list-enabled");
                 this.removeOuterClickDetection();
