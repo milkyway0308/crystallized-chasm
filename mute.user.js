@@ -223,4 +223,41 @@ GM_addStyle(`
     });
   }
   addMenu();
+  // =================================================
+  //                  메뉴 강제 추가
+  // =================================================
+  function __updateModalMenu() {
+    const modal = document.getElementById("web-modal");
+    if (modal && !document.getElementById("chasm-decentral-menu")) {
+      const itemFound = modal.getElementsByTagName("a");
+      for (let item of itemFound) {
+        console.log(item.getAttribute("href"));
+        if (item.getAttribute("href") === "/setting") {
+          const clonedElement = item.cloneNode(true);
+          clonedElement.id = "chasm-decentral-menu";
+          const textElement = clonedElement.getElementsByTagName("p")[0];
+          textElement.innerText = "결정화 캐즘";
+          clonedElement.setAttribute("href", "javascript: void(0)");
+          clonedElement.onclick = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            ModalManager.getOrCreateManager("c2")
+              .withLicenseCredential()
+              .display(document.body.getAttribute("data-theme") !== "light", ["결정화 캐즘 이그나이터"]);
+          };
+          item.parentElement.append(clonedElement);
+          break;
+        }
+      }
+    }
+  }
+
+  function __doModalMenuInit() {
+    if (document.c2ModalInit) return;
+    document.c2ModalInit = true;
+    attachObserver(document, () => {
+      __updateModalMenu();
+    });
+  }
+  __doModalMenuInit();
 })();

@@ -8,7 +8,7 @@
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/absolutezero.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/absolutezero.user.js
-// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/5ef26abaee8a37157edb534911ba8498931c70f1/decentralized-modal.js
+// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/b92cfa2dea4f8fe950743a1e242c58bbaaec0f17/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 
@@ -160,7 +160,8 @@ GM_addStyle(
       }
       if (
         !imageNode.src.includes("cloudfront.net") ||
-        (imageNode.alt === "character_thumbnail" && !settings.enableStopDetailPage) ||
+        (imageNode.alt === "character_thumbnail" &&
+          !settings.enableStopDetailPage) ||
         (!imageNode.src.endsWith("webp") && !imageNode.src.endsWith("gif"))
       ) {
         imageNode.classList.add("chasm-absolute-zero-freeze");
@@ -271,4 +272,42 @@ GM_addStyle(
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
     window.addEventListener("load", prepare);
+
+  // =================================================
+  //                  메뉴 강제 추가
+  // =================================================
+  function __updateModalMenu() {
+    const modal = document.getElementById("web-modal");
+    if (modal && !document.getElementById("chasm-decentral-menu")) {
+      const itemFound = modal.getElementsByTagName("a");
+      for (let item of itemFound) {
+        console.log(item.getAttribute("href"));
+        if (item.getAttribute("href") === "/setting") {
+          const clonedElement = item.cloneNode(true);
+          clonedElement.id = "chasm-decentral-menu";
+          const textElement = clonedElement.getElementsByTagName("p")[0];
+          textElement.innerText = "결정화 캐즘";
+          clonedElement.setAttribute("href", "javascript: void(0)");
+          clonedElement.onclick = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            ModalManager.getOrCreateManager("c2")
+              .withLicenseCredential()
+              .display(document.body.getAttribute("data-theme") !== "light", ["결정화 캐즘 이그나이터"]);
+          };
+          item.parentElement.append(clonedElement);
+          break;
+        }
+      }
+    }
+  }
+
+  function __doModalMenuInit() {
+    if (document.c2ModalInit) return;
+    document.c2ModalInit = true;
+    attachObserver(document, () => {
+      __updateModalMenu();
+    });
+  }
+  __doModalMenuInit();
 })();
