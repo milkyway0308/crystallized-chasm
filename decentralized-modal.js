@@ -659,6 +659,79 @@ const DECENTRAL_CSS_VALUES = `
     }
 
     /**
+     * 커스텀 셀렉트박스 드롭다운 
+     */
+    .decentral-select { 
+        width: 100%;
+        border-radius: 3px;
+        background-color: transparent; 
+        overflow: hidden; 
+        color: var(--decentral-text); 
+        border: 1px solid var(--decentral-text-border); 
+        appearance: none; 
+        -webkit-appearance: none; 
+        -moz-appearance: none;
+    }
+
+    .decentral-select .decentral-option { 
+      background-color: var(--decentral-background);
+      color: var(--decentral-text);
+      float: left;
+      z-index: 101;
+      position: relative;
+    }
+
+    .decentral-select:not([list-enabled="true"]) .decentral-list { 
+      display: none;
+    }
+
+    .decentral-outer-click-detection { 
+        position: absolute; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100% 
+    }
+    .decentral-option-group { 
+        font-size: 12px; 
+        color: var(--decentral-text-formal); 
+        font-weight: bold; 
+        margin-top: 5px; 
+        margin-bottom: 5px; 
+        margin-left: 5px; 
+    }
+
+    .decentral-option { 
+        padding: 10px; 
+        background-color: transparent; 
+        background-color: var(--decentral-text); 
+        transition: color 0.1s ease, background-color 0.1s ease;  
+    }
+
+    .decentral-option:not(:nth-child(1)) { 
+        z-index: 103; 
+    }
+
+    .decentral-option:not(:nth-child(1)):hover { 
+        background-color: var(--decentral-text);  
+        transition: color 0.1s ease, background-color 0.1s ease; 
+    }
+
+    .decentral-select[list-enabled="true"] .decentral-list {
+        display: flex; 
+        flex-direction: column; 
+        position: absolute; 
+        padding: 5px; 
+        z-index: 108; 
+        height: 250px; 
+        overflow-y: scroll; 
+        border: 1px solid var(--decentral-text-border); 
+        background-color: var(--decentral-background); 
+        width: 244px;
+    }
+
+
+    /**
      *  모바일 레이아웃 대응 
      */
     .decentral-mobile-menu-button {
@@ -806,7 +879,10 @@ class ModalManager {
             "- 설정 아이콘 (https://www.svgrepo.com/svg/458353/setting-line)"
           )
           .addText("- 닫기 아이콘 (https://www.svgrepo.com/svg/494725/close)")
-          .addText("- 메뉴 아이콘 (https://www.svgrepo.com/svg/522418/menu)");
+          .addText("- 메뉴 아이콘 (https://www.svgrepo.com/svg/522418/menu)")
+          .addText(
+            "- 스위치 소스 코드 참조 (https://www.daleseo.com/css-toggle-switch/)"
+          );
         for (let adjuster of this.__licenseAdjusters) {
           adjuster(panel);
         }
@@ -2283,6 +2359,103 @@ class ComponentAppender extends HTMLComponentConvertable {
     );
     return this;
   };
+
+   /**
+   *
+   * @returns 노드 수정 인스턴스
+   */
+  constructSelectBox(title, initialText, initialId) {
+    let topNode = setupClassNode("ul", "decentral-select");
+    let optionContainer = setupClassNode("div", "decentral-list");
+    topNode.setAttribute("decentral-selected", initialId);
+    const title = setupFullNode(
+      "div",
+      "decentral-option",
+      "width: 100%; display: flex; flex-direction: row; align-items: center;",
+      (option) => {
+        option.append(
+          setupStyleNode("span", "height: fit-content;", (textNode) => {
+            textNode.textContent = initialText;
+          })
+        );
+        option.append(
+          setupStyleNode("div", "margin-left: auto;", (iconNode) => {
+            iconNode.append(createArrowIcon());
+          })
+        );
+        option.onclick = () => {
+          if (hasOuterClickDetection()) {
+            triggerOuterClickDetection();
+            return;
+          }
+          if (topNode.hasAttribute("list-enabled")) {
+            topNode.removeAttribute("list-enabled");
+          } else {
+            topNode.setAttribute("list-enabled", "true");
+            optionContainer.style.cssText = `top: ${
+              topNode.getBoundingClientRect().top + topNode.clientHeight
+            }px;`;
+            document.getElementById("decentral-content").append(
+              createOuterClickDetection(() => {
+                topNode.removeAttribute("list-enabled");
+                removeOuterClickDetection();
+              })
+            );
+          }
+        };
+      }
+    );
+    topNode.append(title);
+    topNode.append(optionContainer);
+
+    this.addGrid(title, false, (node) => {
+      node.append(topNode)
+    });
+
+    return {
+      node: topNode,
+      /**
+       *
+       * @param {string} text
+       * @param {string} id
+       * @param {((selectedId: string, node: HTMLElement) => boolean) | undefined} onclick
+       */
+      addOption: (text, id, onclick) => {
+        const element = setupClassNode("div", "decentral-option", (option) => {
+          option.textContent = text;
+          option.setAttribute("decentral-option-text", text);
+          option.setAttribute("decentral-option-id", id);
+          option.onclick = () => {
+            removeOuterClickDetection();
+            topNode.removeAttribute("list-enabled");
+            const selectedId = option.getAttribute("decentral-option-id");
+            if (onclick(selectedId, option)) {
+              topNode.setAttribute("decentral-selected", selectedId);
+              title.childNodes[0].textContent = option.getAttribute(
+                "decentral-option-text"
+              );
+            }
+          };
+        });
+        optionContainer.append(element);
+        return element;
+      },
+      /**
+       *
+       * @param {HTMLElement} node
+       */
+      appendTo: (node) => {
+        node.append(topNode);
+      },
+      addGroup: (text) => {
+        optionContainer.append(
+          setupClassNode("div", "decentral-option-group", (group) => {
+            group.innerText = text;
+          })
+        );
+      },
+    };
+  }
 }
 
 class ContentPanel extends ComponentAppender {
