@@ -2462,7 +2462,7 @@ class ComponentAppender extends HTMLComponentConvertable {
           option.setAttribute("decentral-option-text", text);
           option.setAttribute("decentral-option-id", id);
           option.onclick = () => {
-            removeOuterClickDetection();
+            this.removeOuterClickDetection();
             topNode.removeAttribute("list-enabled");
             const selectedId = option.getAttribute("decentral-option-id");
             if (onclick(selectedId, option)) {
