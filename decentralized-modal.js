@@ -1965,6 +1965,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     } = {}
   ) {
     let inputNode = undefined;
+    console.log("Default construct value for " + title + ": " + defaultValue);
     __proxy.addBoxedField(title, description, (node) => {
       node.append(
         (inputNode = setupClassNode(
@@ -2017,7 +2018,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
-    console.log("Default value for " + title + ": " + defaultValue)
+    console.log("Default value for " + title + ": " + defaultValue);
     __proxy.constructSwitchBox(
       id,
       title,
