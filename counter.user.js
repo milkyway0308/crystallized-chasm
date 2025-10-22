@@ -179,13 +179,31 @@
 
   function getRenderedMessageCount() {
     if (isCharacterPath()) {
+      // 2025-10-04 기준으로 스토리에는 소설형 UI가 존재하지 않음
       return document.getElementsByClassName(
         isDarkMode() ? "css-f5nv21" : "css-1xhj18k"
       ).length;
     }
-    return document.getElementsByClassName(
-      isDarkMode() ? "css-1ifxcjt" : "css-1ifxcjt"
+    // 첫번째 클래스가 채팅형 UI, 두번째 클래스가 소설형 UI.
+    return (
+      isDarkMode()
+        ? getHigherNodes("css-1ifxcjt", "css-15hxmwz")
+        : getHigherNodes("css-1ifxcjt", "css-15hxmwz")
     ).length;
+  }
+
+  /**
+   * 두개의 클래스를 받아 더 많은 수의 컴포넌트가 존재하는 컴포넌트 배열을 반환합니다.
+   * @param {string} clsFirst 첫번째 클래스
+   * @param {string} clsSecond 두번쨰 클래스
+   * @returns {HTMLElement[]} 더 많은 수의 컴포넌트 배열
+   */
+  function getHigherNodes(clsFirst, clsSecond) {
+    const selectedFirst = document.getElementsByClassName(clsFirst);
+    const selectedSecond = document.getElementsByClassName(clsSecond);
+    return selectedFirst.length > selectedSecond.length
+      ? selectedFirst
+      : selectedSecond;
   }
 
   // =====================================================
