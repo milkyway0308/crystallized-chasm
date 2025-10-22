@@ -1008,8 +1008,8 @@ class DecentrallizedModal {
   }
 
   /**
-   * 
-   * @param {string[]} preSelected 
+   *
+   * @param {string[]} preSelected
    */
   triggerSelect(preSelected) {
     this.selectedMenu.length = 0;
@@ -1023,7 +1023,7 @@ class DecentrallizedModal {
         .onDisplay(this);
     }
   }
-  
+
   close() {
     if (this.__container) {
       this.__container.remove();
@@ -2488,6 +2488,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       addOption: (text, id, onclick) => {
         const element = setupClassNode("div", "decentral-option", (option) => {
           option.textContent = text;
+          option.id = id;
           option.setAttribute("decentral-option-text", text);
           option.setAttribute("decentral-option-id", id);
           option.onclick = () => {
@@ -2504,6 +2505,24 @@ class ComponentAppender extends HTMLComponentConvertable {
         });
         optionContainer.append(element);
         return element;
+      },
+      runSelected: () => {
+        document
+          .getElementById(topNode.getAttribute("decentral-selected"))
+          .onclick();
+      },
+      setSelected: (id) => {
+        const toSelected = document.getElementById(id);
+        if (toSelected) {
+          topNode.setAttribute("decentral-selected", id);
+          topNode.textContent = toSelected.getAttribute(
+            "decentral-option-text"
+          );
+          toSelected.onclick();
+        }
+      },
+      getSelected: () => {
+        return topNode.getAttribute("decentral-selected");
       },
       /**
        *
