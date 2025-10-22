@@ -1616,16 +1616,13 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
-    __proxy.constructInputGrid(
-      id,
-      titleText,
-      isLongField,
-      defaultValue,
-      initializer,
-      onChange,
-      titleModifier,
-      suffixModifier
-    );
+    __proxy.constructInputGrid(id, titleText, isLongField, {
+      defaultValue: defaultValue,
+      initializer: initializer,
+      onChange: onChange,
+      titleModifier: titleModifier,
+      suffixModifier: suffixModifier,
+    });
     return this;
   };
   /**
@@ -1708,15 +1705,13 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
-    __proxy.constructTextAreaGrid(
-      id,
-      titleText,
-      defaultValue,
-      initializer,
-      onChange,
-      titleModifier,
-      suffixModifier
-    );
+    __proxy.constructTextAreaGrid(id, titleText, {
+      defaultValue: defaultValue,
+      initializer: initializer,
+      onChange: onChange,
+      titleModifier: titleModifier,
+      suffixModifier: suffixModifier,
+    });
     return this;
   };
 
@@ -1794,14 +1789,12 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
-    __proxy.constructLoggingArea(
-      id,
-      titleText,
-      defaultValue,
-      initializer,
-      titleModifier,
-      suffixModifier
-    );
+    __proxy.constructLoggingArea(id, titleText, {
+      defaultValue: defaultValue,
+      initializer: initializer,
+      titleModifier: titleModifier,
+      suffixModifier: suffixModifier,
+    });
     return this;
   };
 
@@ -1860,7 +1853,10 @@ class ComponentAppender extends HTMLComponentConvertable {
     titleText,
     { initializer = undefined, action = undefined, __proxy = this } = {}
   ) {
-    __proxy.constructButton(id, titleText, initializer, action);
+    __proxy.constructButton(id, titleText, {
+      initializer: initializer,
+      action: action,
+    });
     return this;
   };
 
@@ -1965,6 +1961,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     } = {}
   ) {
     let inputNode = undefined;
+    console.log("Default construct value for " + title + ": " + defaultValue);
     __proxy.addBoxedField(title, description, (node) => {
       node.append(
         (inputNode = setupClassNode(
@@ -2017,14 +2014,11 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
-    __proxy.constructSwitchBox(
-      id,
-      title,
-      description,
-      defaultValue,
-      initializer,
-      action
-    );
+    __proxy.constructSwitchBox(id, title, description, {
+      defaultValue: defaultValue,
+      initializer: initializer,
+      action: action,
+    });
     return this;
   };
   /**
@@ -2048,7 +2042,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     description,
     type,
     {
-      defaultValue = false,
+      defaultValue = 0,
       min = 0,
       max = 1000,
       initializer = undefined,
@@ -2111,7 +2105,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     title,
     description,
     {
-      defaultValue = false,
+      defaultValue = 0,
       min = 0,
       max = 1000,
       initializer = undefined,
@@ -2147,7 +2141,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     title,
     description,
     {
-      defaultValue = false,
+      defaultValue = 0,
       min = 0,
       max = 1000,
       initializer = undefined,
@@ -2184,7 +2178,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     title,
     description,
     {
-      defaultValue = false,
+      defaultValue = 0,
       min = 0,
       max = 1000,
       initializer = undefined,
@@ -2220,7 +2214,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     title,
     description,
     {
-      defaultValue = false,
+      defaultValue = 0,
       min = 0,
       max = 1000,
       initializer = undefined,
@@ -2257,7 +2251,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     title,
     description,
     {
-      defaultValue = false,
+      defaultValue = 0,
       min = 0,
       max = 1000,
       initializer = undefined,
@@ -2293,7 +2287,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     title,
     description,
     {
-      defaultValue = false,
+      defaultValue = 0,
       min = 0,
       max = 1000,
       initializer = undefined,
@@ -2384,14 +2378,11 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
-    __proxy.constructBoxedInputGrid(
-      id,
-      title,
-      description,
-      defaultValue,
-      initializer,
-      onChange
-    );
+    __proxy.constructBoxedInputGrid(id, title, description, {
+      defaultValue: defaultValue,
+      initializer: initializer,
+      onChange: onChange,
+    });
     return this;
   };
 
