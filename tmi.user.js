@@ -585,7 +585,6 @@
     if (modal && !document.getElementById("chasm-decentral-menu")) {
       const itemFound = modal.getElementsByTagName("a");
       for (let item of itemFound) {
-        console.log(item.getAttribute("href"));
         if (item.getAttribute("href") === "/setting") {
           const clonedElement = item.cloneNode(true);
           clonedElement.id = "chasm-decentral-menu";
@@ -597,9 +596,7 @@
             event.stopPropagation();
             ModalManager.getOrCreateManager("c2")
               .withLicenseCredential()
-              .display(document.body.getAttribute("data-theme") !== "light", [
-                "결정화 캐즘 이그나이터",
-              ]);
+              .display(document.body.getAttribute("data-theme") !== "light");
           };
           item.parentElement.append(clonedElement);
           break;
