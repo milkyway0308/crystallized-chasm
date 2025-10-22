@@ -2364,11 +2364,37 @@ class ComponentAppender extends HTMLComponentConvertable {
     return this;
   };
 
+
+  createOuterClickDetection(lambda) {
+    return setupClassNode("div", "chasm-ignt-outer-click-detection", (node) => {
+      node.id = "chasm-ignt-outer-click-detection";
+      node.onclick = lambda;
+    });
+  }
+
+  removeOuterClickDetection() {
+    const node = document.getElementById("chasm-ignt-outer-click-detection");
+    if (node) node.remove();
+  }
+
+  hasOuterClickDetection() {
+    if (document.getElementById("chasm-ignt-outer-click-detection")) {
+      return true;
+    }
+    return false;
+  }
+
+  triggerOuterClickDetection() {
+    const node = document.getElementById("chasm-ignt-outer-click-detection");
+    if (node) {
+      node.onclick();
+    }
+  }
   /**
    *
    * @returns 노드 수정 인스턴스
    */
-  constructSelectBox(titleText, initialText, initialId) {
+  constructSelectBox(titleText, initialText, initialId, __proxy = this) {
     let topNode = setupClassNode("ul", "decentral-select");
     let optionContainer = setupClassNode("div", "decentral-list");
     topNode.setAttribute("decentral-selected", initialId);
@@ -2392,8 +2418,8 @@ class ComponentAppender extends HTMLComponentConvertable {
           })
         );
         option.onclick = () => {
-          if (hasOuterClickDetection()) {
-            triggerOuterClickDetection();
+          if (__proxy.hasOuterClickDetection()) {
+            this.triggerOuterClickDetection();
             return;
           }
           if (topNode.hasAttribute("list-enabled")) {
@@ -2404,9 +2430,9 @@ class ComponentAppender extends HTMLComponentConvertable {
               topNode.getBoundingClientRect().top + topNode.clientHeight
             }px;`;
             document.getElementById("decentral-content").append(
-              createOuterClickDetection(() => {
+              this.createOuterClickDetection(() => {
                 topNode.removeAttribute("list-enabled");
-                removeOuterClickDetection();
+                this.removeOuterClickDetection();
               })
             );
           }
@@ -2526,32 +2552,6 @@ class ContentPanel extends ComponentAppender {
     gridWrapper.append(this.__element);
     this.__verticalContainer.append(gridWrapper);
     this.__verticalContainer.append(this.__footer);
-  }
-
-  createOuterClickDetection(lambda) {
-    return setupClassNode("div", "chasm-ignt-outer-click-detection", (node) => {
-      node.id = "chasm-ignt-outer-click-detection";
-      node.onclick = lambda;
-    });
-  }
-
-  removeOuterClickDetection() {
-    const node = document.getElementById("chasm-ignt-outer-click-detection");
-    if (node) node.remove();
-  }
-
-  hasOuterClickDetection() {
-    if (document.getElementById("chasm-ignt-outer-click-detection")) {
-      return true;
-    }
-    return false;
-  }
-
-  triggerOuterClickDetection() {
-    const node = document.getElementById("chasm-ignt-outer-click-detection");
-    if (node) {
-      node.onclick();
-    }
   }
 
   footer() {
