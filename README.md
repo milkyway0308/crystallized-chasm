@@ -95,7 +95,7 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 > ⚠ 세션 아래 표시되는 소모량은 세션 소모량이 아닌 캐릭터 소모량입니다.<br>
 > ⚠ 6월 크래커 업데이트 이전 소모된 슈퍼챗은 크래커 35개로 환산되어 계산됩니다.
 
-## 결정화 캐즘 - 버너+ (v1.7.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/burner.user.js) ]<br>
+## 결정화 캐즘 - 버너+ (v1.7.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/burner.user.js) ]<br>
 
 결정화 캐즘 버너+는 채팅방의 채팅을 외부 LLM에 의탁하여 요약하는 스크립트입니다.<br>
 채팅 내용을 축약하고 요약해 전소하여 크랙 AI의 기억력을 향상시킬 수 있습니다.<br>
@@ -109,7 +109,7 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 길고 긴 채팅창 세션 목록은 이제 안녕, 결정화 캐즘 폴드와 함께 더 짧은 세션 목록을 사용해보세요!<br>
 결정화 캐즘 폴드는 세션 목록을 같은 캐릭터 단위로 묶어 세션 목록에 대신 출력해줍니다.<br>
 
-## 결정화 캐즘 - 계수기 (v1.1.2) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js) ]<br>
+## 결정화 캐즘 - 계수기 (v1.1.3) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js) ]<br>
 
 결정화 캐즘 계수기는 채팅 입력 칸 위에 현재 채팅이 진행된 턴 수를 표시해줍니다.<br>
 
