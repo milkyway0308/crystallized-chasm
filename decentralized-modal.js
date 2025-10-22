@@ -58,7 +58,7 @@ const DECENTRAL_CSS_VALUES = `
     .decentral-modal-container {
         display: flex;
         flex-direction: column;
-        z-index: 999999;
+        z-index: 999;
         margin: auto;
         background-color: #99999970;
         top: 0;
@@ -229,7 +229,7 @@ const DECENTRAL_CSS_VALUES = `
     /* 모바일 모달 메뉴 컨테이너 */
     .decentral-mobile-menu-container {
         display: none;
-        z-index: 9999999;
+        z-index: 1000;
         border: 1px solid var(--decentral-border);
         width: 100%;
         height: fit-content;
@@ -677,7 +677,7 @@ const DECENTRAL_CSS_VALUES = `
       background-color: var(--decentral-background);
       color: var(--decentral-text);
       float: left;
-      z-index: 101;
+      z-index: 2002;
       position: relative;
     }
 
@@ -686,7 +686,8 @@ const DECENTRAL_CSS_VALUES = `
     }
 
     .decentral-outer-click-detection { 
-        position: absolute; 
+        position: absolute;
+        z-index: 2000; 
         top: 0; 
         left: 0; 
         width: 100%; 
@@ -709,7 +710,7 @@ const DECENTRAL_CSS_VALUES = `
     }
 
     .decentral-option:not(:nth-child(1)) { 
-        z-index: 103; 
+        z-index: 2003; 
     }
 
     .decentral-option:not(:nth-child(1)):hover { 
@@ -722,7 +723,7 @@ const DECENTRAL_CSS_VALUES = `
         flex-direction: column; 
         position: fixed; 
         padding: 5px; 
-        z-index: 108; 
+        z-index: 2001; 
         height: 250px; 
         overflow-y: scroll; 
         border: 1px solid var(--decentral-text-border); 
