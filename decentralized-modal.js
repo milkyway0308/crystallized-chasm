@@ -720,7 +720,7 @@ const DECENTRAL_CSS_VALUES = `
     .decentral-select[list-enabled="true"] .decentral-list {
         display: flex; 
         flex-direction: column; 
-        position: absolute; 
+        position: fixed; 
         padding: 5px; 
         z-index: 108; 
         height: 250px; 
@@ -2366,26 +2366,26 @@ class ComponentAppender extends HTMLComponentConvertable {
 
 
   createOuterClickDetection(lambda) {
-    return setupClassNode("div", "chasm-ignt-outer-click-detection", (node) => {
-      node.id = "chasm-ignt-outer-click-detection";
+    return setupClassNode("div", "decentral-outer-click-detection", (node) => {
+      node.id = "decentral-outer-click-detection";
       node.onclick = lambda;
     });
   }
 
   removeOuterClickDetection() {
-    const node = document.getElementById("chasm-ignt-outer-click-detection");
+    const node = document.getElementById("decentral-outer-click-detection");
     if (node) node.remove();
   }
 
   hasOuterClickDetection() {
-    if (document.getElementById("chasm-ignt-outer-click-detection")) {
+    if (document.getElementById("decentral-outer-click-detection")) {
       return true;
     }
     return false;
   }
 
   triggerOuterClickDetection() {
-    const node = document.getElementById("chasm-ignt-outer-click-detection");
+    const node = document.getElementById("decentral-outer-click-detection");
     if (node) {
       node.onclick();
     }
@@ -2429,7 +2429,7 @@ class ComponentAppender extends HTMLComponentConvertable {
             optionContainer.style.cssText = `top: ${
               topNode.getBoundingClientRect().top + topNode.clientHeight
             }px;`;
-            document.getElementById("decentral-content").append(
+            document.body.append(
               this.createOuterClickDetection(() => {
                 topNode.removeAttribute("list-enabled");
                 this.removeOuterClickDetection();
