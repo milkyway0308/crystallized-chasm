@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Counter (결정화 캐즘 계수기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-CNTR-v1.2.2
+// @version     CRYS-CNTR-v1.2.3
 // @description 채팅에 캐릭터 채팅 턴 계수기 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -619,6 +619,7 @@
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
     window.addEventListener("load", prepare);
+
   // =================================================
   //                  메뉴 강제 추가
   // =================================================
@@ -642,6 +643,29 @@
           };
           item.parentElement.append(clonedElement);
           break;
+        }
+      }
+    } else if (
+      !document.getElementById("chasm-decentral-menu") &&
+      !window.matchMedia("(min-width: 768px)").matches
+    ) {
+      // Probably it's mobile, lets try scanning
+      const selected = document.getElementsByTagName("a");
+      for (const element of selected) {
+        if (element.getAttribute("href") === "/my-page") {
+          const clonedElement = element.cloneNode(true);
+          clonedElement.id = "chasm-decentral-menu";
+          const textElement = clonedElement.getElementsByTagName("p")[0];
+          textElement.innerText = "결정화 캐즘";
+          clonedElement.setAttribute("href", "javascript: void(0)");
+          clonedElement.onclick = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            ModalManager.getOrCreateManager("c2")
+              .withLicenseCredential()
+              .display(document.body.getAttribute("data-theme") !== "light");
+          };
+          element.parentElement.append(clonedElement);
         }
       }
     }

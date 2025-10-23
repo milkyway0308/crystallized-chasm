@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Alternation (결정화 캐즘 차원이동)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-ALTR-v1.3.3
+// @version     CRYS-ALTR-v1.3.4
 // @description 채팅 로그 복사 및 새 채팅방으로 포크. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -895,6 +895,7 @@ if (!document.chasmApi) {
     element.style.cssText = "margin-top: -3px";
     return element;
   }
+
   // =================================================
   //                  메뉴 강제 추가
   // =================================================
@@ -918,6 +919,29 @@ if (!document.chasmApi) {
           };
           item.parentElement.append(clonedElement);
           break;
+        }
+      }
+    } else if (
+      !document.getElementById("chasm-decentral-menu") &&
+      !window.matchMedia("(min-width: 768px)").matches
+    ) {
+      // Probably it's mobile, lets try scanning
+      const selected = document.getElementsByTagName("a");
+      for (const element of selected) {
+        if (element.getAttribute("href") === "/my-page") {
+          const clonedElement = element.cloneNode(true);
+          clonedElement.id = "chasm-decentral-menu";
+          const textElement = clonedElement.getElementsByTagName("p")[0];
+          textElement.innerText = "결정화 캐즘";
+          clonedElement.setAttribute("href", "javascript: void(0)");
+          clonedElement.onclick = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            ModalManager.getOrCreateManager("c2")
+              .withLicenseCredential()
+              .display(document.body.getAttribute("data-theme") !== "light");
+          };
+          element.parentElement.append(clonedElement);
         }
       }
     }

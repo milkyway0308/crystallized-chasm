@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized AbsoluteZero (결정화 캐즘 절대영도)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-AZRO-v1.1.2
+// @version     CRYS-AZRO-v1.1.3
 // @description 선택하거나 호버하지 않은 작품의 GIF 차단. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -296,6 +296,29 @@ GM_addStyle(
           };
           item.parentElement.append(clonedElement);
           break;
+        }
+      }
+    } else if (
+      !document.getElementById("chasm-decentral-menu") &&
+      !window.matchMedia("(min-width: 768px)").matches
+    ) {
+      // Probably it's mobile, lets try scanning
+      const selected = document.getElementsByTagName("a");
+      for (const element of selected) {
+        if (element.getAttribute("href") === "/my-page") {
+          const clonedElement = element.cloneNode(true);
+          clonedElement.id = "chasm-decentral-menu";
+          const textElement = clonedElement.getElementsByTagName("p")[0];
+          textElement.innerText = "결정화 캐즘";
+          clonedElement.setAttribute("href", "javascript: void(0)");
+          clonedElement.onclick = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            ModalManager.getOrCreateManager("c2")
+              .withLicenseCredential()
+              .display(document.body.getAttribute("data-theme") !== "light");
+          };
+          element.parentElement.append(clonedElement);
         }
       }
     }
