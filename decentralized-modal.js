@@ -2080,6 +2080,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     __proxy.addBoxedField(title, description, (node) => {
       node.append(
         setupClassNode("div", "element-input-container", (container) => {
+          console.log("Default value set to " + defaultValue);
           container.append(
             (inputNode = setupClassNode(
               "input",
@@ -2458,7 +2459,7 @@ class ComponentAppender extends HTMLComponentConvertable {
         option.append(
           setupStyleNode("div", "margin-left: auto;", (iconNode) => {
             iconNode.append(
-              setupNode("div", (node) => {
+              setupNode("div", (node) => { 
                 node.innerHTML = DECENTRAL_ARROW_ICON_SVG;
               })
             );
