@@ -1898,6 +1898,23 @@ class ComponentAppender extends HTMLComponentConvertable {
   }
 
   /**
+   * 박스로 감싸진 긴 블럭은 추가합니다. 이 펑션으로 추가된 블럭에는 추가 컴포넌트가 제공되지 않습니다.
+   * @param {function(HTMLElement):void} initializer 필드 초기화시 호출될 펑션
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
+   */
+  addLongBox(initializer) {
+    this.parentElement.append(
+      createLongSemiFlatGridElement(undefined, (node) => {
+        node.append(
+          setupClassNode("div", "decentral-boxed-field", (area) => {
+            initializer(area);
+          })
+        );
+      })
+    );
+  }
+
+  /**
    * 박스로 감싸진 긴 필드를 추가합니다.
    * @param {string} id 필드의 ID
    * @param {string} title 제목 텍스트
