@@ -1961,7 +1961,6 @@ class ComponentAppender extends HTMLComponentConvertable {
     } = {}
   ) {
     let inputNode = undefined;
-    console.log("Default construct value for " + title + ": " + defaultValue);
     __proxy.addBoxedField(title, description, (node) => {
       node.append(
         (inputNode = setupClassNode(
