@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized AbsoluteZero (결정화 캐즘 절대영도)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-AZRO-v1.1.2
+// @version     CRYS-AZRO-v1.1.3
 // @description 선택하거나 호버하지 않은 작품의 GIF 차단. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
