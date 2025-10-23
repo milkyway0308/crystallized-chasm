@@ -819,7 +819,7 @@ if (!document.chasmApi) {
           {
             defaultValue: settings.includeUserNotes,
             action: (_, value) => {
-              settings.enableStoryBlur = value;
+              settings.includeUserNotes = value;
               saveSettings();
             },
           }
