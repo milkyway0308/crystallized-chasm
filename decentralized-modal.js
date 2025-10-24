@@ -2098,7 +2098,7 @@ class ComponentAppender extends HTMLComponentConvertable {
                 inputField.id = id;
                 inputField.setAttribute("type", "number");
                 inputField.setAttribute("min", min);
-                inputField.setAttribute("min", max);
+                inputField.setAttribute("max", max);
                 if (defaultValue) {
                   inputField.value = defaultValue;
                 }
