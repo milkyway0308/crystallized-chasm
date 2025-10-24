@@ -1916,9 +1916,13 @@ class ComponentAppender extends HTMLComponentConvertable {
     this.parentElement.append(
       createLongSemiFlatGridElement(undefined, (node) => {
         node.append(
-          setupClassNode("div", padded ? "decentral-padded-boxed-field" : "decentral-boxed-field", (area) => {
-            initializer(area);
-          })
+          setupClassNode(
+            "div",
+            padded ? "decentral-padded-boxed-field" : "decentral-boxed-field",
+            (area) => {
+              initializer(area);
+            }
+          )
         );
       })
     );
@@ -2081,6 +2085,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       node.append(
         setupClassNode("div", "element-input-container", (container) => {
           console.log("Default value set to " + defaultValue);
+          console.log(`Min value (${min}), Max value (${max})`);
           container.append(
             (inputNode = setupClassNode(
               "input",
@@ -2140,6 +2145,8 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
+    console.log("Construct: Default value set to " + defaultValue);
+    console.log(`Construct: Min value (${min}), Max value (${max})`);
     return __proxy.__addNumberBox(id, title, description, 0, {
       defaultValue: defaultValue,
       min: min,
@@ -2176,6 +2183,8 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
+    console.log("Add: Default value set to " + defaultValue);
+    console.log(`Add: Min value (${min}), Max value (${max})`);
     __proxy.constructShortNumberBox(id, title, description, 0, {
       defaultValue: defaultValue,
       min: min,
@@ -2459,7 +2468,7 @@ class ComponentAppender extends HTMLComponentConvertable {
         option.append(
           setupStyleNode("div", "margin-left: auto;", (iconNode) => {
             iconNode.append(
-              setupNode("div", (node) => { 
+              setupNode("div", (node) => {
                 node.innerHTML = DECENTRAL_ARROW_ICON_SVG;
               })
             );
