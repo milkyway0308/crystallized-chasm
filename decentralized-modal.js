@@ -519,6 +519,7 @@ const DECENTRAL_CSS_VALUES = `
     .decentral-boxed-field .element-small-input {
         background: var(--decentral-text-background);
         border: 1px solid var(--decentral-text-border);
+        color: var(--decentral-text);
         border-radius: 3px;
         width: 64px;
         height: 36px;
@@ -529,6 +530,7 @@ const DECENTRAL_CSS_VALUES = `
     .decentral-boxed-field .element-medium-input {
         background: var(--decentral-text-background);
         border: 1px solid var(--decentral-text-border);
+        color: var(--decentral-text);
         border-radius: 3px;
         width: 96px;
         height: 36px;
@@ -539,6 +541,7 @@ const DECENTRAL_CSS_VALUES = `
     .decentral-boxed-field .element-large-input {
         background: var(--decentral-text-background);
         border: 1px solid var(--decentral-text-border);
+        color: var(--decentral-text);
         border-radius: 3px;
         width: 128px;
         height: 36px;
