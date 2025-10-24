@@ -519,6 +519,7 @@ const DECENTRAL_CSS_VALUES = `
     .decentral-boxed-field .element-small-input {
         background: var(--decentral-text-background);
         border: 1px solid var(--decentral-text-border);
+        color: var(--decentral-text);
         border-radius: 3px;
         width: 64px;
         height: 36px;
@@ -529,6 +530,7 @@ const DECENTRAL_CSS_VALUES = `
     .decentral-boxed-field .element-medium-input {
         background: var(--decentral-text-background);
         border: 1px solid var(--decentral-text-border);
+        color: var(--decentral-text);
         border-radius: 3px;
         width: 96px;
         height: 36px;
@@ -539,6 +541,7 @@ const DECENTRAL_CSS_VALUES = `
     .decentral-boxed-field .element-large-input {
         background: var(--decentral-text-background);
         border: 1px solid var(--decentral-text-border);
+        color: var(--decentral-text);
         border-radius: 3px;
         width: 128px;
         height: 36px;
@@ -1916,9 +1919,13 @@ class ComponentAppender extends HTMLComponentConvertable {
     this.parentElement.append(
       createLongSemiFlatGridElement(undefined, (node) => {
         node.append(
-          setupClassNode("div", padded ? "decentral-padded-boxed-field" : "decentral-boxed-field", (area) => {
-            initializer(area);
-          })
+          setupClassNode(
+            "div",
+            padded ? "decentral-padded-boxed-field" : "decentral-boxed-field",
+            (area) => {
+              initializer(area);
+            }
+          )
         );
       })
     );
@@ -2080,6 +2087,8 @@ class ComponentAppender extends HTMLComponentConvertable {
     __proxy.addBoxedField(title, description, (node) => {
       node.append(
         setupClassNode("div", "element-input-container", (container) => {
+          console.log("Default value set to " + defaultValue);
+          console.log(`Min value (${min}), Max value (${max})`);
           container.append(
             (inputNode = setupClassNode(
               "input",
@@ -2092,7 +2101,7 @@ class ComponentAppender extends HTMLComponentConvertable {
                 inputField.id = id;
                 inputField.setAttribute("type", "number");
                 inputField.setAttribute("min", min);
-                inputField.setAttribute("min", max);
+                inputField.setAttribute("max", max);
                 if (defaultValue) {
                   inputField.value = defaultValue;
                 }
@@ -2139,6 +2148,8 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
+    console.log("Construct: Default value set to " + defaultValue);
+    console.log(`Construct: Min value (${min}), Max value (${max})`);
     return __proxy.__addNumberBox(id, title, description, 0, {
       defaultValue: defaultValue,
       min: min,
@@ -2175,7 +2186,9 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
-    __proxy.constructShortNumberBox(id, title, description, 0, {
+    console.log("Add: Default value set to " + defaultValue);
+    console.log(`Add: Min value (${min}), Max value (${max})`);
+    __proxy.constructShortNumberBox(id, title, description, {
       defaultValue: defaultValue,
       min: min,
       max: max,
@@ -2248,7 +2261,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
-    __proxy.constructMediumNumberBox(id, title, description, 1, {
+    __proxy.constructMediumNumberBox(id, title, description, {
       defaultValue: defaultValue,
       min: min,
       max: max,
@@ -2321,7 +2334,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
-    __proxy.constructNumberBox(id, title, description, 2, {
+    __proxy.constructNumberBox(id, title, description, {
       defaultValue: defaultValue,
       min: min,
       max: max,
