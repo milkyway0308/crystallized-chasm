@@ -2185,7 +2185,7 @@ class ComponentAppender extends HTMLComponentConvertable {
   ) {
     console.log("Add: Default value set to " + defaultValue);
     console.log(`Add: Min value (${min}), Max value (${max})`);
-    __proxy.constructShortNumberBox(id, title, description, 0, {
+    __proxy.constructShortNumberBox(id, title, description, {
       defaultValue: defaultValue,
       min: min,
       max: max,
@@ -2258,7 +2258,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
-    __proxy.constructMediumNumberBox(id, title, description, 1, {
+    __proxy.constructMediumNumberBox(id, title, description, {
       defaultValue: defaultValue,
       min: min,
       max: max,
@@ -2331,7 +2331,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
-    __proxy.constructNumberBox(id, title, description, 2, {
+    __proxy.constructNumberBox(id, title, description, {
       defaultValue: defaultValue,
       min: min,
       max: max,
