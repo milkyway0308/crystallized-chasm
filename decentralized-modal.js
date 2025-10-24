@@ -2087,8 +2087,6 @@ class ComponentAppender extends HTMLComponentConvertable {
     __proxy.addBoxedField(title, description, (node) => {
       node.append(
         setupClassNode("div", "element-input-container", (container) => {
-          console.log("Default value set to " + defaultValue);
-          console.log(`Min value (${min}), Max value (${max})`);
           container.append(
             (inputNode = setupClassNode(
               "input",
@@ -2148,8 +2146,6 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
-    console.log("Construct: Default value set to " + defaultValue);
-    console.log(`Construct: Min value (${min}), Max value (${max})`);
     return __proxy.__addNumberBox(id, title, description, 0, {
       defaultValue: defaultValue,
       min: min,
@@ -2186,8 +2182,6 @@ class ComponentAppender extends HTMLComponentConvertable {
       __proxy = this,
     } = {}
   ) {
-    console.log("Add: Default value set to " + defaultValue);
-    console.log(`Add: Min value (${min}), Max value (${max})`);
     __proxy.constructShortNumberBox(id, title, description, {
       defaultValue: defaultValue,
       min: min,
