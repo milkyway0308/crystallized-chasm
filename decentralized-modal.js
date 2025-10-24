@@ -401,7 +401,6 @@ const DECENTRAL_CSS_VALUES = `
       max-width: 100%;
       height: fit-content;
       padding: 10px 5px;
-      margin-bottom: 8px;
       min-height: 0;
       min-width: 0; 
     }
@@ -722,7 +721,7 @@ const DECENTRAL_CSS_VALUES = `
     }
 
     .decentral-option:not(:nth-child(1)) { 
-        z-index: 2003; 
+        z-index: 2100; 
     }
 
     .decentral-option:not(:nth-child(1)):hover { 
@@ -735,7 +734,7 @@ const DECENTRAL_CSS_VALUES = `
         flex-direction: column; 
         position: fixed; 
         padding: 5px; 
-        z-index: 2001; 
+        z-index: 1900; 
         height: 250px; 
         overflow-y: scroll; 
         border: 1px solid var(--decentral-text-border); 
@@ -1815,6 +1814,7 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {string} id 필드의 ID
    * @param {string} titleText 버튼의 텍스트
    * @param {Object} param 옵션 파라미터
+   * @param {boolean} short 짧은 버튼 생성 여부
    * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
    * @param {(function(HTMLElement):void) | undefined} param.action 버튼 클릭시 실행될 펑션
    * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
@@ -1823,11 +1823,12 @@ class ComponentAppender extends HTMLComponentConvertable {
   constructButton = function (
     id,
     titleText,
+    short,
     { initializer = undefined, action = undefined, __proxy = this } = {}
   ) {
     let buttonNode;
     __proxy.parentElement.append(
-      createGridElement(undefined, true, (node) => {
+      createGridElement(undefined, short, (node) => {
         node.append(
           (buttonNode = setupClassNode(
             "button",
@@ -1851,6 +1852,27 @@ class ComponentAppender extends HTMLComponentConvertable {
     return buttonNode;
   };
   /**
+   * 클릭 가능한 짧은 버튼을 추가합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} titleText 버튼의 텍스트
+   * @param {Object} param 옵션 파라미터
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement):void) | undefined} param.action 버튼 클릭시 실행될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
+   */
+  addShortButton = function (
+    id,
+    titleText,
+    { initializer = undefined, action = undefined, __proxy = this } = {}
+  ) {
+    __proxy.constructButton(id, titleText, true, {
+      initializer: initializer,
+      action: action,
+    });
+    return this;
+  };
+  /**
    * 클릭 가능한 버튼을 추가합니다.
    * @param {string} id 필드의 ID
    * @param {string} titleText 버튼의 텍스트
@@ -1865,7 +1887,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     titleText,
     { initializer = undefined, action = undefined, __proxy = this } = {}
   ) {
-    __proxy.constructButton(id, titleText, {
+    __proxy.constructButton(id, titleText, false, {
       initializer: initializer,
       action: action,
     });
@@ -1910,7 +1932,7 @@ class ComponentAppender extends HTMLComponentConvertable {
   }
 
   /**
-   * 박스로 감싸진 긴 블럭은 추가합니다. 이 펑션으로 추가된 블럭에는 추가 컴포넌트가 제공되지 않습니다.
+   * 박스로 감싸진 긴 블럭을 추가합니다. 이 펑션으로 추가된 블럭에는 추가 컴포넌트가 제공되지 않습니다.
    * @param {boolean} 추가 수평 패딩 적용 여부
    * @param {function(HTMLElement):void} initializer 필드 초기화시 호출될 펑션
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
@@ -1930,6 +1952,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       })
     );
   }
+  
 
   /**
    * 박스로 감싸진 긴 필드를 추가합니다.
