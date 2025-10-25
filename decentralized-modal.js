@@ -1675,7 +1675,7 @@ class ComponentAppender extends HTMLComponentConvertable {
                 area.value = defaultValue;
               }
               if (onChange) {
-                area.onchange = () => {
+                area.oninput = () => {
                   onChange(area, area.innerText);
                 };
               }
