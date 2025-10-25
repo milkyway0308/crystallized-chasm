@@ -388,7 +388,6 @@ const DECENTRAL_CSS_VALUES = `
       max-width: 100%;
       height: fit-content;
       padding: 10px 5px;
-      margin-bottom: 4px;
       min-height: 0;
       min-width: 0; 
     }
@@ -1813,8 +1812,43 @@ class ComponentAppender extends HTMLComponentConvertable {
    * 클릭 가능한 버튼을 추가하고 반환합니다.
    * @param {string} id 필드의 ID
    * @param {string} titleText 버튼의 텍스트
-   * @param {Object} param 옵션 파라미터
    * @param {boolean} short 짧은 버튼 생성 여부
+   * @param {Object} param 옵션 파라미터
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement):void) | undefined} param.action 버튼 클릭시 실행될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
+   * @returns {HTMLElement} 생성된 버튼 요소
+   */
+  addBoxedButton = function (
+    id,
+    titleText,
+    description,
+    { initializer = undefined, action = undefined, __proxy = this } = {}
+  ) {
+    let buttonNode;
+    __proxy.addBoxedField(id, titleText, description, (node) => {
+      buttonNode = setupClassNode("button", "decentral-button", (button) => {
+        button.id = id;
+        button.innerText = titleText;
+        if (initializer) {
+          initializer(area);
+        }
+        if (action) {
+          button.onclick = () => {
+            action(button);
+          };
+        }
+      });
+    });
+    return buttonNode;
+  };
+
+  /**
+   * 클릭 가능한 버튼을 추가하고 반환합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} titleText 버튼의 텍스트
+   * @param {boolean} short 짧은 버튼 생성 여부
+   * @param {Object} param 옵션 파라미터
    * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
    * @param {(function(HTMLElement):void) | undefined} param.action 버튼 클릭시 실행될 펑션
    * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
@@ -1851,6 +1885,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     );
     return buttonNode;
   };
+
   /**
    * 클릭 가능한 짧은 버튼을 추가합니다.
    * @param {string} id 필드의 ID
