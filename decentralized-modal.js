@@ -2690,7 +2690,10 @@ class ContentPanel extends ComponentAppender {
     this.__verticalContainer.append(this.__footer);
   }
 
-  footer() {
+  footer(useVerticalFooter) {
+    if (useVerticalFooter) {
+      this.__footerGrid.classList.add("decentral-vertical-container");
+    }
     return this.__footerAppender;
   }
 
