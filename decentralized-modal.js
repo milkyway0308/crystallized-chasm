@@ -1952,7 +1952,6 @@ class ComponentAppender extends HTMLComponentConvertable {
       })
     );
   }
-  
 
   /**
    * 박스로 감싸진 긴 필드를 추가합니다.
@@ -2595,8 +2594,11 @@ class ContentPanel extends ComponentAppender {
     "decentral-vertical-container",
     () => {}
   );
-  __footer = setupClassNode("div", "decentral-modal-footer", () => {});
-  __footerAppender = new ComponentAppender(this.__footer);
+  __footerGrid = setupClassNode("div", "decentral-grid-container", () => {});
+  __footer = setupClassNode("div", "decentral-modal-footer", () => {
+    this.__footer.append(this.__footerGrid);
+  });
+  __footerAppender = new ComponentAppender(this.__footerGrid);
 
   constructor(id, title, svg, mobileOpenAction, closeAction) {
     super(setupClassNode("div", "decentral-grid", () => {}));
