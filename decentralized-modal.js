@@ -1826,19 +1826,21 @@ class ComponentAppender extends HTMLComponentConvertable {
     { initializer = undefined, action = undefined, __proxy = this } = {}
   ) {
     let buttonNode;
-    __proxy.addBoxedField(id, titleText, description, (node) => {
-      buttonNode = setupClassNode("button", "decentral-button", (button) => {
-        button.id = id;
-        button.innerText = titleText;
-        if (initializer) {
-          initializer(area);
-        }
-        if (action) {
-          button.onclick = () => {
-            action(button);
-          };
-        }
-      });
+    __proxy.addBoxedField(titleText, description, (node) => {
+      node.append(
+        (buttonNode = setupClassNode("button", "decentral-button", (button) => {
+          button.id = id;
+          button.innerText = titleText;
+          if (initializer) {
+            initializer(area);
+          }
+          if (action) {
+            button.onclick = () => {
+              action(button);
+            };
+          }
+        }))
+      );
     });
     return buttonNode;
   };
