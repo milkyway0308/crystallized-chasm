@@ -733,7 +733,7 @@ const DECENTRAL_CSS_VALUES = `
         flex-direction: column; 
         position: fixed; 
         padding: 5px; 
-        z-index: 1900; 
+        z-index: 2300; 
         height: 250px; 
         overflow-y: scroll; 
         border: 1px solid var(--decentral-text-border); 
