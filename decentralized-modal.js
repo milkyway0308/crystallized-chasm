@@ -2595,8 +2595,8 @@ class ContentPanel extends ComponentAppender {
     () => {}
   );
   __footerGrid = setupClassNode("div", "decentral-grid-container", () => {});
-  __footer = setupClassNode("div", "decentral-modal-footer", () => {
-    this.__footer.append(this.__footerGrid);
+  __footer = setupClassNode("div", "decentral-modal-footer", (node) => {
+    node.append(this.__footerGrid);
   });
   __footerAppender = new ComponentAppender(this.__footerGrid);
 
