@@ -2574,6 +2574,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       node.append(topNode);
     });
     topNode.setAttribute("decentral-selected", initialId);
+
     return {
       node: topNode,
       /**
@@ -2604,9 +2605,13 @@ class ComponentAppender extends HTMLComponentConvertable {
         return element;
       },
       runSelected: () => {
-        document
-          .getElementById(topNode.getAttribute("decentral-selected"))
-          ?.onclick();
+        for (const element of topNode.getElementsByClassName(
+          "decentral-option"
+        )) {
+          if (element.id === topNode.getAttribute("decentral-selected")) {
+            element.onclick();
+          }
+        }
       },
       setSelected: (id) => {
         const toSelected = document.getElementById(id);
