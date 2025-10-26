@@ -329,7 +329,7 @@ const DECENTRAL_CSS_VALUES = `
       display: flex;
       width: 100%;
       height: 100%;
-      overflow-y: scroll;
+      overflow-y: auto;
       overflow-x: hidden;
       min-height: 0;
       min-width: 0; 
