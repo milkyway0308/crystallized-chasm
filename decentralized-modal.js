@@ -2507,7 +2507,7 @@ class ComponentAppender extends HTMLComponentConvertable {
    *
    * @returns 노드 수정 인스턴스
    */
-  constructSelectBox(titleText, initialText, initialId, __proxy = this) {
+  constructSelectBox(titleText, initialText, initialId, isLong, __proxy = this) {
     let topNode = setupClassNode("ul", "decentral-select");
     let optionContainer = setupClassNode("div", "decentral-list");
     topNode.setAttribute("decentral-selected", initialId);
@@ -2556,7 +2556,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     topNode.append(title);
     topNode.append(optionContainer);
 
-    this.addGrid(titleText, false, (node) => {
+    this.addGrid(titleText, isLong, (node) => {
       node.append(topNode);
     });
 
