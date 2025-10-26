@@ -677,7 +677,8 @@ const DECENTRAL_CSS_VALUES = `
         background-color: transparent; 
         overflow: hidden; 
         color: var(--decentral-text); 
-        border: 1px solid var(--decentral-text-border); 
+        border: 1px solid var(--decentral-text-border);
+        user-select: none; 
         appearance: none; 
         -webkit-appearance: none; 
         -moz-appearance: none;
