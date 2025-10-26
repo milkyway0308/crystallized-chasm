@@ -1693,6 +1693,57 @@ class ComponentAppender extends HTMLComponentConvertable {
   };
 
   /**
+   * 이름과 필드를 쌍으로 가지는 텍스트에이리어 필드를 추가하고 반환합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} titleText 필드의 텍스트 제목
+   * @param {string} description 필드의 설명
+   * @param {Object} param 옵션 파라미터
+   * @param {string | undefined} param.defaultValue 필드의 기본 텍스트 값
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement, string):void) | undefined} param.onChange 필드 내용 변경시 호출될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
+   * @returns {HTMLElement} 생성된 텍스트에이리어 요소 (testarea)
+   */
+  constructBoxedTextAreaGrid = function (
+    id,
+    titleText,
+    description,
+    {
+      defaultValue = undefined,
+      initializer = undefined,
+      onChange = undefined,
+      __proxy = this,
+    } = {}
+  ) {
+    let textNode = undefined;
+    __proxy.parentElement.append(
+      __proxy.addBoxedField(titleText, description, (node) => {
+        node.append(
+          (textNode = setupClassNode(
+            "textarea",
+            "decentral-text-area",
+            (area) => {
+              area.id = id;
+              if (defaultValue) {
+                area.value = defaultValue;
+              }
+              if (onChange) {
+                area.onchange = () => {
+                  onChange(area, area.value);
+                };
+              }
+              if (initializer) {
+                initializer(area);
+              }
+            }
+          ))
+        );
+      })
+    );
+    return textNode;
+  };
+
+  /**
    * 이름과 필드를 쌍으로 가지는 텍스트에이리어 필드를 추가합니다.
    * @param {string} id 필드의 ID
    * @param {string} titleText 필드의 텍스트 제목
