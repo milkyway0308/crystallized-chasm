@@ -2573,7 +2573,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     this.addGrid(titleText, isLong, (node) => {
       node.append(topNode);
     });
-
+    topNode.setAttribute("decentral-selected", initialId);
     return {
       node: topNode,
       /**
@@ -2606,7 +2606,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       runSelected: () => {
         document
           .getElementById(topNode.getAttribute("decentral-selected"))
-          .onclick();
+          ?.onclick();
       },
       setSelected: (id) => {
         const toSelected = document.getElementById(id);
