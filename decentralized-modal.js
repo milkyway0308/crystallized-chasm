@@ -1719,25 +1719,29 @@ class ComponentAppender extends HTMLComponentConvertable {
     let textNode = undefined;
     let topNode = undefined;
     __proxy.parentElement.append(
-      (topNode = __proxy.constructLongBoxedField(titleText, description, (node) => {
-        node.append(
-          (textNode = setupClassNode(
-            "textarea",
-            "decentral-text-area",
-            (area) => {
-              area.id = id;
-              if (defaultValue) {
-                area.value = defaultValue;
+      (topNode = __proxy.constructLongBoxedField(
+        titleText,
+        description,
+        (node) => {
+          node.append(
+            (textNode = setupClassNode(
+              "textarea",
+              "decentral-text-area",
+              (area) => {
+                area.id = id;
+                if (defaultValue) {
+                  area.value = defaultValue;
+                }
+                if (onChange) {
+                  area.onchange = () => {
+                    onChange(area, area.value);
+                  };
+                }
               }
-              if (onChange) {
-                area.onchange = () => {
-                  onChange(area, area.value);
-                };
-              }
-            }
-          ))
-        );
-      }))
+            ))
+          );
+        }
+      ))
     );
 
     if (initializer) {
@@ -2698,6 +2702,7 @@ class ComponentAppender extends HTMLComponentConvertable {
         return element;
       },
       runSelected: () => {
+        console.log(topNode.getElementsByClassName("decentral-option"));
         for (const element of topNode.getElementsByClassName(
           "decentral-option"
         )) {
