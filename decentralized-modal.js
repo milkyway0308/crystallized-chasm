@@ -1997,11 +1997,12 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {string} id 필드의 ID
    * @param {string} title 제목 텍스트
    * @param {function(HTMLElement, boolean):void} initializer 필드 초기화시 호출될 펑션
-   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
+   * @returns {HTMLElement} 생성된 요소
    */
-  addLongBoxedField(title, description, initializer) {
+  constructLongBoxedField(title, description, initializer) {
+    let topNode = undefined;
     this.parentElement.append(
-      createLongSemiFlatGridElement(undefined, (node) => {
+      (topNode = createLongSemiFlatGridElement(undefined, (node) => {
         node.append(
           setupClassNode("div", "decentral-boxed-field", (area) => {
             area.append(
@@ -2029,8 +2030,9 @@ class ComponentAppender extends HTMLComponentConvertable {
             );
           })
         );
-      })
+      }))
     );
+    return topNode;
   }
   /**
    * 박스로 감싸진 스위치 형태의 체크박스 필드를 추가하고 반환합니다.
@@ -2406,7 +2408,7 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {string} description 설명 텍스트
    * @param {Object} param 옵션 파라미터
    * @param {string | undefined} param.defaultValue 필드의 기본 텍스트 값
-   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement, HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션 (현재 노드, 최상위 노드)
    * @param {(function(HTMLElement, string):void) | undefined} param.onChange 텍스트 변경시 호출될 펑션
    * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {HTMLElement} 생성된 텍스트 필드
@@ -2423,29 +2425,33 @@ class ComponentAppender extends HTMLComponentConvertable {
     } = {}
   ) {
     let inputNode = undefined;
-    __proxy.addLongBoxedField(title, description, (node) => {
-      node.append(
-        (inputNode = setupClassNode(
-          "input",
-          "decentral-text-field",
-          (inputField) => {
-            inputField.id = id;
-            inputField.setAttribute("type", "text");
-            if (defaultValue) {
-              inputField.value = defaultValue;
+    const topNode = __proxy.constructLongBoxedField(
+      title,
+      description,
+      (node) => {
+        node.append(
+          (inputNode = setupClassNode(
+            "input",
+            "decentral-text-field",
+            (inputField) => {
+              inputField.id = id;
+              inputField.setAttribute("type", "text");
+              if (defaultValue) {
+                inputField.value = defaultValue;
+              }
+              if (onChange) {
+                inputField.onchange = () => {
+                  onChange(inputField, inputField.value);
+                };
+              }
             }
-            if (onChange) {
-              inputField.onchange = () => {
-                onChange(inputField, inputField.value);
-              };
-            }
-            if (initializer) {
-              initializer(inputField);
-            }
-          }
-        ))
-      );
-    });
+          ))
+        );
+      }
+    );
+    if (initializer) {
+      initializer(inputNode, topNode);
+    }
     return inputNode;
   };
 
@@ -2456,7 +2462,7 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {string} description 설명 텍스트
    * @param {Object} param 옵션 파라미터
    * @param {string | undefined} param.defaultValue 필드의 기본 텍스트 값
-   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement, HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션 (현재 노드, 최상위 노드)
    * @param {(function(HTMLElement, string):void) | undefined} param.onChange 텍스트 변경시 호출될 펑션
    * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
