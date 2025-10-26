@@ -1991,6 +1991,44 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {string} id 필드의 ID
    * @param {string} title 제목 텍스트
    * @param {function(HTMLElement, boolean):void} initializer 필드 초기화시 호출될 펑션
+   * @returns {HTMLElement} 생성된 필드
+   */
+  constructBoxedField(title, description, initializer) {
+    let topNode;
+    this.parentElement.append(
+      (topNode = createLongSemiFlatGridElement(undefined, (node) => {
+        node.append(
+          setupClassNode("div", "decentral-boxed-field", (area) => {
+            area.append(
+              setupClassNode("div", "element-text-container", (field) => {
+                field.append(
+                  setupClassNode("p", "element-title", (text) => {
+                    text.innerText = title;
+                  })
+                );
+                field.append(
+                  setupClassNode("p", "element-description", (text) => {
+                    text.innerText = description;
+                  })
+                );
+              })
+            );
+            area.append(
+              setupClassNode("div", "element-input-container", (container) => {
+                initializer(container);
+              })
+            );
+          })
+        );
+      }))
+    );
+    return topNode;
+  }
+  /**
+   * 박스로 감싸진 필드를 추가합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} title 제목 텍스트
+   * @param {function(HTMLElement, boolean):void} initializer 필드 초기화시 호출될 펑션
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
    */
   addBoxedField(title, description, initializer) {
@@ -2021,6 +2059,7 @@ class ComponentAppender extends HTMLComponentConvertable {
         );
       })
     );
+    return this;
   }
 
   /**
