@@ -1718,7 +1718,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     let textNode = undefined;
     let topNode = undefined;
     __proxy.parentElement.append(
-      (topNode = __proxy.addBoxedField(titleText, description, (node) => {
+      (topNode = __proxy.constructBoxedField(titleText, description, (node) => {
         node.append(
           (textNode = setupClassNode(
             "textarea",
