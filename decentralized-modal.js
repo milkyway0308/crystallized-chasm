@@ -1733,9 +1733,6 @@ class ComponentAppender extends HTMLComponentConvertable {
                   onChange(area, area.value);
                 };
               }
-              if (initializer) {
-                initializer(area);
-              }
             }
           ))
         );
