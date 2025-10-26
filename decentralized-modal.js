@@ -1019,11 +1019,13 @@ class DecentrallizedModal {
 
   /**
    *
-   * @param {string[]} preSelected
+   * @param {string[]|undefined} preSelected
    */
   triggerSelect(preSelected) {
-    this.selectedMenu.length = 0;
-    this.selectedMenu.push(preSelected);
+    if (preSelected) {
+      this.selectedMenu.length = 0;
+      this.selectedMenu.push(preSelected);
+    }
     if (preSelected.length === 1) {
       this.__menuItems.get(preSelected[0])?.onDisplay(this);
     } else if (preSelected.length === 2) {
@@ -2507,7 +2509,13 @@ class ComponentAppender extends HTMLComponentConvertable {
    *
    * @returns 노드 수정 인스턴스
    */
-  constructSelectBox(titleText, initialText, initialId, isLong, __proxy = this) {
+  constructSelectBox(
+    titleText,
+    initialText,
+    initialId,
+    isLong,
+    __proxy = this
+  ) {
     let topNode = setupClassNode("ul", "decentral-select");
     let optionContainer = setupClassNode("div", "decentral-list");
     topNode.setAttribute("decentral-selected", initialId);
