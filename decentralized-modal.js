@@ -1716,8 +1716,9 @@ class ComponentAppender extends HTMLComponentConvertable {
     } = {}
   ) {
     let textNode = undefined;
+    let topNode = undefined;
     __proxy.parentElement.append(
-      __proxy.addBoxedField(titleText, description, (node) => {
+      (topNode = __proxy.addBoxedField(titleText, description, (node) => {
         node.append(
           (textNode = setupClassNode(
             "textarea",
@@ -1738,8 +1739,12 @@ class ComponentAppender extends HTMLComponentConvertable {
             }
           ))
         );
-      })
+      }))
     );
+
+    if (initializer) {
+      initializer(textNode, topNode);
+    }
     return textNode;
   };
 
