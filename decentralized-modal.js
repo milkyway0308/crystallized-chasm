@@ -2687,6 +2687,7 @@ class ComponentAppender extends HTMLComponentConvertable {
           option.setAttribute("decentral-option-text", text);
           option.setAttribute("decentral-option-id", id);
           option.onclick = () => {
+            console.log("Onclick triggered at " + id);
             this.removeOuterClickDetection();
             topNode.removeAttribute("list-enabled");
             const selectedId = option.getAttribute("decentral-option-id");
