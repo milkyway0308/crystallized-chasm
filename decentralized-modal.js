@@ -1933,7 +1933,7 @@ class ComponentAppender extends HTMLComponentConvertable {
               button.id = id;
               button.innerText = titleText;
               if (initializer) {
-                initializer(area);
+                initializer(button);
               }
               if (action) {
                 button.onclick = () => {
