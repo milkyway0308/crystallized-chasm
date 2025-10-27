@@ -2719,9 +2719,6 @@ class ComponentAppender extends HTMLComponentConvertable {
         const toSelected = document.getElementById(id);
         if (toSelected) {
           topNode.setAttribute("decentral-selected", id);
-          topNode.textContent = toSelected.getAttribute(
-            "decentral-option-text"
-          );
           toSelected.onclick();
         }
       },
