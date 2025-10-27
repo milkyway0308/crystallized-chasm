@@ -2707,6 +2707,7 @@ class ComponentAppender extends HTMLComponentConvertable {
         for (const element of topNode.getElementsByClassName(
           "decentral-option"
         )) {
+          console.log("Canning " + element.id);
           if (element.id === topNode.getAttribute("decentral-selected")) {
             console.log("Found selected: " + element);
             element.onclick();
