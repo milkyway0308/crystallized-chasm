@@ -1185,10 +1185,22 @@ class BaseMenuPanel extends HTMLComponentConvertable {
 }
 
 class MenuPanel extends BaseMenuPanel {
-  constructor() {
+ 
+  /**
+   *
+   * @param {DecentrallizedModal} modal
+   * @param {Map<string, ModalMenu>} menus
+   * @param {string[]} selectedMenu
+   */
+  constructor(modal, menus, selectedMenu) {
     super();
+    /** @type {Map<string, ModalMenu>} */
+    this.menus = menus;
+    this.modal = modal;
+    this.selectedMenu = selectedMenu;
     this.__menu = undefined;
   }
+
   hideAllActive() {
     super.hideAllActive([
       "decentral-menu-element-container",
