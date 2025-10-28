@@ -10,7 +10,7 @@
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/ignitor.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/ignitor.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
-// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/dec6f3a0e37da5c7fef2f7d17d7d754b54913794/decentralized-modal.js
+// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/4539d98e2e3ffdd78c81c1df35e3a1024ecfc3e4/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 GM_addStyle(`
@@ -60,7 +60,7 @@ GM_addStyle(`
   let lastSelected = [];
   let lastModified = ["", "", "", ""];
   let lastSelectedPrompt = undefined;
-  let executeModel = undefined;
+  let lastSelectedModel = undefined;
 
   const database = new Dexie("chasm-ignitor");
   // https://www.svgrepo.com/svg/457256/trash-can
@@ -290,15 +290,10 @@ GM_addStyle(`
   }
 
   class UserNoteUtility {
-    isValid() {
-      return false;
-    }
-
+    /**
+     * @returns {Promise<string>}
+     */
     async fetch() {}
-
-    async set(message) {}
-
-    async remove() {}
   }
 
   class PlatformPersonaUtility {
@@ -374,7 +369,7 @@ GM_addStyle(`
   const settings = {
     lastUsedProvider: "Google",
     lastUsedModel: "Gemini 2.5 Pro",
-    lastUsedPrompt: "커스텀",
+    lastCustomPrompt: undefined,
     useAutoRetry: true,
     maxMessageRetreive: 50,
     addRandomHeader: false,
@@ -496,7 +491,10 @@ GM_addStyle(`
   function appendBurnerLog(message) {
     const logContainer = document.getElementById("chasm-ignt-log-container");
     const time = new Date();
-    const timeMessage = `[${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}] `;
+    const timeMessage = `[${time.getHours().toString().padStart(2, "0")}:${time
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}:${time.getSeconds().toString().padStart(2, "0")}] `;
     logContainer.textContent =
       timeMessage + message + "\n" + logContainer.textContent;
   }
@@ -549,6 +547,7 @@ GM_addStyle(`
         provider,
         `chasm-ignt-provider-${provider}`,
         (id, node) => {
+          console.log("Running provider of " + provider);
           let index = 0;
           modelBox.clear();
           modelBox.addGroup("사용 모델");
@@ -558,17 +557,25 @@ GM_addStyle(`
               item.display,
               `chasm-ignt-model-listing-${index++}`,
               (_, node) => {
-                executeModel = item.requester;
+                lastSelectedModel = item;
+                console.log("Model selected : ");
+                console.log(item);
                 return true;
               }
             );
+            console.log("Added " + `chasm-ignt-model-listing-${index - 1}`);
           }
+          console.log("Force selected");
           modelBox.setSelected(`chasm-ignt-model-listing-0`);
+          console.log("Change selected to chasm-ignt-model-listing-0");
           modelBox.runSelected();
+          console.log("Runned");
         }
       );
     }
+
     providerBox.runSelected();
+    console.log("Adding option");
     // Option flag here
 
     const promptPreset = panel.constructSelectBox(
@@ -639,7 +646,7 @@ GM_addStyle(`
             "true"
           );
         saveSettings();
-        lastSelectedPrompt = settings.lastUsedPrompt;
+        lastSelectedPrompt = settings.lastCustomPrompt;
         return true;
       }
     );
@@ -854,6 +861,7 @@ GM_addStyle(`
           const fetcher = provider.getFetcher();
           const sender = provider.getSender();
           const personaUtil = provider.getPersonaUtil();
+          const noteUtil = provider.getUserNoteUtil();
           new Promise(async () => {
             appendBurnerLog("메시지 가져오는 중..");
             const messages = await fetcher.fetch(settings.maxMessageRetreive);
@@ -864,17 +872,64 @@ GM_addStyle(`
               return;
             }
             appendBurnerLog("페르소나 데이터: " + JSON.stringify(persona));
+            const note = await noteUtil.fetch();
+            appendBurnerLog("유저노트 데이터: " + note);
             appendBurnerLog(
               "현재 프롬프트 " + lastSelectedPrompt.length + "자"
             );
 
-            let message = JSON.stringify({
+            const messageStructure = {
               prompt: lastSelectedPrompt,
-              chat_log: messages,
-            });
+              chatLog: settings.includePersona
+                ? messages
+                : messages.map((it) => it.anonymize()),
+            };
+            if (settings.includeUserNote) {
+              const userNote = await noteUtil.fetch();
+              if (userNote.length > 0) {
+                messageStructure.userNote = userNote;
+              }
+            }
+
+            let message = JSON.stringify(messageStructure);
             appendBurnerLog(
               "메시지 구축 완료. 최종 메시지 " + message.length + "자"
             );
+            appendBurnerLog(
+              "선택한 모델 " +
+                lastSelectedModel.display +
+                "에 요청을 시작합니다."
+            );
+            while (true) {
+              const result = await lastSelectedModel.requester.doRequest(
+                new RequestOption(
+                  lastSelectedModel.name,
+                  message,
+                  settings.addRandomHeader
+                )
+              );
+              if (result instanceof LLMError) {
+                appendBurnerLog(
+                  "LLM 요청 실패: 오류 코드 " +
+                    result.code +
+                    ": " +
+                    result.message
+                );
+                if (!settings.useAutoRetry) {
+                  break;
+                }
+                if (!result.isRecoverable) {
+                  appendBurnerLog(
+                    "이 오류는 재시도 불가능한 오류입니다. 재시도를 중단합니다."
+                  );
+                  break;
+                }
+                appendBurnerLog("다시 시도합니다..");
+              } else {
+                console.log(result);
+                break;
+              }
+            }
           }).then(() => {});
         },
       });
@@ -1221,22 +1276,27 @@ GM_addStyle(`
   const MODEL_MAPPINGS = {
     Google: {
       "gemini-2.5-pro": {
+        name: "gemini-2.5-pro",
         display: "Gemini 2.5 Pro",
         requester: GeminiRequester.GENERIC_REQUESTER,
       },
       "gemini-2.5-flash": {
+        name: "gemini-2.5-flash",
         display: "Gemini 2.5 Flash",
         requester: GeminiRequester.GENERIC_REQUESTER,
       },
       "gemini-2.5-flash-lite": {
+        name: "gemini-2.5-flash-lite",
         display: "Gemini 2.5 Flash Lite",
         requester: GeminiRequester.GENERIC_REQUESTER,
       },
       "gemini-2.0-flash": {
+        name: "gemini-2.0-flash",
         display: "Gemini 2.0 Flash",
         requester: GeminiRequester.GENERIC_REQUESTER,
       },
       "gemini-2.0-flash-lite": {
+        name: "gemini-2.0-flash-lite",
         display: "Gemini 2.0 Flash Lite",
         requester: GeminiRequester.GENERIC_REQUESTER,
       },
@@ -1658,15 +1718,24 @@ GM_addStyle(`
   }
 
   class CrackUserNoteUtility extends UserNoteUtility {
-    isValid() {
-      return false;
+    constructor(chatId) {
+      super();
+      this.chatId = chatId;
+      this.expectedUrl = isCharacterPath()
+        ? `https://contents-api.wrtn.ai/character-chat/single-character-chats/${chatId}`
+        : `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${chatId}`;
     }
 
-    async fetch() {}
-
-    async set(message) {}
-
-    async remove() {}
+    /**
+     * @returns {string}
+     */
+    async fetch() {
+      const result = await authFetch("GET", this.expectedUrl);
+      if (result instanceof Error) {
+        return result;
+      }
+      return result.data?.character?.userNote?.content;
+    }
   }
 
   class CrackPersonaUtility extends PlatformPersonaUtility {
@@ -1717,8 +1786,6 @@ GM_addStyle(`
     }
   }
 
-  class CrackUserNoteUtil extends UserNoteUtility {}
-
   class CrackProvider extends PlatformProvider {
     /**
      * @returns {PlatformMessageFetcher}
@@ -1747,7 +1814,10 @@ GM_addStyle(`
      * @returns {UserNoteUtility}
      */
     getUserNoteUtil() {
-      alert("Platform user note utility not implemented yet");
+      const split = window.location.pathname.substring(1).split("/");
+      const characterId = split[1];
+      const chatRoomId = split[3];
+      return new CrackUserNoteUtility(chatRoomId);
     }
 
     /**
