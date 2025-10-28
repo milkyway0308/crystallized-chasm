@@ -10,50 +10,50 @@
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/ignitor.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/ignitor.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
-// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/f643809de00dc5de7beb7e967206acbc7cbf1910/decentralized-modal.js
+// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/ea39262878161bf25d28d3f5269f5e553d2e952b/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 GM_addStyle(`
-  body {
-    --decentral-text: #000000;
-    --chasm-ignt-danger: #ff0000;
-  }
-  .chasm-ignt-prompt-container {
-    display: none !important;  
-  } 
+    body {
+      --decentral-text: #000000;
+      --chasm-ignt-danger: #ff0000;
+    }
+    .chasm-ignt-prompt-container {
+      display: none !important;  
+    } 
 
-  .chasm-ignt-prompt-container[enabled="true"] {
-    display: flex !important;
-  }
+    .chasm-ignt-prompt-container[enabled="true"] {
+      display: flex !important;
+    }
 
-  [chasm-ignt-hide="true"] {
-    display: none !important;
-  }
+    [chasm-ignt-hide="true"] {
+      display: none !important;
+    }
 
-  .chasm-ignt-svg-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 2px;
-    margin-right: 8px;    
-  }
+    .chasm-ignt-svg-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 2px;
+      margin-right: 8px;    
+    }
 
-  .chasm-ignt-svg-spaced-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 2px;
-    margin-right: 16px;
-  }
+    .chasm-ignt-svg-spaced-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 2px;
+      margin-right: 16px;
+    }
 
-  .chasm-ignt-svg-button:hover,.chasm-ignt-svg-spaced-button:hover {
-    cursor: pointer;
-  }
-`);
+    .chasm-ignt-svg-button:hover,.chasm-ignt-svg-spaced-button:hover {
+      cursor: pointer;
+    }
+  `);
 
 !(async function () {
   const VERSION = "v1.0.0p";
@@ -65,13 +65,13 @@ GM_addStyle(`
   const database = new Dexie("chasm-ignitor");
   // https://www.svgrepo.com/svg/457256/trash-can
   const TRASH_CAN_ICON_SVG = `
-  <svg width="36px" height="36px" viewBox="-0.5 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6.5 7.08499V21.415C6.5 21.695 6.72 21.915 7 21.915H17C17.28 21.915 17.5 21.695 17.5 21.415V7.08499" stroke="var(--chasm-ignt-danger)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M14 5.08499H10V3.58499C10 3.30499 10.22 3.08499 10.5 3.08499H13.5C13.78 3.08499 14 3.30499 14 3.58499V5.08499Z" stroke="var(--chasm-ignt-danger)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M5 5.08499H19" stroke="var(--chasm-ignt-danger)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M12 10.465V17.925" stroke="var(--chasm-ignt-danger)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M15 9.465V18.925" stroke="var(--chasm-ignt-danger)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M9 9.465V18.925" stroke="var(--chasm-ignt-danger)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
-  `;
+    <svg width="36px" height="36px" viewBox="-0.5 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6.5 7.08499V21.415C6.5 21.695 6.72 21.915 7 21.915H17C17.28 21.915 17.5 21.695 17.5 21.415V7.08499" stroke="var(--chasm-ignt-danger)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M14 5.08499H10V3.58499C10 3.30499 10.22 3.08499 10.5 3.08499H13.5C13.78 3.08499 14 3.30499 14 3.58499V5.08499Z" stroke="var(--chasm-ignt-danger)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M5 5.08499H19" stroke="var(--chasm-ignt-danger)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M12 10.465V17.925" stroke="var(--chasm-ignt-danger)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M15 9.465V18.925" stroke="var(--chasm-ignt-danger)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M9 9.465V18.925" stroke="var(--chasm-ignt-danger)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+    `;
 
   // https://www.svgrepo.com/svg/500548/edit
   const EDIT_ICON_SVG = `
-  <svg width="32px" height="32px" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" fill="var(--decentral-text-formal)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path fill="var(--decentral-text-formal)" d="M832 512a32 32 0 1 1 64 0v352a32 32 0 0 1-32 32H160a32 32 0 0 1-32-32V160a32 32 0 0 1 32-32h352a32 32 0 0 1 0 64H192v640h640V512z"></path><path fill="var(--decentral-text-formal)" d="m469.952 554.24 52.8-7.552L847.104 222.4a32 32 0 1 0-45.248-45.248L477.44 501.44l-7.552 52.8zm422.4-422.4a96 96 0 0 1 0 135.808l-331.84 331.84a32 32 0 0 1-18.112 9.088L436.8 623.68a32 32 0 0 1-36.224-36.224l15.104-105.6a32 32 0 0 1 9.024-18.112l331.904-331.84a96 96 0 0 1 135.744 0z"></path></g></svg>
-  `;
+    <svg width="32px" height="32px" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" fill="var(--decentral-text-formal)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path fill="var(--decentral-text-formal)" d="M832 512a32 32 0 1 1 64 0v352a32 32 0 0 1-32 32H160a32 32 0 0 1-32-32V160a32 32 0 0 1 32-32h352a32 32 0 0 1 0 64H192v640h640V512z"></path><path fill="var(--decentral-text-formal)" d="m469.952 554.24 52.8-7.552L847.104 222.4a32 32 0 1 0-45.248-45.248L477.44 501.44l-7.552 52.8zm422.4-422.4a96 96 0 0 1 0 135.808l-331.84 331.84a32 32 0 0 1-18.112 9.088L436.8 623.68a32 32 0 0 1-36.224-36.224l15.104-105.6a32 32 0 0 1 9.024-18.112l331.904-331.84a96 96 0 0 1 135.744 0z"></path></g></svg>
+    `;
   await database.version(2).stores({
     prompts: `name, description, author, prompt`,
   });
@@ -113,9 +113,10 @@ GM_addStyle(`
      * @param {number} code
      * @param {string} message
      */
-    constructor(code, message) {
+    constructor(code, message, isRecoverable) {
       this.code = code;
       this.message = message;
+      this.isRecoverable = isRecoverable;
     }
   }
 
@@ -125,7 +126,7 @@ GM_addStyle(`
      * @param {RequestOption} option
      * @returns {GenericLLMResponse | LLMError}
      */
-    async doRequest(option, authKey) {
+    async doRequest(option) {
       console.alert("LLM function implemented yet");
     }
   }
@@ -137,8 +138,11 @@ GM_addStyle(`
      * @param {RequestOption} option
      * @returns {GenericLLMResponse | LLMError}
      */
-    async doRequest(option, authKey) {
+    async doRequest(option) {
       try {
+        if (!settings.geminiKey) {
+          return new LLMError(-1, "Gemini API 키가 등록되지 않았습니다.");
+        }
         const safetySettings = [
           {
             category: "HARM_CATEGORY_HARASSMENT",
@@ -181,6 +185,34 @@ GM_addStyle(`
         );
         const text = await request.text();
         if (Math.floor(request.status / 100) !== 2) {
+          if (request.status === 403) {
+            return new LLMError(
+              request.status,
+              "Gemini API 키가 유효하지 않거나 권한이 부족합니다.",
+              false
+            );
+          }
+          if (request.status === 429) {
+            return new LLMError(
+              request.status,
+              "Gemini API의 레이트리밋에 도달하여 요청에 실패하였습니다.",
+              true
+            );
+          }
+          if (request.status === 500) {
+            return new LLMError(
+              request.status,
+              "Gemini API에서 서버 오류가 발생하였습니다.",
+              true
+            );
+          }
+          if (request.status === 503) {
+            return new LLMError(
+              request.status,
+              "Gemini API의 레이트리밋에 도달하여 요청에 실패하였습니다",
+              true
+            );
+          }
           return new LLMError(request.status, text);
         }
         const json = JSON.parse(text);
@@ -188,19 +220,25 @@ GM_addStyle(`
         if (!candidates || candidates.length <= 0) {
           return new LLMError(
             1400,
-            "LLM에서 응답 컨테이너를 반환하지 않았습니다."
+            "LLM에서 응답 컨테이너를 반환하지 않았습니다.",
+            true
           );
         }
         const parts = candidates[0].content;
         if (!parts || parts.length <= 0) {
           return new LLMError(
             1400,
-            "LLM에서 응답 데이터를 반환하지 않았습니다."
+            "LLM에서 응답 데이터를 반환하지 않았습니다.",
+            true
           );
         }
         const message = parts[0].text;
         if (!message) {
-          return new LLMError(1400, "LLM에서 빈 응답 메시지를 반환하였습니다.");
+          return new LLMError(
+            1400,
+            "LLM에서 빈 응답 메시지를 반환하였습니다.",
+            true
+          );
         }
         return new GenericLLMResponse(
           message,
@@ -239,7 +277,22 @@ GM_addStyle(`
     }
   }
 
+  class UserNoteUtility {
+    isValid() {
+      return false;
+    }
+
+    async fetch() {}
+
+    async set(message) {}
+
+    async remove() {}
+  }
+
   class PlatformMessageFetcher {
+    isValid() {
+      return false;
+    }
     /**
      *
      * @param {number} count
@@ -257,6 +310,10 @@ GM_addStyle(`
       document.__$igntPlatformProvider = provider;
     }
 
+    /**
+     *
+     * @returns {PlatformProvider}
+     */
     static getProvider() {
       return document.__$igntPlatformProvider;
     }
@@ -298,12 +355,15 @@ GM_addStyle(`
         settings[key] = json[key];
       }
     }
+    console.log("Loaded: ");
+    console.log(settings);
   }
 
   function saveSettings() {
     log("설정 저장중..");
     // Yay, no need to filtering anything!
-    localStorage.setItem("chasm-cntr-settings", JSON.stringify(settings));
+    localStorage.setItem("chasm-ignt-settings", JSON.stringify(settings));
+    console.log(settings);
     log("설정 저장 완료");
   }
 
@@ -348,6 +408,26 @@ GM_addStyle(`
     }
   }
 
+  function parseVertexContent(vertexAiScript) {
+    if (vertexAiScript.length <= 0) {
+      return undefined;
+    }
+    const startText = "firebaseConfig = {";
+    const startIndex = vertexAiScript.indexOf(startText);
+    if (startIndex === -1) {
+      return undefined;
+    }
+    const endIndex = vertexAiScript.indexOf("}", startIndex + 1);
+    if (endIndex === -1) {
+      return undefined;
+    }
+    const fetched = vertexAiScript
+      .substring(startIndex + startText.length - 1, endIndex + 1)
+      .replace(" ", "")
+      .replaceAll(/(\S*)\: /g, '"$1": ');
+    return JSON.parse(fetched);
+  }
+
   function log(message) {
     console.log(
       "%cChasm Crystallized Ignitor: %cInfo: %c" + message,
@@ -379,402 +459,579 @@ GM_addStyle(`
     modal
       .createMenu("결정화 캐즘 이그나이터", (modal) => {
         modal.replaceContentPanel((panel) => {
-          const providerBox = panel.constructSelectBox(
-            "모델 제공자",
-            "Google",
-            "chasm-ignt-provider-google",
-            false
-          );
-          const modelBox = panel.constructSelectBox(
-            "사용 모델",
-            "Gemini 2.5 Pro",
-            "gemini-2.5-pro",
-            false
-          );
-          for (let provider of Object.keys(MODEL_MAPPINGS)) {
-            providerBox.addOption(
-              provider,
-              `chasm-ignt-provider-${provider}`,
-              (id, node) => {}
-            );
-          }
-
-          const customPromptBox = panel.constructTextAreaGrid(
-            "chasm-ignt-custom-prompt",
-            "커스텀 프롬프트",
-            {
-              defaultValue: "",
-            }
-          );
-          customPromptBox.parentElement.classList.add(
-            "chasm-ignt-prompt-container"
-          );
-          // Option flag here
-
-          const promptPreset = panel.constructSelectBox(
-            "프롬프트 프리셋",
-            "커스텀",
-            "custom",
-            true
-          );
-          let uniqueIndex = 0;
-          for (const author of Object.keys(DEFAULT_PROMPTS)) {
-            promptPreset.addGroup(author);
-            for (const preset of Object.keys(DEFAULT_PROMPTS[author])) {
-              promptPreset.addOption(
-                preset,
-                `chasm-ignt-prompt-index-${uniqueIndex++}`,
-                (id, node) => {
-                  const selected = DEFAULT_PROMPTS[author][preset];
-                  if (selected) {
-                    const descriptionField = document.getElementById(
-                      "chasm-ignt-description-field"
-                    );
-                    descriptionField.setAttribute("enabled", "true");
-                    descriptionField.textContent = selected.description;
-                  }
-                  lastSelected.length = 0;
-                  lastSelected.push(...[author, preset]);
-
-                  return true;
-                }
-              );
-            }
-          }
-          promptPreset.runSelected();
-          panel.addLongBox(true, (node) => {
-            new ComponentAppender(node).addText("", {
-              initializer: (textNode) => {
-                textNode.id = "chasm-ignt-description-field";
-              },
-            });
-          });
-          promptPreset.addGroup("커스텀 프롬프트");
-          promptPreset.addOption(
-            "커스텀 프롬프트",
-            "chasm-ignt-prompt-option-custom",
-            (id, node) => {
-              document
-                .getElementById("chasm-ignt-custom-prompt")
-                .setAttribute("enabled", "true");
-              document
-                .getElementById("chasm-ignt-description-field")
-                .setAttribute("enabled", "false");
-              return true;
-            }
-          );
-          database.prompts.toArray().then((arr) => {
-            if (arr.length <= 0) {
-              return;
-            }
-            promptPreset.addGroup("프롬프트 라이브러리");
-            let index = 0;
-            for (let item of arr) {
-              promptPreset.addOption(
-                item.name,
-                `chasm-ignt-preset-${index++}`,
-                (_, node) => {
-                  const descriptionField = document.getElementById(
-                    "chasm-ignt-description-field"
-                  );
-                  descriptionField.setAttribute("enabled", "true");
-                  descriptionField.textContent =
-                    item.description.length <= 0
-                      ? "이 프롬프트에는 설명이 없습니다."
-                      : item.description;
-                  return true;
-                }
-              );
-            }
-          });
-          panel.addSwitchBox(
-            "chasm-ignt-auto-retry",
-            "오류 발생시 자동 재시도",
-            "활성화시, 서버에서 오류가 발생할 경우 자동으로 재시도합니다.\n체크 해제시 자동 재시도가 중단됩니다.",
-            {
-              defaultValue: true,
-            }
-          );
-
-          panel.addShortNumberBox(
-            "chasm-ignt-max-item",
-            "요약에 불러올 메시지",
-            "요약에 불러올 메시지 개수를 지정합니다. 기본 50이며, 0으로 설정시 모든 메시지를 불러옵니다. \n값이 클 수록 요청 시간이 길어지며 소모 비용 또한 늘어납니다.",
-            {
-              defaultValue: 50,
-              min: 0,
-              max: 999,
-              onChange: (_, value) => {},
-            }
-          );
-
-          panel.addSwitchBox(
-            "chasm-ignt-add-random-header",
-            "전송에 무작위 헤더 추가",
-            "활성화시, 전송될 메시지에 유저노트를 적용합니다. \n무작위 헤더는 50자의 프롬프트를 사용하지만, LLM의 캐시 무효화를 유도하여 응답 확률을 올립니다.",
-            {
-              defaultValue: true,
-            }
-          );
-
-          panel.addSwitchBox(
-            "chasm-ignt-add-user-note",
-            "유저노트 첨부",
-            "활성화시, 전송될 메시지에 유저노트를 적용합니다. 유저노트는 10-20개의 크래커 비용이 청구됩니다.",
-            {
-              defaultValue: false,
-            }
-          );
-          panel
-            .footer(true)
-            .addLoggingArea("chasm-ignt-log-container", "실행 로그", {
-              suffixModifier: (parent) => {
-                console.log("Appending suffix!");
-                console.log(parent);
-                parent.append(
-                  setupNode("p", (node) => {
-                    node.textContent = "00:00";
-                  })
-                );
-              },
-            })
-            .addButton("chasm-ignt-start-request", "시작하기", {
-              action: () => {
-
-              },
-            });
+          setupBurnerPage(panel);
         }, `결정화 캐즘 이그나이터 ${VERSION}`);
       })
       .createSubMenu("프롬프트 라이브러리", (modal) => {
         modal.replaceContentPanel((panel) => {
-          database.prompts.toArray().then((arr) => {
-            if (arr.length <= 0) {
-              panel.addTitleText("불러올 내용이 없습니다.");
-            } else {
-              for (const item of arr) {
-                panel.addBoxedField(
-                  item.name,
-                  `제작자 ${item.author}, 프롬프트 길이 ${item.prompt.length}자\n` +
-                    item.description +
-                    "\n",
-                  (node) => {
-                    node.append(
-                      setupClassNode(
-                        "div",
-                        "chasm-ignt-svg-spaced-button",
-                        (buttonNode) => {
-                          buttonNode.innerHTML = TRASH_CAN_ICON_SVG;
-                          buttonNode.onclick = () => {
-                            if (
-                              confirm(
-                                `정말로 프롬프트 ${item.name}을 라이브러리에서 지우시겠습니까?\n이 동작은 되돌릴 수 없습니다!`
-                              )
-                            ) {
-                              database.prompts
-                                .where("name")
-                                .anyOf(item.name)
-                                .delete()
-                                .then((count) => {
-                                  console.log("Deleted " + count);
-                                  modal.triggerSelect([
-                                    "결정화 캐즘 이그나이터",
-                                    "프롬프트 라이브러리",
-                                  ]);
-                                });
-                            }
-                          };
-                        }
-                      )
-                    );
-                    node.append(
-                      setupClassNode(
-                        "div",
-                        "chasm-ignt-svg-button",
-                        (buttonNode) => {
-                          buttonNode.innerHTML = EDIT_ICON_SVG;
-                          buttonNode.onclick = () => {
-                            lastModified[0] = item.name;
-                            lastModified[1] = item.author;
-                            lastModified[2] = item.description;
-                            lastModified[3] = item.prompt;
-                            console.log(item);
-                            modal.triggerSelect([
-                              "결정화 캐즘 이그나이터",
-                              "프롬프트 수정",
-                            ]);
-                          };
-                        }
-                      )
-                    );
-                  }
-                );
-              }
-            }
-          });
-
-          panel.footer().addButton("chasm-ignt-load-prompt", "불러오기");
+          setupPromptLibrary(panel);
         }, "프롬프트 라이브러리");
       })
       .createSubMenu("프롬프트 수정", (modal) => {
         modal.replaceContentPanel((panel) => {
-          const promptName = panel.constructInputGrid(
-            "chasm-ignt-prompt-name",
-            "프롬프트 이름",
-            true,
-            {
-              defaultValue: lastModified[0],
-              onChange: (_, text) => {
-                lastModified[0] = text;
-              },
-            }
-          );
-          const promptAuthor = panel.constructInputGrid(
-            "chasm-ignt-prompt-author",
-            "프롬프트 제작자",
-            true,
-            {
-              defaultValue: lastModified[1],
-              onChange: (_, text) => {
-                lastModified[1] = text;
-              },
-            }
-          );
-          const promptDescriptionContent = panel.constructTextAreaGrid(
-            "chasm-ignt-prompt-description",
-            "프롬프트 설명",
-            {
-              defaultValue: lastModified[2],
-              onChange: (node, text) => {
-                lastModified[2] = text;
-                console.log("Changed");
-              },
-            }
-          );
-          const promptContent = panel.constructTextAreaGrid(
-            "chasm-ignt-prompt-contents",
-            "프롬프트 내용",
-            {
-              defaultValue: lastModified[3],
-              onChange: (node, text) => {
-                lastModified[3] = text;
-                console.log("Changed");
-              },
-            }
-          );
-          panel
-            .footer()
-            .addShortButton("chasm-ignt-share", "공유", {
-              action: () => {
-                if (lastModified[0].length === 0) {
-                  alert("제목은 1자 이상이여야만 합니다.");
-                  return;
-                }
-                if (lastModified[2].length === 0) {
-                  alert("빈 프롬프트를 공유할 수 없습니다.");
-                  return;
-                }
-                const item = {};
-                item["title"] = lastModified[0];
-                if (lastModified[1]) {
-                  item["author"] = lastModified[1];
-                }
-                item["description"] = lastModified[2];
-                item["prompt"] = lastModified[3];
-                navigator.clipboard.writeText(
-                  JSON.stringify({
-                    version: "C2 Ignitor " + VERSION,
-                    data: item,
-                  })
-                );
-                alert("클립보드로 공유 가능한 프롬프트가 복사되었습니다.");
-              },
-            })
-            .addShortButton("chasm-ignt-save", "저장", {
-              action: () => {
-                database.prompts
-                  .put({
-                    name: lastModified[0],
-                    author: lastModified[1],
-                    description: lastModified[2],
-                    prompt: lastModified[3],
-                  })
-                  .then(() => {
-                    alert("저장되었습니다.");
-                  })
-                  .catch((error) => {
-                    console.error(error);
-                  });
-              },
-            });
+          setupPromptModifySubmenu(panel);
         }, "프롬프트 수정");
       })
       .createSubMenu("API 설정", (modal) => {
         modal.replaceContentPanel((panel) => {
-          const box = panel.constructSelectBox(
-            "설정할 API 서비스",
-            "Gemini Api (Google)",
-            "chasm-ignt-api-service-google",
-            true
-          );
-          box.addGroup("API 제공자");
-          box.addOption(
-            "Gemini API (Google)",
-            "chasm-ignt-api-service-google",
-            (_, node) => {
-              for (const box of document.getElementsByClassName(
-                "chasm-ignt-api-field"
-              )) {
-                box.setAttribute("chasm-ignt-hide", "true");
-              }
-              document
-                .getElementById("chasm-ignt-api-key-gemini-container")
-                ?.removeAttribute("chasm-ignt-hide");
-              return true;
-            }
-          );
-          box.addOption(
-            "Firebase Vertex AI (Google)",
-            "chasm-ignt-api-service-firebase",
-            (_, node) => {
-              for (const box of document.getElementsByClassName(
-                "chasm-ignt-api-field"
-              )) {
-                box.setAttribute("chasm-ignt-hide", "true");
-              }
-              document
-                .getElementById("chasm-ignt-api-key-firebase-container")
-                ?.removeAttribute("chasm-ignt-hide");
-              return true;
-            }
-          );
-          panel.addBoxedInputGrid(
-            "chasm-ignt-api-key-gemini",
-            "Google Gemini API 키",
-            "Google Gemini API 키를 입력하세요.",
-            {
-              initializer: (node, parent) => {
-                parent.id = "chasm-ignt-api-key-gemini-container";
-                parent.classList.add("chasm-ignt-api-field");
-              },
-            }
-          );
-          panel.constructBoxedTextAreaGrid(
-            "chasm-ignt-api-key-gemini",
-            "Firebase Vertex AI API 스크립트",
-            "Firebase Vertex AI API 스크립트를 입력하세요.",
-            {
-              initializer: (node, parent) => {
-                console.log(parent);
-                parent.id = "chasm-ignt-api-key-firebase-container";
-                parent.classList.add("chasm-ignt-api-field");
-                parent.setAttribute("chasm-ignt-hide", "true");
-              },
-            }
-          );
-          box.runSelected();
+          setupApiSettingSubmenu(panel);
         }, "API 설정");
       });
   }
+
+  /**
+   * 
+   * @param {ContentPanel} panel 
+   */
+  function setupBurnerPage(panel) {
+    const providerBox = panel.constructSelectBox(
+      "모델 제공자",
+      "Google",
+      "chasm-ignt-provider-google",
+      false
+    );
+    const modelBox = panel.constructSelectBox(
+      "사용 모델",
+      "Gemini 2.5 Pro",
+      "gemini-2.5-pro",
+      false
+    );
+    for (let provider of Object.keys(MODEL_MAPPINGS)) {
+      providerBox.addOption(
+        provider,
+        `chasm-ignt-provider-${provider}`,
+        (id, node) => {
+          for (const model of Object.keys(MODEL_MAPPINGS[provider])) {
+            modelBox.clearGroup();
+          }
+        }
+      );
+    }
+    // Option flag here
+
+    const promptPreset = panel.constructSelectBox(
+      "프롬프트 프리셋",
+      "커스텀",
+      "chasm-ignt-prompt-index-0",
+      true
+    );
+    let uniqueIndex = 0;
+    for (const author of Object.keys(DEFAULT_PROMPTS)) {
+      promptPreset.addGroup(author);
+      for (const preset of Object.keys(DEFAULT_PROMPTS[author])) {
+        const node = promptPreset.addOption(
+          preset,
+          `chasm-ignt-prompt-index-${uniqueIndex++}`,
+          (id, node) => {
+            const selected = DEFAULT_PROMPTS[author][preset];
+            if (selected) {
+              const descriptionField = document.getElementById(
+                "chasm-ignt-description-field"
+              );
+              descriptionField.setAttribute("enabled", "true");
+              descriptionField.textContent = selected.description;
+            }
+            lastSelected.length = 0;
+            settings.lastSelected = [author, preset];
+            const descriptionField = document.getElementById(
+              "chasm-ignt-description-field"
+            );
+            descriptionField.parentElement.parentElement.parentElement.removeAttribute(
+              "chasm-ignt-hide"
+            );
+            document
+              .getElementById("chasm-ignt-custom-prompt")
+              .parentElement.setAttribute("chasm-ignt-hide", "true");
+            saveSettings();
+            return true;
+          }
+        );
+        node.classList.add("chasm-ignt-embedded-prompt");
+        node.setAttribute("author", author);
+        node.setAttribute("presetName", preset);
+      }
+    }
+    panel.addLongBox(true, (node) => {
+      new ComponentAppender(node).addText("", {
+        initializer: (textNode) => {
+          textNode.id = "chasm-ignt-description-field";
+        },
+      });
+    });
+    promptPreset.addGroup("커스텀 프롬프트");
+    promptPreset.addOption(
+      "커스텀 프롬프트",
+      "chasm-ignt-prompt-option-custom",
+      (id, node) => {
+        settings.lastSelected = ["$custom"];
+        document
+          .getElementById("chasm-ignt-custom-prompt")
+          .parentElement.removeAttribute("chasm-ignt-hide");
+        document
+          .getElementById("chasm-ignt-description-field")
+          .parentElement.parentElement.parentElement.setAttribute(
+            "chasm-ignt-hide",
+            "true"
+          );
+        saveSettings();
+        return true;
+      }
+    );
+    database.prompts
+      .toArray()
+      .then((arr) => {
+        if (arr.length > 0) {
+          promptPreset.addGroup("프롬프트 라이브러리");
+          let index = 0;
+          for (let item of arr) {
+            const element = promptPreset.addOption(
+              item.name,
+              `chasm-ignt-preset-${index++}`,
+              (_, node) => {
+                const descriptionField = document.getElementById(
+                  "chasm-ignt-description-field"
+                );
+                descriptionField.textContent =
+                  item.description.length <= 0
+                    ? "이 프롬프트에는 설명이 없습니다."
+                    : item.description;
+                settings.lastSelected = ["$prompt-library", item.name];
+                descriptionField.parentElement.parentElement.parentElement.removeAttribute(
+                  "chasm-ignt-hide"
+                );
+                document
+                  .getElementById("chasm-ignt-custom-prompt")
+                  .parentElement.setAttribute("chasm-ignt-hide", "true");
+                saveSettings();
+                return true;
+              }
+            );
+            element.classList.add("chasm-ignt-library-prompt");
+            element.selectedPrompt = item;
+          }
+        }
+        console.log("Test");
+        if (settings.lastSelected) {
+          if (settings.lastSelected[0] === "$prompt-library") {
+            let matched = false;
+            for (let element of promptPreset.node.getElementsByClassName(
+              "chasm-ignt-library-prompt"
+            )) {
+              const name = element.selectedPrompt;
+              console.log("Settings: " + settings.lastSelected[1]);
+              console.log("Scanning: " + name);
+              if (name === settings.lastSelected[1]) {
+                matched = true;
+                element.onclick();
+                break;
+              }
+            }
+            if (!matched) {
+              const first = Object.keys(DEFAULT_PROMPTS)[0];
+              console.log("First: " + first);
+              console.log("second: " + DEFAULT_PROMPTS[first]);
+              const second = Object.keys(DEFAULT_PROMPTS[first])[0];
+              settings.lastSelected = [first, second];
+            }
+          } else if (settings.lastSelected[0] === "$custom") {
+            console.log("Test2");
+            promptPreset.setSelected("chasm-ignt-prompt-option-custom");
+          } else {
+            let matched = false;
+            // Default prompt selection
+            for (const element of promptPreset.node.getElementsByClassName(
+              "chasm-ignt-embedded-prompt"
+            )) {
+              if (
+                element.getAttribute("author") === settings.lastSelected[0] &&
+                element.getAttribute("presetName") === settings.lastSelected[1]
+              ) {
+                matched = true;
+                promptPreset.setSelected(element.id);
+                break;
+              }
+            }
+            if (!matched) {
+              const first = MODEL_MAPPINGS[Object.keys(MODEL_MAPPINGS)[0]];
+              const second =
+                MODEL_MAPPINGS[first][Object.keys(MODEL_MAPPINGS[first])[0]];
+              settings.lastSelected = [first, second];
+            }
+          }
+        }
+
+        console.log(`Running ${promptPreset.getSelected()}`);
+        promptPreset.runSelected();
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+
+    const customPromptBox = panel.constructTextAreaGrid(
+      "chasm-ignt-custom-prompt",
+      "커스텀 프롬프트",
+      {
+        defaultValue: settings.lastCustomPrompt ?? "",
+        onChange: (_, text) => {
+          console.log("Custom prompt change to " + text);
+          settings.lastCustomPrompt = text;
+          saveSettings();
+        },
+      }
+    );
+    customPromptBox.parentElement.setAttribute("chasm-ignt-hide", "true");
+    panel.addSwitchBox(
+      "chasm-ignt-auto-retry",
+      "오류 발생시 자동 재시도",
+      "활성화시, 서버에서 오류가 발생할 경우 자동으로 재시도합니다.\n체크 해제시 자동 재시도가 중단됩니다.",
+      {
+        defaultValue: true,
+      }
+    );
+
+    panel.addShortNumberBox(
+      "chasm-ignt-max-item",
+      "요약에 불러올 메시지",
+      "요약에 불러올 메시지 개수를 지정합니다. 기본 50이며, 0으로 설정시 모든 메시지를 불러옵니다. \n값이 클 수록 요청 시간이 길어지며 소모 비용 또한 늘어납니다.",
+      {
+        defaultValue: 50,
+        min: 0,
+        max: 999,
+        onChange: (_, value) => {
+          settings.maxMessageRetreive = value;
+        },
+      }
+    );
+
+    panel.addSwitchBox(
+      "chasm-ignt-add-random-header",
+      "전송에 무작위 헤더 추가",
+      "활성화시, 전송될 메시지에 유저노트를 적용합니다. \n무작위 헤더는 50자의 프롬프트를 사용하지만, LLM의 캐시 무효화를 유도하여 응답 확률을 올립니다.",
+      {
+        defaultValue: true,
+      }
+    );
+
+    panel.addSwitchBox(
+      "chasm-ignt-add-persona-data",
+      "페르소나 데이터 첨부",
+      "활성화시, LLM에 전송될 메시지에 페르소나 데이터 (대화 프로필)을 첨부합니다.",
+      {
+        defaultValue: true,
+      }
+    );
+    panel.addSwitchBox(
+      "chasm-ignt-add-user-note",
+      "유저노트 첨부",
+      "활성화시, 전송될 메시지에 유저노트를 적용합니다. 유저노트는 10-20개의 크래커 비용이 청구됩니다.",
+      {
+        defaultValue: false,
+      }
+    );
+    panel
+      .footer(true)
+      .addLoggingArea("chasm-ignt-log-container", "실행 로그", {
+        suffixModifier: (parent) => {
+          console.log("Appending suffix!");
+          console.log(parent);
+          parent.append(
+            setupNode("p", (node) => {
+              node.textContent = "00:00";
+            })
+          );
+        },
+      })
+      .addButton("chasm-ignt-start-request", "시작하기", {
+        initializer: (node) => {
+          const provider = PlatformProvider.getProvider();
+          if (!provider) {
+            node.setAttribute("disabled", "true");
+            node.innerText = "이 플랫폼에서는 버너를 지원하지 않습니다";
+            return;
+          }
+          const fetcher = provider.getFetcher();
+          console.log("Fetcher validaty: " + fetcher.isValid());
+          console.log("Fetcher validaty: " + fetcher.chatId);
+          if (!fetcher.isValid()) {
+            console.log("not valiud");
+            node.setAttribute("disabled", "true");
+            node.innerText = "사용 대상 페이지가 아닙니다";
+            return;
+          }
+        },
+        action: () => {
+          const provider = PlatformProvider.getProvider();
+          const fetcher = provider.getFetcher();
+          const sender = provider.getSender();
+          fetcher.fetch(settings.maxMessageRetreive).then(async (messages) => {
+            console.log(messages);
+          });
+        },
+      });
+  }
+
+  /**
+   *
+   * @param {ContentPanel} panel
+   */
+  function setupPromptLibrary(panel) {
+    database.prompts.toArray().then((arr) => {
+      if (arr.length <= 0) {
+        panel.addTitleText("불러올 내용이 없습니다.");
+      } else {
+        for (const item of arr) {
+          panel.addBoxedField(
+            item.name,
+            `제작자 ${item.author}, 프롬프트 길이 ${item.prompt.length}자\n` +
+              item.description +
+              "\n",
+            (node) => {
+              node.append(
+                setupClassNode(
+                  "div",
+                  "chasm-ignt-svg-spaced-button",
+                  (buttonNode) => {
+                    buttonNode.innerHTML = TRASH_CAN_ICON_SVG;
+                    buttonNode.onclick = () => {
+                      if (
+                        confirm(
+                          `정말로 프롬프트 ${item.name}을 라이브러리에서 지우시겠습니까?\n이 동작은 되돌릴 수 없습니다!`
+                        )
+                      ) {
+                        database.prompts
+                          .where("name")
+                          .anyOf(item.name)
+                          .delete()
+                          .then((count) => {
+                            console.log("Deleted " + count);
+                            modal.triggerSelect([
+                              "결정화 캐즘 이그나이터",
+                              "프롬프트 라이브러리",
+                            ]);
+                          });
+                      }
+                    };
+                  }
+                )
+              );
+              node.append(
+                setupClassNode("div", "chasm-ignt-svg-button", (buttonNode) => {
+                  buttonNode.innerHTML = EDIT_ICON_SVG;
+                  buttonNode.onclick = () => {
+                    lastModified[0] = item.name;
+                    lastModified[1] = item.author;
+                    lastModified[2] = item.description;
+                    lastModified[3] = item.prompt;
+                    console.log(item);
+                    modal.triggerSelect([
+                      "결정화 캐즘 이그나이터",
+                      "프롬프트 수정",
+                    ]);
+                  };
+                })
+              );
+            }
+          );
+        }
+      }
+    });
+
+    panel.footer().addButton("chasm-ignt-load-prompt", "불러오기");
+  }
+  /**
+   *
+   * @param {ContentPanel} panel
+   */
+  function setupPromptModifySubmenu(panel) {
+    const promptName = panel.constructInputGrid(
+      "chasm-ignt-prompt-name",
+      "프롬프트 이름",
+      true,
+      {
+        defaultValue: lastModified[0],
+        onChange: (_, text) => {
+          lastModified[0] = text;
+        },
+      }
+    );
+    const promptAuthor = panel.constructInputGrid(
+      "chasm-ignt-prompt-author",
+      "프롬프트 제작자",
+      true,
+      {
+        defaultValue: lastModified[1],
+        onChange: (_, text) => {
+          lastModified[1] = text;
+        },
+      }
+    );
+    const promptDescriptionContent = panel.constructTextAreaGrid(
+      "chasm-ignt-prompt-description",
+      "프롬프트 설명",
+      {
+        defaultValue: lastModified[2],
+        onChange: (node, text) => {
+          lastModified[2] = text;
+          console.log("Changed");
+        },
+      }
+    );
+    const promptContent = panel.constructTextAreaGrid(
+      "chasm-ignt-prompt-contents",
+      "프롬프트 내용",
+      {
+        defaultValue: lastModified[3],
+        onChange: (node, text) => {
+          lastModified[3] = text;
+          console.log("Changed");
+        },
+      }
+    );
+    panel
+      .footer()
+      .addShortButton("chasm-ignt-share", "공유", {
+        action: () => {
+          if (lastModified[0].length === 0) {
+            alert("제목은 1자 이상이여야만 합니다.");
+            return;
+          }
+          if (lastModified[2].length === 0) {
+            alert("빈 프롬프트를 공유할 수 없습니다.");
+            return;
+          }
+          const item = {};
+          item["title"] = lastModified[0];
+          if (lastModified[1]) {
+            item["author"] = lastModified[1];
+          }
+          item["description"] = lastModified[2];
+          item["prompt"] = lastModified[3];
+          navigator.clipboard.writeText(
+            JSON.stringify({
+              version: "C2 Ignitor " + VERSION,
+              data: item,
+            })
+          );
+          alert("클립보드로 공유 가능한 프롬프트가 복사되었습니다.");
+        },
+      })
+      .addShortButton("chasm-ignt-save", "저장", {
+        action: () => {
+          database.prompts
+            .put({
+              name: lastModified[0],
+              author: lastModified[1],
+              description: lastModified[2],
+              prompt: lastModified[3],
+            })
+            .then(() => {
+              alert("저장되었습니다.");
+            })
+            .catch((error) => {
+              console.error(error);
+            });
+        },
+      });
+  }
+
+  /**
+   *
+   * @param {ContentPanel} panel
+   */
+  function setupApiSettingSubmenu(panel) {
+    const box = panel.constructSelectBox(
+      "설정할 API 서비스",
+      "Gemini Api (Google)",
+      "chasm-ignt-api-service-google",
+      true
+    );
+    box.addGroup("API 제공자");
+    box.addOption(
+      "Gemini API (Google)",
+      "chasm-ignt-api-service-google",
+      () => {
+        for (const box of document.getElementsByClassName(
+          "chasm-ignt-api-field"
+        )) {
+          box.setAttribute("chasm-ignt-hide", "true");
+        }
+        document
+          .getElementById("chasm-ignt-api-key-gemini-container")
+          ?.removeAttribute("chasm-ignt-hide");
+        return true;
+      }
+    );
+    box.addOption(
+      "Firebase Vertex AI (Google)",
+      "chasm-ignt-api-service-firebase",
+      () => {
+        for (const box of document.getElementsByClassName(
+          "chasm-ignt-api-field"
+        )) {
+          box.setAttribute("chasm-ignt-hide", "true");
+        }
+        document
+          .getElementById("chasm-ignt-api-key-firebase-container")
+          ?.removeAttribute("chasm-ignt-hide");
+        return true;
+      }
+    );
+    panel.addBoxedInputGrid(
+      "chasm-ignt-api-key-gemini",
+      "Google Gemini API 키",
+      "Google Gemini API 키를 입력하세요.",
+      {
+        defaultValue: settings.geminiKey ?? "",
+        initializer: (node, parent) => {
+          parent.id = "chasm-ignt-api-key-gemini-container";
+          parent.classList.add("chasm-ignt-api-field");
+        },
+        onChange: (_, text) => {
+          settings.geminiKey = text;
+          saveSettings();
+        },
+      }
+    );
+    panel.constructBoxedTextAreaGrid(
+      "chasm-ignt-api-key-gemini",
+      "Firebase Vertex AI API 스크립트",
+      "Firebase Vertex AI API 스크립트를 입력하세요.",
+      {
+        defaultValue: settings.firebaseScript ?? "",
+        initializer: (_, parent) => {
+          console.log(parent);
+          parent.id = "chasm-ignt-api-key-firebase-container";
+          parent.classList.add("chasm-ignt-api-field");
+          parent.setAttribute("chasm-ignt-hide", "true");
+        },
+        onChange: (_, text) => {
+          if (text.replace(" ", "").length <= 0) {
+            delete settings.firebaseScript;
+            saveSettings();
+            return;
+          }
+          const fetched = parseVertexContent(text);
+          if (!fetched) {
+            // Delete script only when origin is invalid too
+            if (
+              !settings.firebaseScript ||
+              !parseVertexContent(settings.firebaseScript)
+            ) {
+              delete settings.firebaseScript;
+              saveSettings();
+            }
+            alert("잘못된 Firebase API 스크립트 포맷입니다.");
+            return;
+          }
+          settings.firebaseScript = text;
+          saveSettings();
+          alert("Firebase API 스크립트가 저장되었습니다.");
+        },
+      }
+    );
+    box.runSelected();
+  }
+
   setupModal();
 
   const MODEL_MAPPINGS = {
@@ -1043,6 +1300,7 @@ GM_addStyle(`
       __updateModalMenu();
     });
   }
+  loadSettings();
   __doModalMenuInit();
 
   // =====================================================
@@ -1082,7 +1340,7 @@ GM_addStyle(`
       const param = {
         method: method,
         headers: {
-          Authorization: `Bearer ${extractAccessToken()}`,
+          Authorization: `Bearer ${extractCookie("access_token")}`,
           "Content-Type": "application/json",
         },
       };
@@ -1113,6 +1371,7 @@ GM_addStyle(`
 
   class CrackMessageSender extends PlatformMessageSender {
     constructor(chatRoomId) {
+      super();
       this.chatRoomId = chatRoomId;
     }
     /**
@@ -1148,7 +1407,6 @@ GM_addStyle(`
         );
       }
       // Phase 2 - Consume event stream
-      // Phase 2 - Consume event stream
       const result = await fetch(
         `https://contents-api.wrtn.ai/character-chat/characters/chat/${this.chatRoomId}/message/${sendResult.data}?model=SONNET&platform=web&user=`,
         {
@@ -1167,6 +1425,7 @@ GM_addStyle(`
 
   class CrackMessageFetcher extends PlatformMessageFetcher {
     constructor(chatId) {
+      super();
       this.chatId = chatId;
     }
     /**
@@ -1176,22 +1435,49 @@ GM_addStyle(`
      */
     async fetch(maxCount) {
       const messages = [];
-      let url = `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${e}/messages?limit=${maxCount}`;
-      const fetchResult = await authFetch("GET", url);
-      if (fetchResult instanceof Error) {
-        throw fetchResult;
-      }
-      const rawMessage = fetchResult.data?.list ?? fetchResult.data.messages;
-      if (!rawMessage) {
-        throw new Error("메시지를 가져오는데에 실패하였습니다.");
-      }
-      for (let message of rawMessage) {
-        messages.push(
-          new PlatformMessage(message.role, message.content, "user")
-        );
+      let url = `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${this.chatId}/messages?limit=40`;
+      console.log("Max message: " + maxCount);
+      while (maxCount === 0 || messages.length < maxCount) {
+        const fetchResult = await authFetch("GET", url);
+        if (fetchResult instanceof Error) {
+          throw fetchResult;
+        }
+        const rawMessage = fetchResult.data?.list ?? fetchResult.data.messages;
+        if (!rawMessage) {
+          throw new Error("메시지를 가져오는데에 실패하였습니다.");
+        }
+        for (let message of rawMessage) {
+          if (messages.length >= maxCount) break;
+          messages.push(
+            new PlatformMessage(message.role, message.content, "user")
+          );
+        }
+        if (fetchResult.data.nextCursor) {
+          url = `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${this.chatId}/messages?limit=${maxCount}&cursor=${fetchResult.data.nextCursor}`;
+        } else {
+          break;
+        }
       }
       return messages;
     }
+
+    isValid() {
+      console.log(this.chatId);
+      console.log("Validaty: " + (this.chatId !== undefined));
+      return this.chatId !== undefined;
+    }
+  }
+
+  class CrackUserNoteUtility extends UserNoteUtility {
+    isValid() {
+      return false;
+    }
+
+    async fetch() {}
+
+    async set(message) {}
+
+    async remove() {}
   }
 
   class CrackProvider extends PlatformProvider {
@@ -1199,10 +1485,13 @@ GM_addStyle(`
      * @returns {PlatformMessageFetcher}
      */
     getFetcher() {
-      const split = window.location.pathname.substring(1).split("/");
-      const characterId = split[1];
-      const chatRoomId = split[3];
-      return new CrackMessageFetcher(chatRoomId);
+      if (isStoryPath() || isCharacterPath()) {
+        const split = window.location.pathname.substring(1).split("/");
+        const characterId = split[1];
+        const chatRoomId = split[3];
+        return new CrackMessageFetcher(chatRoomId);
+      }
+      return new CrackMessageFetcher(undefined);
     }
 
     /**
