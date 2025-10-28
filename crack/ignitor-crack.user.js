@@ -1101,6 +1101,7 @@ GM_addStyle(`
                 ? messages.map((it) => it.withPersona(persona.name))
                 : messages.map((it) => it.anonymize()),
             };
+            console.log(messageStructure);
             if (settings.includePersona) {
               messageStructure.userPersonaName = persona.name;
               messageStructure.userPersonaDescription = persona.description;
@@ -2189,7 +2190,7 @@ GM_addStyle(`
         for (let message of rawMessage) {
           if (maxCount !== 0 && messages.length >= maxCount) break;
           messages.push(
-            new PlatformMessage(message.role, message.content, "user")
+            new PlatformMessage(message.role, "user", message.content)
           );
         }
         if (

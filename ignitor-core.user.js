@@ -2187,7 +2187,7 @@ GM_addStyle(`
         for (let message of rawMessage) {
           if (maxCount !== 0 && messages.length >= maxCount) break;
           messages.push(
-            new PlatformMessage(message.role, message.content, "user")
+            new PlatformMessage(message.role, "user", message.content)
           );
         }
         if (
