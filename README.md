@@ -95,10 +95,19 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 > ⚠ 세션 아래 표시되는 소모량은 세션 소모량이 아닌 캐릭터 소모량입니다.<br>
 > ⚠ 6월 크래커 업데이트 이전 소모된 슈퍼챗은 크래커 35개로 환산되어 계산됩니다.
 
-## 결정화 캐즘 - 버너+ (v1.7.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/burner.user.js) ]<br>
+## 결정화 캐즘 - 이그나이터 / 점화기 (v1.0.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/ignitor-crack.user.js) ]<br>
+
+결정화 캐즘 이그나이터는 재작성된 개선된 버너 모듈입니다.
+
+채팅방의 채팅을 외부 LLM에 의탁하여 요약하며, 프롬프트 공유 및 보관이 가능하도록 개선되었습니다.
+
+## 결정화 캐즘 - 버너+ (v1.7.1-FINALE) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/burner.user.js) ]<br>
 
 결정화 캐즘 버너+는 채팅방의 채팅을 외부 LLM에 의탁하여 요약하는 스크립트입니다.<br>
 채팅 내용을 축약하고 요약해 전소하여 크랙 AI의 기억력을 향상시킬 수 있습니다.<br>
+
+> ⚠ 버너 모듈은 2025년 10월 29일 기준으로 은퇴 처리되었습니다.<br>
+> ⚠ 앞으로의 버너 모듈 기능 개발은 이그나이터 모듈로 대체됩니다. <br>
 
 ## 결정화 캐즘 - 과포화 (v1.4.4) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/tmi.user.js) ]<br>
 

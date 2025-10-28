@@ -148,6 +148,7 @@ const DECENTRAL_CSS_VALUES = `
         color: var(--decentral-text-inactive);
         font-weight: 400;
         user-select: none;
+        overflow-y: auto;
     }
 
     /* 모달 최상단 메뉴 요소 */
@@ -229,7 +230,7 @@ const DECENTRAL_CSS_VALUES = `
     /* 모바일 모달 메뉴 컨테이너 */
     .decentral-mobile-menu-container {
         display: none;
-        z-index: 1000;
+        z-index: 2500;
         border: 1px solid var(--decentral-border);
         width: 100%;
         height: fit-content;
@@ -239,6 +240,7 @@ const DECENTRAL_CSS_VALUES = `
         color: var(--decentral-text-inactive);
         font-weight: 400;
         user-select: none;
+        overflow-y: auto;
     }
 
     .decentral-mobile-menu-container[active="true"] {
@@ -329,7 +331,7 @@ const DECENTRAL_CSS_VALUES = `
       display: flex;
       width: 100%;
       height: 100%;
-      overflow-y: scroll;
+      overflow-y: auto;
       overflow-x: hidden;
       min-height: 0;
       min-width: 0; 
@@ -388,7 +390,6 @@ const DECENTRAL_CSS_VALUES = `
       max-width: 100%;
       height: fit-content;
       padding: 10px 5px;
-      margin-bottom: 4px;
       min-height: 0;
       min-width: 0; 
     }
@@ -401,7 +402,6 @@ const DECENTRAL_CSS_VALUES = `
       max-width: 100%;
       height: fit-content;
       padding: 10px 5px;
-      margin-bottom: 8px;
       min-height: 0;
       min-width: 0; 
     }
@@ -679,7 +679,8 @@ const DECENTRAL_CSS_VALUES = `
         background-color: transparent; 
         overflow: hidden; 
         color: var(--decentral-text); 
-        border: 1px solid var(--decentral-text-border); 
+        border: 1px solid var(--decentral-text-border);
+        user-select: none; 
         appearance: none; 
         -webkit-appearance: none; 
         -moz-appearance: none;
@@ -722,7 +723,7 @@ const DECENTRAL_CSS_VALUES = `
     }
 
     .decentral-option:not(:nth-child(1)) { 
-        z-index: 2003; 
+        z-index: 2100; 
     }
 
     .decentral-option:not(:nth-child(1)):hover { 
@@ -735,7 +736,7 @@ const DECENTRAL_CSS_VALUES = `
         flex-direction: column; 
         position: fixed; 
         padding: 5px; 
-        z-index: 2001; 
+        z-index: 2300; 
         height: 250px; 
         overflow-y: scroll; 
         border: 1px solid var(--decentral-text-border); 
@@ -866,12 +867,7 @@ class ModalManager {
    * @returns {ModalMenu}
    */
   createMenu(menuName, menuAction) {
-    let menuItem = this.__modal.__menuItems.get(menuName);
-    if (!menuItem) {
-      menuItem = new ModalMenu(menuAction);
-      this.__modal.__menuItems.set(menuName, menuItem);
-    }
-    return menuItem;
+    return this.__modal.createMenu(menuName, menuAction);
   }
 
   __licenseAdjusters = [];
@@ -972,6 +968,10 @@ class HTMLComponentConvertable {
 }
 class DecentrallizedModal {
   selectedMenu = [];
+
+  /** @type {((modal: DecentrallizedModal) => any)[]} */
+  __preOpenHandler = [];
+
   /** @type {Map<string, ModalMenu>} */
   __menuItems = new Map();
 
@@ -1004,6 +1004,21 @@ class DecentrallizedModal {
 
   /**
    *
+   * @param {string} menuName
+   * @param {(modal: DecentrallizedModal) => Promise<any>} menuAction
+   * @returns {ModalMenu}
+   */
+  createMenu(menuName, menuAction) {
+    let menuItem = this.__menuItems.get(menuName);
+    if (!menuItem) {
+      menuItem = new ModalMenu(menuAction);
+      this.__menuItems.set(menuName, menuItem);
+    }
+    return menuItem;
+  }
+
+  /**
+   *
    * @param {isDarkTheme} isDarkTheme
    * @returns
    */
@@ -1011,21 +1026,30 @@ class DecentrallizedModal {
     if (this.__container) {
       return;
     }
+    this.close();
     if (preSelected) {
       this.selectedMenu.length = 0;
       this.selectedMenu.push(...preSelected);
     }
-    this.close();
     this.init(isDarkTheme);
   }
 
   /**
    *
-   * @param {string[]} preSelected
+   * @param {(modal: DecentrallizedModal) => any} handler
+   */
+  withPreOpenHandler(handler) {
+    this.__preOpenHandler.push(handler);
+  }
+  /**
+   *
+   * @param {string[]|undefined} preSelected
    */
   triggerSelect(preSelected) {
-    this.selectedMenu.length = 0;
-    this.selectedMenu.push(preSelected);
+    if (preSelected) {
+      this.selectedMenu.length = 0;
+      this.selectedMenu.push(preSelected);
+    }
     if (preSelected.length === 1) {
       this.__menuItems.get(preSelected[0])?.onDisplay(this);
     } else if (preSelected.length === 2) {
@@ -1040,6 +1064,7 @@ class DecentrallizedModal {
     if (this.__container) {
       this.__container.remove();
       this.__container = undefined;
+      this.selectedMenu = [];
     }
   }
 
@@ -1049,6 +1074,9 @@ class DecentrallizedModal {
    * @returns
    */
   init(isDarkTheme) {
+    for (let handler of this.__preOpenHandler) {
+      handler(this);
+    }
     this.__container = setupClassNode(
       "div",
       "decentral-modal-container",
@@ -1116,6 +1144,29 @@ class DecentrallizedModal {
     element.parentElement.insertBefore(this.__contentPanel.asHTML(), element);
     element.remove();
   }
+
+  refreshMenuPanel() {
+    const mainMenu = new MenuPanel(this, this.__menuItems, this.selectedMenu);
+    const mobileMenu = new MobileMenuPanel(
+      this,
+      this.__menuItems,
+      this.selectedMenu
+    );
+    this.__menuPanel.__menu.parentElement.insertBefore(
+      mainMenu.asHTML(),
+      this.__menuPanel.__menu
+    );
+    this.__menuPanel.__menu.remove();
+
+    this.__mobileMenuPanel.__menu.parentElement.append(
+      mobileMenu.asHTML(),
+      this.__mobileMenuPanel.__menu
+    );
+    this.__mobileMenuPanel.__menu.remove();
+
+    this.__menuPanel = mainMenu;
+    this.__mobileMenuPanel = mobileMenu;
+  }
 }
 class BaseMenuPanel extends HTMLComponentConvertable {
   /**
@@ -1167,6 +1218,21 @@ class BaseMenuPanel extends HTMLComponentConvertable {
 }
 
 class MenuPanel extends BaseMenuPanel {
+  /**
+   *
+   * @param {DecentrallizedModal} modal
+   * @param {Map<string, ModalMenu>} menus
+   * @param {string[]} selectedMenu
+   */
+  constructor(modal, menus, selectedMenu) {
+    super();
+    /** @type {Map<string, ModalMenu>} */
+    this.menus = menus;
+    this.modal = modal;
+    this.selectedMenu = selectedMenu;
+    this.__menu = undefined;
+  }
+
   hideAllActive() {
     super.hideAllActive([
       "decentral-menu-element-container",
@@ -1176,6 +1242,9 @@ class MenuPanel extends BaseMenuPanel {
   }
 
   asHTML() {
+    if (this.__menu) {
+      return this.__menu;
+    }
     const container = setupClassNode("div", "decentral-menu-container");
     let isElementActiveSelected = false;
 
@@ -1192,7 +1261,7 @@ class MenuPanel extends BaseMenuPanel {
 
     this.setDefaultActiveState(isElementActiveSelected, container);
 
-    return container;
+    return (this.__menu = container);
   }
 
   createMenuContainer(itemName, menuItem, setActiveSelected) {
@@ -1678,7 +1747,7 @@ class ComponentAppender extends HTMLComponentConvertable {
               }
               if (onChange) {
                 area.onchange = () => {
-                  onChange(area, area.innerText);
+                  onChange(area, area.value);
                 };
               }
               if (initializer) {
@@ -1689,6 +1758,63 @@ class ComponentAppender extends HTMLComponentConvertable {
         );
       })
     );
+    return textNode;
+  };
+
+  /**
+   * 이름과 필드를 쌍으로 가지는 텍스트에이리어 필드를 추가하고 반환합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} titleText 필드의 텍스트 제목
+   * @param {string} description 필드의 설명
+   * @param {Object} param 옵션 파라미터
+   * @param {string | undefined} param.defaultValue 필드의 기본 텍스트 값
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement, string):void) | undefined} param.onChange 필드 내용 변경시 호출될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
+   * @returns {HTMLElement} 생성된 텍스트에이리어 요소 (testarea)
+   */
+  constructBoxedTextAreaGrid = function (
+    id,
+    titleText,
+    description,
+    {
+      defaultValue = undefined,
+      initializer = undefined,
+      onChange = undefined,
+      __proxy = this,
+    } = {}
+  ) {
+    let textNode = undefined;
+    let topNode = undefined;
+    __proxy.parentElement.append(
+      (topNode = __proxy.constructLongBoxedField(
+        titleText,
+        description,
+        (node) => {
+          node.append(
+            (textNode = setupClassNode(
+              "textarea",
+              "decentral-text-area",
+              (area) => {
+                area.id = id;
+                if (defaultValue) {
+                  area.value = defaultValue;
+                }
+                if (onChange) {
+                  area.onchange = () => {
+                    onChange(area, area.value);
+                  };
+                }
+              }
+            ))
+          );
+        }
+      ))
+    );
+
+    if (initializer) {
+      initializer(textNode, topNode);
+    }
     return textNode;
   };
 
@@ -1814,6 +1940,44 @@ class ComponentAppender extends HTMLComponentConvertable {
    * 클릭 가능한 버튼을 추가하고 반환합니다.
    * @param {string} id 필드의 ID
    * @param {string} titleText 버튼의 텍스트
+   * @param {boolean} short 짧은 버튼 생성 여부
+   * @param {Object} param 옵션 파라미터
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement):void) | undefined} param.action 버튼 클릭시 실행될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
+   * @returns {HTMLElement} 생성된 버튼 요소
+   */
+  addBoxedButton = function (
+    id,
+    titleText,
+    description,
+    { initializer = undefined, action = undefined, __proxy = this } = {}
+  ) {
+    let buttonNode;
+    __proxy.addBoxedField(titleText, description, (node) => {
+      node.append(
+        (buttonNode = setupClassNode("button", "decentral-button", (button) => {
+          button.id = id;
+          button.innerText = titleText;
+          if (initializer) {
+            initializer(area);
+          }
+          if (action) {
+            button.onclick = () => {
+              action(button);
+            };
+          }
+        }))
+      );
+    });
+    return buttonNode;
+  };
+
+  /**
+   * 클릭 가능한 버튼을 추가하고 반환합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} titleText 버튼의 텍스트
+   * @param {boolean} short 짧은 버튼 생성 여부
    * @param {Object} param 옵션 파라미터
    * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
    * @param {(function(HTMLElement):void) | undefined} param.action 버튼 클릭시 실행될 펑션
@@ -1823,11 +1987,12 @@ class ComponentAppender extends HTMLComponentConvertable {
   constructButton = function (
     id,
     titleText,
+    short,
     { initializer = undefined, action = undefined, __proxy = this } = {}
   ) {
     let buttonNode;
     __proxy.parentElement.append(
-      createGridElement(undefined, true, (node) => {
+      createGridElement(undefined, short, (node) => {
         node.append(
           (buttonNode = setupClassNode(
             "button",
@@ -1836,7 +2001,7 @@ class ComponentAppender extends HTMLComponentConvertable {
               button.id = id;
               button.innerText = titleText;
               if (initializer) {
-                initializer(area);
+                initializer(button);
               }
               if (action) {
                 button.onclick = () => {
@@ -1849,6 +2014,28 @@ class ComponentAppender extends HTMLComponentConvertable {
       })
     );
     return buttonNode;
+  };
+
+  /**
+   * 클릭 가능한 짧은 버튼을 추가합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} titleText 버튼의 텍스트
+   * @param {Object} param 옵션 파라미터
+   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement):void) | undefined} param.action 버튼 클릭시 실행될 펑션
+   * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
+   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
+   */
+  addShortButton = function (
+    id,
+    titleText,
+    { initializer = undefined, action = undefined, __proxy = this } = {}
+  ) {
+    __proxy.constructButton(id, titleText, true, {
+      initializer: initializer,
+      action: action,
+    });
+    return this;
   };
   /**
    * 클릭 가능한 버튼을 추가합니다.
@@ -1865,13 +2052,51 @@ class ComponentAppender extends HTMLComponentConvertable {
     titleText,
     { initializer = undefined, action = undefined, __proxy = this } = {}
   ) {
-    __proxy.constructButton(id, titleText, {
+    __proxy.constructButton(id, titleText, false, {
       initializer: initializer,
       action: action,
     });
     return this;
   };
 
+  /**
+   * 박스로 감싸진 필드를 추가합니다.
+   * @param {string} id 필드의 ID
+   * @param {string} title 제목 텍스트
+   * @param {function(HTMLElement, boolean):void} initializer 필드 초기화시 호출될 펑션
+   * @returns {HTMLElement} 생성된 필드
+   */
+  constructBoxedField(title, description, initializer) {
+    let topNode;
+    this.parentElement.append(
+      (topNode = createLongSemiFlatGridElement(undefined, (node) => {
+        node.append(
+          setupClassNode("div", "decentral-boxed-field", (area) => {
+            area.append(
+              setupClassNode("div", "element-text-container", (field) => {
+                field.append(
+                  setupClassNode("p", "element-title", (text) => {
+                    text.innerText = title;
+                  })
+                );
+                field.append(
+                  setupClassNode("p", "element-description", (text) => {
+                    text.innerText = description;
+                  })
+                );
+              })
+            );
+            area.append(
+              setupClassNode("div", "element-input-container", (container) => {
+                initializer(container);
+              })
+            );
+          })
+        );
+      }))
+    );
+    return topNode;
+  }
   /**
    * 박스로 감싸진 필드를 추가합니다.
    * @param {string} id 필드의 ID
@@ -1907,10 +2132,11 @@ class ComponentAppender extends HTMLComponentConvertable {
         );
       })
     );
+    return this;
   }
 
   /**
-   * 박스로 감싸진 긴 블럭은 추가합니다. 이 펑션으로 추가된 블럭에는 추가 컴포넌트가 제공되지 않습니다.
+   * 박스로 감싸진 긴 블럭을 추가합니다. 이 펑션으로 추가된 블럭에는 추가 컴포넌트가 제공되지 않습니다.
    * @param {boolean} 추가 수평 패딩 적용 여부
    * @param {function(HTMLElement):void} initializer 필드 초기화시 호출될 펑션
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
@@ -1936,11 +2162,12 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {string} id 필드의 ID
    * @param {string} title 제목 텍스트
    * @param {function(HTMLElement, boolean):void} initializer 필드 초기화시 호출될 펑션
-   * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
+   * @returns {HTMLElement} 생성된 요소
    */
-  addLongBoxedField(title, description, initializer) {
+  constructLongBoxedField(title, description, initializer) {
+    let topNode = undefined;
     this.parentElement.append(
-      createLongSemiFlatGridElement(undefined, (node) => {
+      (topNode = createLongSemiFlatGridElement(undefined, (node) => {
         node.append(
           setupClassNode("div", "decentral-boxed-field", (area) => {
             area.append(
@@ -1968,8 +2195,9 @@ class ComponentAppender extends HTMLComponentConvertable {
             );
           })
         );
-      })
+      }))
     );
+    return topNode;
   }
   /**
    * 박스로 감싸진 스위치 형태의 체크박스 필드를 추가하고 반환합니다.
@@ -2345,7 +2573,7 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {string} description 설명 텍스트
    * @param {Object} param 옵션 파라미터
    * @param {string | undefined} param.defaultValue 필드의 기본 텍스트 값
-   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement, HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션 (현재 노드, 최상위 노드)
    * @param {(function(HTMLElement, string):void) | undefined} param.onChange 텍스트 변경시 호출될 펑션
    * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {HTMLElement} 생성된 텍스트 필드
@@ -2362,29 +2590,33 @@ class ComponentAppender extends HTMLComponentConvertable {
     } = {}
   ) {
     let inputNode = undefined;
-    __proxy.addLongBoxedField(title, description, (node) => {
-      node.append(
-        (inputNode = setupClassNode(
-          "input",
-          "decentral-text-field",
-          (inputField) => {
-            inputField.id = id;
-            inputField.setAttribute("type", "text");
-            if (defaultValue) {
-              inputField.value = defaultValue;
+    const topNode = __proxy.constructLongBoxedField(
+      title,
+      description,
+      (node) => {
+        node.append(
+          (inputNode = setupClassNode(
+            "input",
+            "decentral-text-field",
+            (inputField) => {
+              inputField.id = id;
+              inputField.setAttribute("type", "text");
+              if (defaultValue) {
+                inputField.value = defaultValue;
+              }
+              if (onChange) {
+                inputField.onchange = () => {
+                  onChange(inputField, inputField.value);
+                };
+              }
             }
-            if (onChange) {
-              inputField.onchange = () => {
-                onChange(inputField, inputField.value);
-              };
-            }
-            if (initializer) {
-              initializer(inputField);
-            }
-          }
-        ))
-      );
-    });
+          ))
+        );
+      }
+    );
+    if (initializer) {
+      initializer(inputNode, topNode);
+    }
     return inputNode;
   };
 
@@ -2395,7 +2627,7 @@ class ComponentAppender extends HTMLComponentConvertable {
    * @param {string} description 설명 텍스트
    * @param {Object} param 옵션 파라미터
    * @param {string | undefined} param.defaultValue 필드의 기본 텍스트 값
-   * @param {(function(HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션
+   * @param {(function(HTMLElement, HTMLElement):void) | undefined} param.initializer 필드 초기화시 호출될 펑션 (현재 노드, 최상위 노드)
    * @param {(function(HTMLElement, string):void) | undefined} param.onChange 텍스트 변경시 호출될 펑션
    * @param {ComponentAppender} param.__proxy 자동완성 지원용 객체 인스턴스
    * @returns {ComponentAppender} 체인 가능한 ComponentAppender 인스턴스
@@ -2448,7 +2680,13 @@ class ComponentAppender extends HTMLComponentConvertable {
    *
    * @returns 노드 수정 인스턴스
    */
-  constructSelectBox(titleText, initialText, initialId, __proxy = this) {
+  constructSelectBox(
+    titleText,
+    initialText,
+    initialId,
+    isLong,
+    __proxy = this
+  ) {
     let topNode = setupClassNode("ul", "decentral-select");
     let optionContainer = setupClassNode("div", "decentral-list");
     topNode.setAttribute("decentral-selected", initialId);
@@ -2497,9 +2735,10 @@ class ComponentAppender extends HTMLComponentConvertable {
     topNode.append(title);
     topNode.append(optionContainer);
 
-    this.addGrid(titleText, false, (node) => {
+    this.addGrid(titleText, isLong, (node) => {
       node.append(topNode);
     });
+    topNode.setAttribute("decentral-selected", initialId);
 
     return {
       node: topNode,
@@ -2516,6 +2755,7 @@ class ComponentAppender extends HTMLComponentConvertable {
           option.setAttribute("decentral-option-text", text);
           option.setAttribute("decentral-option-id", id);
           option.onclick = () => {
+            console.log("Onclick triggered at " + id);
             this.removeOuterClickDetection();
             topNode.removeAttribute("list-enabled");
             const selectedId = option.getAttribute("decentral-option-id");
@@ -2530,20 +2770,24 @@ class ComponentAppender extends HTMLComponentConvertable {
         optionContainer.append(element);
         return element;
       },
+      clear: () => {
+        topNode.getElementsByClassName("decentral-list")[0].innerHTML = "";
+      },
       runSelected: () => {
-        document
-          .getElementById(topNode.getAttribute("decentral-selected"))
-          .onclick();
+        console.log("Selected " + topNode.getAttribute("decentral-selected"));
+        console.log(topNode.getElementsByClassName("decentral-option"));
+        for (const element of topNode.getElementsByClassName(
+          "decentral-option"
+        )) {
+          console.log("Canning " + element.id);
+          if (element.id === topNode.getAttribute("decentral-selected")) {
+            console.log("Found selected: " + element);
+            element.onclick();
+          }
+        }
       },
       setSelected: (id) => {
-        const toSelected = document.getElementById(id);
-        if (toSelected) {
-          topNode.setAttribute("decentral-selected", id);
-          topNode.textContent = toSelected.getAttribute(
-            "decentral-option-text"
-          );
-          toSelected.onclick();
-        }
+        topNode.setAttribute("decentral-selected", id);
       },
       getSelected: () => {
         return topNode.getAttribute("decentral-selected");
@@ -2572,8 +2816,11 @@ class ContentPanel extends ComponentAppender {
     "decentral-vertical-container",
     () => {}
   );
-  __footer = setupClassNode("div", "decentral-modal-footer", () => {});
-  __footerAppender = new ComponentAppender(this.__footer);
+  __footerGrid = setupClassNode("div", "decentral-grid-container", () => {});
+  __footer = setupClassNode("div", "decentral-modal-footer", (node) => {
+    node.append(this.__footerGrid);
+  });
+  __footerAppender = new ComponentAppender(this.__footerGrid);
 
   constructor(id, title, svg, mobileOpenAction, closeAction) {
     super(setupClassNode("div", "decentral-grid", () => {}));
@@ -2628,7 +2875,10 @@ class ContentPanel extends ComponentAppender {
     this.__verticalContainer.append(this.__footer);
   }
 
-  footer() {
+  footer(useVerticalFooter) {
+    if (useVerticalFooter) {
+      this.__footerGrid.classList.add("decentral-vertical-container");
+    }
     return this.__footerAppender;
   }
 
