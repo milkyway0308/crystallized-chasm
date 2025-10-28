@@ -1062,7 +1062,7 @@ class DecentrallizedModal {
    */
   init(isDarkTheme) {
     for (let handler of this.__preOpenHandler) {
-      handler();
+      handler(this);
     }
     this.__container = setupClassNode(
       "div",
