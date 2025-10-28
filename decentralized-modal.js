@@ -865,12 +865,7 @@ class ModalManager {
    * @returns {ModalMenu}
    */
   createMenu(menuName, menuAction) {
-    let menuItem = this.__modal.__menuItems.get(menuName);
-    if (!menuItem) {
-      menuItem = new ModalMenu(menuAction);
-      this.__modal.__menuItems.set(menuName, menuItem);
-    }
-    return menuItem;
+    return this.__modal.createMenu(menuName, menuAction);
   }
 
   __licenseAdjusters = [];
@@ -1003,6 +998,22 @@ class DecentrallizedModal {
 
   getVersion() {
     return DECENTRAL_VERSION;
+  }
+
+
+  /**
+   *
+   * @param {string} menuName
+   * @param {(modal: DecentrallizedModal) => Promise<any>} menuAction
+   * @returns {ModalMenu}
+   */
+  createMenu(menuName, menuAction) {
+    let menuItem = this.__menuItems.get(menuName);
+    if (!menuItem) {
+      menuItem = new ModalMenu(menuAction);
+      this.__menuItems.set(menuName, menuItem);
+    }
+    return menuItem;
   }
 
   /**
