@@ -10,7 +10,7 @@
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/ignitor.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/ignitor.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
-// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/4539d98e2e3ffdd78c81c1df35e3a1024ecfc3e4/decentralized-modal.js
+// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/c6a4bc6da98015c3d1f9932a1fbe917ff58faaf7/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 GM_addStyle(`
@@ -57,11 +57,22 @@ GM_addStyle(`
 
 !(async function () {
   const VERSION = "v1.0.0p";
+
+  const { initializeApp } = await import(
+    "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
+  );
+  const {
+    HarmBlockThreshold,
+    HarmCategory,
+    getAI,
+    getGenerativeModel,
+    VertexAIBackend,
+  } = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-ai.js");
+
   let lastSelected = [];
   let lastModified = ["", "", "", ""];
   let lastSelectedPrompt = undefined;
   let lastSelectedModel = undefined;
-
   const database = new Dexie("chasm-ignitor");
   // https://www.svgrepo.com/svg/457256/trash-can
   const TRASH_CAN_ICON_SVG = `
@@ -72,6 +83,10 @@ GM_addStyle(`
   const EDIT_ICON_SVG = `
     <svg width="32px" height="32px" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" fill="var(--decentral-text-formal)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path fill="var(--decentral-text-formal)" d="M832 512a32 32 0 1 1 64 0v352a32 32 0 0 1-32 32H160a32 32 0 0 1-32-32V160a32 32 0 0 1 32-32h352a32 32 0 0 1 0 64H192v640h640V512z"></path><path fill="var(--decentral-text-formal)" d="m469.952 554.24 52.8-7.552L847.104 222.4a32 32 0 1 0-45.248-45.248L477.44 501.44l-7.552 52.8zm422.4-422.4a96 96 0 0 1 0 135.808l-331.84 331.84a32 32 0 0 1-18.112 9.088L436.8 623.68a32 32 0 0 1-36.224-36.224l15.104-105.6a32 32 0 0 1 9.024-18.112l331.904-331.84a96 96 0 0 1 135.744 0z"></path></g></svg>
     `;
+
+  // https://www.svgrepo.com/svg/522506/close
+  const CLOSE_ICON_SVG =
+    '<svg width="16px" height="16px" viewBox="-0.5 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#FFFFFF"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M3 21.32L21 3.32001" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M3 3.32001L21 21.32" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>';
   await database.version(2).stores({
     prompts: `name, description, author, prompt`,
   });
@@ -95,14 +110,76 @@ GM_addStyle(`
     }
   }
 
+  class ReconstructableResponse {
+    constructor(chatId, name, response, input, output) {
+      this.chatId = chatId;
+      this.name = name;
+      this.response = response;
+      this.input = input;
+      this.output = output;
+    }
+
+    /**
+     *
+     * @param {string} id
+     * @returns {ReconstructableResponse}
+     */
+    withCurrentSessionId(id) {
+      this.sessionId = id;
+      return this;
+    }
+
+    /**
+     *
+     * @param {any} json
+     * @returns {ReconstructableResponse}
+     */
+    static fromJson(json) {
+      return new ReconstructableResponse(
+        json.chatId,
+        json.name,
+        json.response,
+        json.input,
+        json.output
+      );
+    }
+
+    static getHighestNext(chatId) {
+      const next = sessionStorage.getItem("chasm-ignt-max-" + chatId);
+      if (!next) {
+        this.saveHighestNext(chatId, 2);
+        return 1;
+      }
+      const parsedNext = parseInt(next) + 1;
+      this.saveHighestNext(chatId, parsedNext);
+      return parsedNext;
+    }
+
+    static getHighestCurrent(chatId) {
+      const next = sessionStorage.getItem("chasm-ignt-max-" + chatId);
+      if (!next) {
+        return 0;
+      }
+      return parseInt(next);
+    }
+
+    static saveHighestNext(chatId, next) {
+      sessionStorage.setItem("chasm-ignt-max-" + chatId, next.toString());
+    }
+
+    total() {
+      return this.input + this.output;
+    }
+  }
+
   class GenericLLMResponse {
     /**
      *
-     * @param {string} prompt
+     * @param {string} message
      * @param {TokenUsage} tokenUsage
      */
-    constructor(prompt, tokenUsage) {
-      this.prompt = prompt;
+    constructor(message, tokenUsage) {
+      this.message = message;
       this.tokenUsage = tokenUsage;
     }
   }
@@ -176,7 +253,7 @@ GM_addStyle(`
           body.contents.parts.unshift({ text: randomPrefix });
         }
         const request = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${option.modelId}:generateContent?key=${authKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${option.modelId}:generateContent?key=${settings.geminiKey}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -224,7 +301,7 @@ GM_addStyle(`
             true
           );
         }
-        const parts = candidates[0].content;
+        const parts = candidates[0].content?.parts;
         if (!parts || parts.length <= 0) {
           return new LLMError(
             1400,
@@ -232,6 +309,7 @@ GM_addStyle(`
             true
           );
         }
+        console.log(parts);
         const message = parts[0].text;
         if (!message) {
           return new LLMError(
@@ -248,11 +326,92 @@ GM_addStyle(`
           )
         );
       } catch (e) {
+        console.error(e);
         return new LLMError(-1, `Unexpected error: ${e.message}`);
       }
     }
   }
 
+  class FirebaseRequester extends LLMRequester {
+    static GENERIC_REQUESTER = new FirebaseRequester();
+    /**
+     *
+     * @param {RequestOption} option
+     * @returns {GenericLLMResponse | LLMError}
+     */
+    async doRequest(option) {
+      try {
+        if (!settings.firebaseScript) {
+          return new LLMError(
+            -1,
+            "Firebase API 스크립트가 등록되지 않았습니다."
+          );
+        }
+        const extracted = parseVertexContent(settings.firebaseScript);
+        if (!extracted) {
+          return new LLMError(
+            -1,
+            "잘못된 Firebase API 스크립트가 입력되어 있습니다."
+          );
+        }
+        let app = undefined;
+        try {
+          app = initializeApp(extracted);
+        } catch (e) {
+          console.error(e);
+          return new LLMError(
+            -1,
+            "Firebase API 오류: 잘못된 API 키 혹은 스크립트가 입력되었습니다."
+          );
+        }
+        try {
+          const ai = getAI(app, {
+            backend: new VertexAIBackend(),
+          });
+          const safetySettings = [
+            {
+              category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+              threshold: HarmBlockThreshold.OFF,
+            },
+            {
+              category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+              threshold: HarmBlockThreshold.OFF,
+            },
+            {
+              category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+              threshold: HarmBlockThreshold.OFF,
+            },
+            {
+              category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+              threshold: HarmBlockThreshold.OFF,
+            },
+          ];
+
+          console.log(JSON.stringify(option));
+          const model = getGenerativeModel(ai, {
+            model: option.modelId,
+            safetySettings,
+          });
+          const result = await model.generateContent(option.prompt);
+          const response = result.response;
+          const text = response.text();
+          console.log(response);
+          return new GenericLLMResponse(
+            text,
+            new TokenUsage(
+              response.usageMetadata.promptTokenCount,
+              response.usageMetadata.candidatesTokenCount
+            )
+          );
+        } catch (error) {
+          throw error;
+        }
+      } catch (e) {
+        console.error(e);
+        return new LLMError(-1, `Unexpected error: ${e.message}`);
+      }
+    }
+  }
   class PlatformMessage {
     /**
      *
@@ -264,6 +423,17 @@ GM_addStyle(`
       this.role = role;
       this.userName = userName;
       this.message = message;
+    }
+
+    anonymize() {
+      return {
+        role: this.role,
+        message: this.message,
+      };
+    }
+
+    withPersona(persona) {
+      return new PlatformMessage(this.role, persona, this.message);
     }
   }
 
@@ -356,6 +526,12 @@ GM_addStyle(`
     }
 
     /**
+     * @returns {string}
+     */
+    getCurrentId() {
+      alert("Platform id getter not implemented yet");
+    }
+    /**
      *
      * @returns {PlatformPersonaUtility}
      */
@@ -375,6 +551,10 @@ GM_addStyle(`
     addRandomHeader: false,
     includeUserNote: false,
     includePersona: true,
+    promptUserMessage: "**OOC: 현재까지의 롤플레잉 진행상황을 요약해줘.**",
+    promptPrefixMessage:
+      "**OOC: 현재까지의 롤플레잉 진행상황 요약입니다. 이후 응답에 이 요약 내용을 참조하겠습니다.**",
+    promptSuffixMessage: "",
   };
 
   // It's good to use IndexedDB, but we have to use LocalStorage to block site
@@ -509,7 +689,7 @@ GM_addStyle(`
       })
       .createSubMenu("프롬프트 라이브러리", (modal) => {
         modal.replaceContentPanel((panel) => {
-          setupPromptLibrary(panel);
+          setupPromptLibrary(modal, panel);
         }, "프롬프트 라이브러리");
       })
       .createSubMenu("프롬프트 수정", (modal) => {
@@ -522,6 +702,34 @@ GM_addStyle(`
           setupApiSettingSubmenu(panel);
         }, "API 설정");
       });
+    // Restore current
+    modal.getOpened().withPreOpenHandler((modal) => {
+      const chatId = PlatformProvider.getProvider().getCurrentId();
+      const menu = modal.__menuItems.get("결정화 캐즘 이그나이터");
+      for (let key of Array.from(menu.__subMenus.keys())) {
+        console.log("Submenu: " + key);
+        if (key.startsWith("요청 결과 #")) {
+          console.log("Deleted!");
+          menu.__subMenus.delete(key);
+          console.log("Key after:");
+          console.log(Array.from(menu.__subMenus.keys()));
+        }
+      }
+      const currentTopCount = ReconstructableResponse.getHighestCurrent(chatId);
+      for (let i = 1; i <= currentTopCount; i++) {
+        const text = sessionStorage.getItem(
+          "chasm-ignt-resp-" + chatId + "-" + i
+        );
+        if (text) {
+          const reconstructed = ReconstructableResponse.fromJson(
+            JSON.parse(text)
+          ).withCurrentSessionId("chasm-ignt-resp-" + chatId + "-" + i);
+          addMenuFromConstructables(modal, reconstructed);
+        }
+      }
+      console.log("Final menu: ");
+      console.log(Array.from(menu.__subMenus.keys()));
+    });
   }
 
   /**
@@ -570,6 +778,7 @@ GM_addStyle(`
           console.log("Change selected to chasm-ignt-model-listing-0");
           modelBox.runSelected();
           console.log("Runned");
+          return true;
         }
       );
     }
@@ -815,11 +1024,49 @@ GM_addStyle(`
     panel.addSwitchBox(
       "chasm-ignt-add-user-note",
       "유저노트 첨부",
-      "활성화시, LLM에 전송될 메시지에 유저노트 데이터 (대화 프로필)을 첨부합니다.",
+      "활성화시, LLM에 전송될 메시지에 유저노트 데이터을 첨부합니다.",
       {
         defaultValue: settings.includeUserNote,
         action: (_, value) => {
           settings.includeUserNote = value;
+          saveSettings();
+        },
+      }
+    );
+
+    panel.addBoxedInputGrid(
+      "chasm-ignt-ooc-user-message",
+      "사용자 입력 메시지",
+      "이그나이터로 생성된 메시지를 전송할 때, 고정 유저 메시지를 설정합니다.",
+      {
+        defaultValue: settings.promptUserMessage,
+        action: (_, value) => {
+          settings.promptUserMessage = value;
+          saveSettings();
+        },
+      }
+    );
+    panel.addBoxedInputGrid(
+      "chasm-ignt-prompt-prefix",
+      "요약 메시지 머릿말",
+      "이그나이터로 생성된 메시지를 전송할 때, 맨 앞에 첨부될 메시지를 설정합니다.",
+      {
+        defaultValue: settings.promptPrefixMessage,
+        action: (_, value) => {
+          settings.promptSuffixMessage = value;
+          saveSettings();
+        },
+      }
+    );
+
+    panel.addBoxedInputGrid(
+      "chasm-ignt-prompt-suffix",
+      "요약 메시지 머릿말",
+      "이그나이터로 생성된 메시지를 전송할 때, 맨 뒤에 첨부될 메시지를 설정합니다.",
+      {
+        defaultValue: settings.promptSuffixMessage,
+        action: (_, value) => {
+          settings.promptSuffixMessage = value;
           saveSettings();
         },
       }
@@ -832,6 +1079,9 @@ GM_addStyle(`
           console.log(parent);
           parent.append(
             setupNode("p", (node) => {
+              node.id = "chasm-ignt-llm-timer";
+              node.classList.add("chasm-ignt-time-ticker");
+              node.setAttribute("current-flow", "-1");
               node.textContent = "00:00";
             })
           );
@@ -855,13 +1105,18 @@ GM_addStyle(`
             return;
           }
         },
-        action: () => {
+        action: (node) => {
+          node.setAttribute("disabled", "true");
+          document
+            .getElementById("chasm-ignt-llm-timer")
+            .setAttribute("current-flow", "0");
           appendBurnerLog("이그나이터 프로세스 시작..");
           const provider = PlatformProvider.getProvider();
           const fetcher = provider.getFetcher();
           const sender = provider.getSender();
           const personaUtil = provider.getPersonaUtil();
           const noteUtil = provider.getUserNoteUtil();
+          const chatId = provider.getCurrentId();
           new Promise(async () => {
             appendBurnerLog("메시지 가져오는 중..");
             const messages = await fetcher.fetch(settings.maxMessageRetreive);
@@ -877,13 +1132,16 @@ GM_addStyle(`
             appendBurnerLog(
               "현재 프롬프트 " + lastSelectedPrompt.length + "자"
             );
-
             const messageStructure = {
               prompt: lastSelectedPrompt,
               chatLog: settings.includePersona
-                ? messages
+                ? messages.map((it) => it.withPersona(persona.name))
                 : messages.map((it) => it.anonymize()),
             };
+            if (settings.includePersona) {
+              messageStructure.userPersonaName = persona.name;
+              messageStructure.userPersonaDescription = persona.description;
+            }
             if (settings.includeUserNote) {
               const userNote = await noteUtil.fetch();
               if (userNote.length > 0) {
@@ -924,22 +1182,237 @@ GM_addStyle(`
                   );
                   break;
                 }
-                appendBurnerLog("다시 시도합니다..");
+                if (result.code === 429) {
+                  appendBurnerLog(
+                    "API 요청이 레이트리밋에 도달하였습니다. 10초 후에 다시 시도합니다.."
+                  );
+                  await new Promise((resolve) => setTimeout(resolve, 10_000));
+                } else if (result.code === 503) {
+                  appendBurnerLog(
+                    "서버에서 오류를 반환하였습니다. 다시 시도합니다.."
+                  );
+                  await new Promise((resolve) => setTimeout(resolve, 2_000));
+                } else if (parseInt(result.code / 100) === 4) {
+                  appendBurnerLog(
+                    "이 오류는 재시도 불가능한 오류입니다. 재시도를 중단합니다."
+                  );
+                  break;
+                }
               } else {
-                console.log(result);
+                const nextId = ReconstructableResponse.getHighestNext(chatId);
+                const nextName = "요청 결과 #" + nextId;
+                const reconstructed = new ReconstructableResponse(
+                  chatId,
+                  nextName,
+                  result.message,
+                  result.tokenUsage.input,
+                  result.tokenUsage.output
+                ).withCurrentSessionId(
+                  "chasm-ignt-resp-" + chatId + "-" + nextId
+                );
+                sessionStorage.setItem(
+                  "chasm-ignt-resp-" + chatId + "-" + nextId,
+                  JSON.stringify(reconstructed)
+                );
+                const modal = ModalManager.getOrCreateManager("c2");
+                const menuKey = addMenuFromConstructables(modal, reconstructed);
+                modal.getOpened().refreshMenuPanel();
+                modal.getOpened().triggerSelect(menuKey);
                 break;
               }
             }
-          }).then(() => {});
+          })
+            .then(() => {
+              // Call promise with empty then() call - DO NOT ERASE THIS EMPTY LAMBDA
+            })
+            .finally(() => {
+              node.removeAttribute("disabled");
+              const timer = doc.getElementById("chasm-ignt-llm-timer");
+              if (timer) {
+                timer.setAttribute("current-flow", "-1");
+                timer.textContent = "00:00";
+              }
+            });
         },
       });
   }
 
   /**
    *
+   * @param {ModalManager} modal
+   * @param {ReconstructableResponse} result
+   * @returns {string[]}
+   */
+  function addMenuFromConstructables(modal, result) {
+    modal.createMenu("결정화 캐즘 이그나이터").createSubMenu(
+      result.name,
+      (modal) => {
+        modal.replaceContentPanel((panel) => {
+          console.log("Replaced with message:");
+          console.log(result.response);
+          panel.addTextAreaGrid("chasm-ignt-result-panel", "요쳥 결과", {
+            defaultValue: result.response,
+            initializer: (node) => {
+              node.style.cssText = "height: 384px !important;";
+            },
+          });
+          panel.addText(
+            `전체 ${result.total()} 토큰, 입력 ${result.input} 토큰, 출력 ${
+              result.output
+            } 토큰`
+          );
+          let isHTMLDisplayable = isHTMLCompatible(result.response);
+          if (isHTMLDisplayable) {
+            panel.addText("✓ HTML 포맷 호환 가능", {
+              initializer: (node) => {
+                node.style.color = "green";
+              },
+            });
+          } else {
+            panel.addText("🛇 HTML 포맷 호환 불가능", {
+              initializer: (node) => {
+                node.style.color = "red";
+              },
+            });
+          }
+          panel.addText("상태: 준비됨", {
+            initializer: (node) => {
+              node.id = "chasm-ignt-status-text";
+            },
+          });
+          panel
+            .footer()
+            .addButton("chasm-ignt-show-html", "HTML 표시", {
+              action: () => {
+                // I'm a engineer, trust me!
+                const allowJS = confirm(
+                  "이그나이터 프롬프트로 가공된 HTML 코드는 자바스크립트 코드를 포함할 수 있습니다.\n결정화 캐즘 이그나이터는 HTML에 포함된 스크립트를 사용할 수 있도록 구성되었으나, 이는 대단히 위험한 행위이며 결정화 캐즘 개발진은 코드 실행을 권장하지 않습니다.\n" +
+                    "자바스크립트 코드를 비활성화하면 표시된 HTML 문서에서 클릭으로 발동하는 액션이나 상호작용들이 비활성화될 수 있습니다. 단, 이는 CSS만으로 구성된 애니메이션에는 포함되지 않습니다.\n\n" +
+                    "자바스크립트 코드를 포함하여 HTML을 표시하시겠습니까?\n취소를 누를 경우, 샌드박스 모드로 실행되어 스크립트 실행을 막습니다."
+                );
+                const topDivision = document.createElement("div");
+                topDivision.id = "chasm-burner-html-preview";
+                topDivision.style.cssText =
+                  "display: flex; flex-direction: column; align-items: center; z-index: 99999 !important; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: white; ";
+                const topBar = document.createElement("div");
+                topBar.style.cssText =
+                  "display: flex; flex-direction: row; align-items: center; width: 100%; height: 32px; background-color: #333; border-bottom: 1px solid #555;";
+                const comment = document.createElement("span");
+                comment.style.cssText =
+                  "font-size: 0.8em; color: #eee; margin-left: 24px;";
+                comment.textContent = allowJS
+                  ? `C2 Ignitor ${VERSION} HTML Preview (Full Mode)`
+                  : `C2 Ignitor ${VERSION} HTML Preview (Sandbox Mode)`;
+                topBar.append(comment);
+                const closer = document.createElement("div");
+                closer.innerHTML = CLOSE_ICON_SVG;
+                closer.style.cssText =
+                  "width: fit-content; margin-left: auto; height: 16px; width: 16px; cursor: pointer; margin-right: 16px;";
+                closer.addEventListener("click", () => {
+                  document.getElementById("chasm-burner-html-preview").remove();
+                });
+                topBar.append(closer);
+                const newItem = document.createElement("iframe");
+                newItem.style.cssText =
+                  "flex: 1 !important; width: 100% !important;";
+                if (!allowJS) {
+                  newItem.setAttribute("sandbox", "");
+                }
+                newItem.setAttribute(
+                  "srcdoc",
+                  document
+                    .getElementById("chasm-ignt-result-panel")
+                    .value.replace('"', "&quot;")
+                );
+                topDivision.append(topBar);
+                topDivision.append(newItem);
+                document.body.append(topDivision);
+              },
+              initializer: (node) => {
+                if (!isHTMLDisplayable) {
+                  node.setAttribute("disabled", "true");
+                }
+              },
+            })
+            .addButton("chasm-ignt-start-send", "전송하기", {
+              action: (node) => {
+                const sender = PlatformProvider.getProvider().getSender();
+                const statusTextNode = document.getElementById(
+                  "chasm-ignt-status-text"
+                );
+                let messageToSend = document.getElementById(
+                  "chasm-ignt-result-panel"
+                ).value;
+                if (
+                  settings.promptPrefixMessage &&
+                  settings.promptPrefixMessage.length > 0
+                ) {
+                  messageToSend =
+                    settings.promptPrefixMessage + "\n" + messageToSend;
+                }
+                if (
+                  settings.promptSuffixMessage &&
+                  settings.promptSuffixMessage.length > 0
+                ) {
+                  messageToSend =
+                    messageToSend + "\n" + settings.promptSuffixMessage;
+                }
+                node.setAttribute("disabled", "true");
+                new Promise(async (accept, reject) => {
+                  try {
+                    statusTextNode.textContent = "상태: 응답 전송중";
+                    const modifier = await sender.send(
+                      settings.promptUserMessage
+                    );
+                    const modifyResult = await modifier(messageToSend);
+                    if (modifyResult instanceof Error) {
+                      throw new Error(
+                        "유저 메시지 수정에 실패하였습니다: " +
+                          modifyResult.message
+                      );
+                    }
+                    statusTextNode.textContent =
+                      "전송 완료! 페이지를 새로 고쳐 결과를 확인하세요.";
+                    accept();
+                  } catch (error) {
+                    reject(error);
+                  }
+                })
+                  .catch((error) => {
+                    console.error(error);
+                    statusTextNode.textContent(
+                      "채팅 전송 종 오류가 발생하였습니다. 오류 내용은 콘솔을 확인하세요."
+                    );
+                  })
+                  .finally(() => {
+                    node.setAttribute("disabled", "false");
+                  });
+              },
+            })
+            .addButton("chasm-ignt-delete-current", "결과 삭제", {
+              action: () => {
+                modal.__menuItems
+                  ?.get("결정화 캐즘 이그나이터")
+                  ?.__subMenus?.delete(result.name);
+                sessionStorage.removeItem(result.sessionId);
+
+                modal.triggerSelect(["결정화 캐즘 이그나이터"]);
+                modal.refreshMenuPanel();
+              },
+            });
+        }, result.name);
+      },
+      result.name
+    );
+    return ["결정화 캐즘 이그나이터", result.name];
+  }
+
+  /**
+   *
+   * @param {DecentrallizedModal} modal
    * @param {ContentPanel} panel
    */
-  function setupPromptLibrary(panel) {
+  function setupPromptLibrary(modal, panel) {
     database.prompts.toArray().then((arr) => {
       if (arr.length <= 0) {
         panel.addTitleText("불러올 내용이 없습니다.");
@@ -1270,9 +1743,25 @@ GM_addStyle(`
     );
     box.runSelected();
   }
+  setTimeout(() => {
+    setupModal();
+  }, 1);
 
-  setupModal();
-
+  setInterval(() => {
+    for (let node of document.getElementsByClassName(
+      "chasm-ignt-time-ticker"
+    )) {
+      let flow = parseInt(node.getAttribute("current-flow"));
+      if (flow !== -1) {
+        node.setAttribute("current-flow", ++flow);
+        const minute = Math.floor(flow / 60);
+        const second = flow - minute * 60;
+        node.textContent = `${minute.toString().padStart(2, "0")}:${second
+          .toString()
+          .padStart(2, "0")}`;
+      }
+    }
+  }, 1000);
   const MODEL_MAPPINGS = {
     Google: {
       "gemini-2.5-pro": {
@@ -1304,19 +1793,29 @@ GM_addStyle(`
 
     "Firebase Vertex AI": {
       "gemini-2.5-pro": {
+        name: "gemini-2.5-pro",
         display: "Gemini 2.5 Pro",
+        requester: FirebaseRequester.GENERIC_REQUESTER,
       },
       "gemini-2.5-flash": {
+        name: "gemini-2.5-flash",
         display: "Gemini 2.5 Flash",
+        requester: FirebaseRequester.GENERIC_REQUESTER,
       },
       "gemini-2.5-flash-lite": {
+        name: "gemini-2.5-flash-lite",
         display: "Gemini 2.5 Flash Lite",
+        requester: FirebaseRequester.GENERIC_REQUESTER,
       },
       "gemini-2.0-flash": {
+        name: "gemini-2.0-flash",
         display: "Gemini 2.0 Flash",
+        requester: FirebaseRequester.GENERIC_REQUESTER,
       },
       "gemini-2.0-flash-lite": {
+        name: "gemini-2.0-flash-lite",
         display: "Gemini 2.0 Flash Lite",
+        requester: FirebaseRequester.GENERIC_REQUESTER,
       },
     },
   };
@@ -1611,6 +2110,38 @@ GM_addStyle(`
     return e ? decodeURIComponent(e[1]) : null;
   }
 
+  function detachHTMLDecoration(text) {
+    if (text.startsWith("```html")) {
+      if (text.endsWith("```")) {
+        return text.substring(7, text.length - 3);
+      }
+      return text.substring(7);
+    }
+    if (text.startsWith("```")) {
+      if (text.endsWith("```")) {
+        return text.substring(3, text.length - 3);
+      }
+      return text.substring(3);
+    }
+    return text;
+  }
+
+  function isHTMLCompatible(text) {
+    try {
+      const rawText = detachHTMLDecoration(text);
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(rawText, "text/html");
+      if (doc.documentElement.querySelector("parsererror")) {
+        console.log(doc.documentElement.querySelector("parsererror"));
+        return false;
+      } else {
+        return true;
+      }
+    } catch (err) {
+      return false;
+    }
+  }
+
   // Crack implementation
 
   class CrackMessageSender extends PlatformMessageSender {
@@ -1641,11 +2172,11 @@ GM_addStyle(`
           )}`
         );
       }
-      const messageFetch = authFetch(
+      const messageFetch = await authFetch(
         "GET",
         `https://contents-api.wrtn.ai/character-chat/characters/chat/${this.chatRoomId}/message/${sendResult.data}/result`
       );
-      if (!message.data) {
+      if (!messageFetch.data) {
         throw new Error(
           "크랙 서버에서 전송된 메시지 데이터를 받아오지 못했습니다."
         );
@@ -1664,6 +2195,17 @@ GM_addStyle(`
         const { value, done } = await reader.read();
         if (done) break;
       }
+      const userMessageId = messageFetch.data._id;
+      // Modify bot message
+      return async (message) => {
+        const url = `https://contents-api.wrtn.ai/character-chat/characters/chat/${this.chatRoomId}/message/${userMessageId}`;
+        const result = await authFetch("PATCH", url, { message: message });
+        if (result.result === "SUCCESS") {
+          return true;
+        } else {
+          return new Error(JSON.stringify(result));
+        }
+      };
     }
   }
 
@@ -1788,6 +2330,18 @@ GM_addStyle(`
 
   class CrackProvider extends PlatformProvider {
     /**
+     * @returns {string}
+     */
+    getCurrentId() {
+      if (isStoryPath() || isCharacterPath()) {
+        const split = window.location.pathname.substring(1).split("/");
+        const characterId = split[1];
+        const chatRoomId = split[3];
+        return chatRoomId;
+      }
+      return undefined;
+    }
+    /**
      * @returns {PlatformMessageFetcher}
      */
     getFetcher() {
@@ -1807,7 +2361,7 @@ GM_addStyle(`
       const split = window.location.pathname.substring(1).split("/");
       const characterId = split[1];
       const chatRoomId = split[3];
-      return new CrackMessageFetcher(chatRoomId);
+      return new CrackMessageSender(chatRoomId);
     }
 
     /**
