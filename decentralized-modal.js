@@ -2703,9 +2703,7 @@ class ComponentAppender extends HTMLComponentConvertable {
         return element;
       },
       clear: () => {
-        for (let element of topNode.getElementsByClassName("decentral-option")) {
-          element.remove();
-        }
+        topNode.getElementsByClassName("decentral-list")[0].innerHTML = "";
       },
       runSelected: () => {
         console.log("Selected " + topNode.getAttribute("decentral-selected"));
