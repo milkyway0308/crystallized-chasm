@@ -1000,7 +1000,6 @@ class DecentrallizedModal {
     return DECENTRAL_VERSION;
   }
 
-
   /**
    *
    * @param {string} menuName
@@ -1025,11 +1024,11 @@ class DecentrallizedModal {
     if (this.__container) {
       return;
     }
+    this.close();
     if (preSelected) {
       this.selectedMenu.length = 0;
       this.selectedMenu.push(...preSelected);
     }
-    this.close();
     this.init(isDarkTheme);
   }
 
@@ -1063,6 +1062,7 @@ class DecentrallizedModal {
     if (this.__container) {
       this.__container.remove();
       this.__container = undefined;
+      this.selectedMenu = [];
     }
   }
 
