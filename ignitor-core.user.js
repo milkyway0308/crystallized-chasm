@@ -10,7 +10,7 @@
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/ignitor.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/ignitor.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
-// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/ea39262878161bf25d28d3f5269f5e553d2e952b/decentralized-modal.js
+// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/dec6f3a0e37da5c7fef2f7d17d7d754b54913794/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 GM_addStyle(`
@@ -59,8 +59,8 @@ GM_addStyle(`
   const VERSION = "v1.0.0p";
   let lastSelected = [];
   let lastModified = ["", "", "", ""];
-  let lastSelectedModel = undefined;
   let lastSelectedPrompt = undefined;
+  let executeModel = undefined;
 
   const database = new Dexie("chasm-ignitor");
   // https://www.svgrepo.com/svg/457256/trash-can
@@ -267,6 +267,18 @@ GM_addStyle(`
     }
   }
 
+  class PlatformPersona {
+    /**
+     *
+     * @param {string} name
+     * @param {string|undefined} description
+     */
+    constructor(name, description) {
+      this.name = name;
+      this.description = description;
+    }
+  }
+
   class PlatformMessageSender {
     /**
      *
@@ -289,6 +301,16 @@ GM_addStyle(`
     async remove() {}
   }
 
+  class PlatformPersonaUtility {
+    /**
+     *
+     * @returns {Promise<PlatformPersona>}
+     */
+    async getRepresentivePersona() {
+      return new PlatformPersona("user", undefined);
+    }
+  }
+
   class PlatformMessageFetcher {
     isValid() {
       return false;
@@ -296,7 +318,7 @@ GM_addStyle(`
     /**
      *
      * @param {number} count
-     * @returns {PlatformMessage[]}
+     * @returns {Promise<PlatformMessage[]>}
      */
     async fetch(maxCount) {}
   }
@@ -330,6 +352,21 @@ GM_addStyle(`
     getSender() {
       alert("Platform message sender not implemented yet");
     }
+
+    /**
+     * @returns {UserNoteUtility}
+     */
+    getUserNoteUtil() {
+      alert("Platform user note utility not implemented yet");
+    }
+
+    /**
+     *
+     * @returns {PlatformPersonaUtility}
+     */
+    getPersonaUtil() {
+      return new PlatformPersonaUtility();
+    }
   }
   // =====================================================
   //                      설정
@@ -342,6 +379,7 @@ GM_addStyle(`
     maxMessageRetreive: 50,
     addRandomHeader: false,
     includeUserNote: false,
+    includePersona: true,
   };
 
   // It's good to use IndexedDB, but we have to use LocalStorage to block site
@@ -454,6 +492,15 @@ GM_addStyle(`
       "color: inherit;"
     );
   }
+
+  function appendBurnerLog(message) {
+    const logContainer = document.getElementById("chasm-ignt-log-container");
+    const time = new Date();
+    const timeMessage = `[${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}] `;
+    logContainer.textContent =
+      timeMessage + message + "\n" + logContainer.textContent;
+  }
+
   function setupModal() {
     const modal = ModalManager.getOrCreateManager("c2");
     modal
@@ -480,14 +527,14 @@ GM_addStyle(`
   }
 
   /**
-   * 
-   * @param {ContentPanel} panel 
+   *
+   * @param {ContentPanel} panel
    */
   function setupBurnerPage(panel) {
     const providerBox = panel.constructSelectBox(
       "모델 제공자",
       "Google",
-      "chasm-ignt-provider-google",
+      "chasm-ignt-provider-Google",
       false
     );
     const modelBox = panel.constructSelectBox(
@@ -496,17 +543,32 @@ GM_addStyle(`
       "gemini-2.5-pro",
       false
     );
+    providerBox.addGroup("모델 제공자");
     for (let provider of Object.keys(MODEL_MAPPINGS)) {
       providerBox.addOption(
         provider,
         `chasm-ignt-provider-${provider}`,
         (id, node) => {
+          let index = 0;
+          modelBox.clear();
+          modelBox.addGroup("사용 모델");
           for (const model of Object.keys(MODEL_MAPPINGS[provider])) {
-            modelBox.clearGroup();
+            const item = MODEL_MAPPINGS[provider][model];
+            modelBox.addOption(
+              item.display,
+              `chasm-ignt-model-listing-${index++}`,
+              (_, node) => {
+                executeModel = item.requester;
+                return true;
+              }
+            );
           }
+          modelBox.setSelected(`chasm-ignt-model-listing-0`);
+          modelBox.runSelected();
         }
       );
     }
+    providerBox.runSelected();
     // Option flag here
 
     const promptPreset = panel.constructSelectBox(
@@ -543,6 +605,9 @@ GM_addStyle(`
               .getElementById("chasm-ignt-custom-prompt")
               .parentElement.setAttribute("chasm-ignt-hide", "true");
             saveSettings();
+            lastSelectedPrompt = JSON.stringify(
+              DEFAULT_PROMPTS[author][preset].prompt
+            );
             return true;
           }
         );
@@ -574,6 +639,7 @@ GM_addStyle(`
             "true"
           );
         saveSettings();
+        lastSelectedPrompt = settings.lastUsedPrompt;
         return true;
       }
     );
@@ -595,6 +661,8 @@ GM_addStyle(`
                   item.description.length <= 0
                     ? "이 프롬프트에는 설명이 없습니다."
                     : item.description;
+                console.log("Selected");
+                console.log(item.name);
                 settings.lastSelected = ["$prompt-library", item.name];
                 descriptionField.parentElement.parentElement.parentElement.removeAttribute(
                   "chasm-ignt-hide"
@@ -603,6 +671,7 @@ GM_addStyle(`
                   .getElementById("chasm-ignt-custom-prompt")
                   .parentElement.setAttribute("chasm-ignt-hide", "true");
                 saveSettings();
+                lastSelectedPrompt = item.prompt;
                 return true;
               }
             );
@@ -613,11 +682,13 @@ GM_addStyle(`
         console.log("Test");
         if (settings.lastSelected) {
           if (settings.lastSelected[0] === "$prompt-library") {
+            console.log("Prompt library");
+            console.log(settings);
             let matched = false;
             for (let element of promptPreset.node.getElementsByClassName(
               "chasm-ignt-library-prompt"
             )) {
-              const name = element.selectedPrompt;
+              const name = element.selectedPrompt.name;
               console.log("Settings: " + settings.lastSelected[1]);
               console.log("Scanning: " + name);
               if (name === settings.lastSelected[1]) {
@@ -676,6 +747,7 @@ GM_addStyle(`
           console.log("Custom prompt change to " + text);
           settings.lastCustomPrompt = text;
           saveSettings();
+          lastSelectedPrompt = text;
         },
       }
     );
@@ -685,7 +757,11 @@ GM_addStyle(`
       "오류 발생시 자동 재시도",
       "활성화시, 서버에서 오류가 발생할 경우 자동으로 재시도합니다.\n체크 해제시 자동 재시도가 중단됩니다.",
       {
-        defaultValue: true,
+        defaultValue: settings.useAutoRetry,
+        action: (_, value) => {
+          settings.useAutoRetry = value;
+          saveSettings();
+        },
       }
     );
 
@@ -699,6 +775,7 @@ GM_addStyle(`
         max: 999,
         onChange: (_, value) => {
           settings.maxMessageRetreive = value;
+          saveSettings();
         },
       }
     );
@@ -708,7 +785,11 @@ GM_addStyle(`
       "전송에 무작위 헤더 추가",
       "활성화시, 전송될 메시지에 유저노트를 적용합니다. \n무작위 헤더는 50자의 프롬프트를 사용하지만, LLM의 캐시 무효화를 유도하여 응답 확률을 올립니다.",
       {
-        defaultValue: true,
+        defaultValue: settings.addRandomHeader,
+        action: (_, value) => {
+          settings.addRandomHeader = value;
+          saveSettings();
+        },
       }
     );
 
@@ -717,15 +798,23 @@ GM_addStyle(`
       "페르소나 데이터 첨부",
       "활성화시, LLM에 전송될 메시지에 페르소나 데이터 (대화 프로필)을 첨부합니다.",
       {
-        defaultValue: true,
+        defaultValue: settings.includePersona,
+        action: (_, value) => {
+          settings.includePersona = value;
+          saveSettings();
+        },
       }
     );
     panel.addSwitchBox(
       "chasm-ignt-add-user-note",
       "유저노트 첨부",
-      "활성화시, 전송될 메시지에 유저노트를 적용합니다. 유저노트는 10-20개의 크래커 비용이 청구됩니다.",
+      "활성화시, LLM에 전송될 메시지에 유저노트 데이터 (대화 프로필)을 첨부합니다.",
       {
-        defaultValue: false,
+        defaultValue: settings.includeUserNote,
+        action: (_, value) => {
+          settings.includeUserNote = value;
+          saveSettings();
+        },
       }
     );
     panel
@@ -760,12 +849,33 @@ GM_addStyle(`
           }
         },
         action: () => {
+          appendBurnerLog("이그나이터 프로세스 시작..");
           const provider = PlatformProvider.getProvider();
           const fetcher = provider.getFetcher();
           const sender = provider.getSender();
-          fetcher.fetch(settings.maxMessageRetreive).then(async (messages) => {
-            console.log(messages);
-          });
+          const personaUtil = provider.getPersonaUtil();
+          new Promise(async () => {
+            appendBurnerLog("메시지 가져오는 중..");
+            const messages = await fetcher.fetch(settings.maxMessageRetreive);
+            appendBurnerLog(`${messages.length}개의 메시지를 불러왔습니다.`);
+            const persona = await personaUtil.getRepresentivePersona();
+            if (persona instanceof Error) {
+              appendBurnerLog("페르소나 오류: " + persona.message);
+              return;
+            }
+            appendBurnerLog("페르소나 데이터: " + JSON.stringify(persona));
+            appendBurnerLog(
+              "현재 프롬프트 " + lastSelectedPrompt.length + "자"
+            );
+
+            let message = JSON.stringify({
+              prompt: lastSelectedPrompt,
+              chat_log: messages,
+            });
+            appendBurnerLog(
+              "메시지 구축 완료. 최종 메시지 " + message.length + "자"
+            );
+          }).then(() => {});
         },
       });
   }
@@ -836,7 +946,79 @@ GM_addStyle(`
       }
     });
 
-    panel.footer().addButton("chasm-ignt-load-prompt", "불러오기");
+    panel
+      .footer()
+      .addButton("chasm-ignt-load-prompt", "클립보드에서 불러오기", {
+        action: (_) => {
+          window.navigator.clipboard
+            .readText()
+            .then((text) => {
+              console.log(text);
+              const json = JSON.parse(text);
+              if (json.type !== "C2 Ignitor Prompt Share") {
+                alert("이 타입의 프롬프트는 가져올 수 없습니다.");
+                return;
+              }
+              const data = json.data;
+              if (data.description.length > 500) {
+                if (
+                  !confirm(
+                    `프롬프트의 설명이 너무 깁니다. (${data.description.length}자)\n정말로 불러오시겠습니까?`
+                  )
+                )
+                  return;
+              }
+              if (data.prompt.length > 10000) {
+                if (
+                  !confirm(
+                    `프롬프트의 길이가 너무 깁니다. (${data.prompt.length}자)\n정말로 불러오시겠습니까?`
+                  )
+                )
+                  return;
+              }
+              if (data.author.length > 30) {
+                if (
+                  !confirm(
+                    `프롬프트 제작자 닉네임이 너무 깁니다. (${data.author.length}자)\n이 스크립트는 악의적, 혹은 혼란을 주기 위한 용도로 제작되었을 확률이 높습니다.\n정말로 불러오시겠습니까?`
+                  )
+                )
+                  return;
+              }
+              if (data.title.length > 30) {
+                if (
+                  !confirm(
+                    `프롬프트 제목이 너무 깁니다. (${data.title.length}자)\n이 스크립트는 악의적, 혹은 혼란을 주기 위한 용도로 제작되었을 확률이 높습니다.\n정말로 불러오시겠습니까?`
+                  )
+                )
+                  return;
+              }
+              database.prompts
+                .put({
+                  name: data.title,
+                  author: data.author,
+                  description: data.description,
+                  prompt: data.prompt,
+                })
+                .then(() => {
+                  alert("프롬프트를 불러왔습니다.");
+                  ModalManager.getOrCreateManager("c2")
+                    .getOpened()
+                    .triggerSelect([
+                      "결정화 캐즘 이그나이터",
+                      "프롬프트 라이브러리",
+                    ]);
+                })
+                .catch((error) => {
+                  console.error(error);
+                  alert("알 수 없는 오류가 발생하였습니다. 콘솔을 확인하세요.");
+                });
+            })
+            .catch((error) => {
+              console.error(error);
+              alert("알 수 없는 오류가 발생하였습니다. 콘솔을 확인하세요.");
+            });
+        },
+      });
   }
   /**
    *
@@ -899,6 +1081,7 @@ GM_addStyle(`
             alert("빈 프롬프트를 공유할 수 없습니다.");
             return;
           }
+
           const item = {};
           item["title"] = lastModified[0];
           if (lastModified[1]) {
@@ -908,6 +1091,7 @@ GM_addStyle(`
           item["prompt"] = lastModified[3];
           navigator.clipboard.writeText(
             JSON.stringify({
+              type: "C2 Ignitor Prompt Share",
               version: "C2 Ignitor " + VERSION,
               data: item,
             })
@@ -1437,6 +1621,7 @@ GM_addStyle(`
       const messages = [];
       let url = `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${this.chatId}/messages?limit=40`;
       console.log("Max message: " + maxCount);
+      let currentCursor = undefined;
       while (maxCount === 0 || messages.length < maxCount) {
         const fetchResult = await authFetch("GET", url);
         if (fetchResult instanceof Error) {
@@ -1447,13 +1632,17 @@ GM_addStyle(`
           throw new Error("메시지를 가져오는데에 실패하였습니다.");
         }
         for (let message of rawMessage) {
-          if (messages.length >= maxCount) break;
+          if (maxCount !== 0 && messages.length >= maxCount) break;
           messages.push(
             new PlatformMessage(message.role, message.content, "user")
           );
         }
-        if (fetchResult.data.nextCursor) {
-          url = `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${this.chatId}/messages?limit=${maxCount}&cursor=${fetchResult.data.nextCursor}`;
+        if (
+          fetchResult.data.nextCursor &&
+          fetchResult.data.nextCursor != currentCursor
+        ) {
+          currentCursor = fetchResult.data.nextCursor;
+          url = `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${this.chatId}/messages?limit=40&cursor=${fetchResult.data.nextCursor}`;
         } else {
           break;
         }
@@ -1480,6 +1669,56 @@ GM_addStyle(`
     async remove() {}
   }
 
+  class CrackPersonaUtility extends PlatformPersonaUtility {
+    /**
+     *
+     * @returns {Promise<PlatformPersona>}
+     */
+    async getRepresentivePersona() {
+      const userIdFetch = await authFetch(
+        "GET",
+        "https://contents-api.wrtn.ai/character/character-profiles"
+      );
+      if (userIdFetch instanceof Error) {
+        return userIdFetch;
+      }
+      const wrtnId = userIdFetch.data?.wrtnUid;
+      if (!wrtnId) {
+        return new Error("Wrtn UID not found");
+      }
+      const idFetch = await authFetch(
+        "GET",
+        `https://contents-api.wrtn.ai/character/character-profiles/` + wrtnId
+      );
+      if (idFetch instanceof Error) {
+        return idFetch;
+      }
+      const userId = idFetch.data?._id;
+      if (!userId) {
+        return new Error("User ID not found");
+      }
+      const personaFetch = await authFetch(
+        "GET",
+        `https://contents-api.wrtn.ai/character/character-profiles/${userId}/character-chat-profiles`
+      );
+      if (personaFetch instanceof Error) {
+        return personaFetch;
+      }
+      const personaResult = personaFetch.data?.characterChatProfiles;
+      if (!personaResult) {
+        return new Error("Persona list not found");
+      }
+      for (let data of personaResult) {
+        if (data.isRepresentative === true) {
+          return new PlatformPersona(data.name, data.information);
+        }
+      }
+      return new Error("No representive persona");
+    }
+  }
+
+  class CrackUserNoteUtil extends UserNoteUtility {}
+
   class CrackProvider extends PlatformProvider {
     /**
      * @returns {PlatformMessageFetcher}
@@ -1502,6 +1741,21 @@ GM_addStyle(`
       const characterId = split[1];
       const chatRoomId = split[3];
       return new CrackMessageFetcher(chatRoomId);
+    }
+
+    /**
+     * @returns {UserNoteUtility}
+     */
+    getUserNoteUtil() {
+      alert("Platform user note utility not implemented yet");
+    }
+
+    /**
+     *
+     * @returns {PlatformPersonaUtility}
+     */
+    getPersonaUtil() {
+      return new CrackPersonaUtility();
     }
   }
   PlatformProvider.bindProvider(new CrackProvider());
