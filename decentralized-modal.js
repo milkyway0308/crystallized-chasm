@@ -230,7 +230,7 @@ const DECENTRAL_CSS_VALUES = `
     /* 모바일 모달 메뉴 컨테이너 */
     .decentral-mobile-menu-container {
         display: none;
-        z-index: 1000;
+        z-index: 2500;
         border: 1px solid var(--decentral-border);
         width: 100%;
         height: fit-content;
