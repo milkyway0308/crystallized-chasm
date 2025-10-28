@@ -971,6 +971,10 @@ class HTMLComponentConvertable {
 }
 class DecentrallizedModal {
   selectedMenu = [];
+
+  /** @type {((modal: DecentrallizedModal) => any)[]} */
+  __preOpenHandler = [];
+
   /** @type {Map<string, ModalMenu>} */
   __menuItems = new Map();
 
@@ -1020,6 +1024,13 @@ class DecentrallizedModal {
 
   /**
    *
+   * @param {(modal: DecentrallizedModal) => any} handler
+   */
+  withPreOpenHandler(handler) {
+    this.__preOpenHandler.push(handler);
+  }
+  /**
+   *
    * @param {string[]|undefined} preSelected
    */
   triggerSelect(preSelected) {
@@ -1050,6 +1061,9 @@ class DecentrallizedModal {
    * @returns
    */
   init(isDarkTheme) {
+    for (let handler of this.__preOpenHandler) {
+      handler();
+    }
     this.__container = setupClassNode(
       "div",
       "decentral-modal-container",
@@ -1125,10 +1139,16 @@ class DecentrallizedModal {
       this.__menuItems,
       this.selectedMenu
     );
-    this.__menuPanel.__menu.parentElement.insertBefore(mainMenu.asHTML(), this.__menuPanel.__menu);
+    this.__menuPanel.__menu.parentElement.insertBefore(
+      mainMenu.asHTML(),
+      this.__menuPanel.__menu
+    );
     this.__menuPanel.__menu.remove();
-    
-    this.__mobileMenuPanel.__menu.parentElement.append(mobileMenu.asHTML(), this.__mobileMenuPanel.__menu);
+
+    this.__mobileMenuPanel.__menu.parentElement.append(
+      mobileMenu.asHTML(),
+      this.__mobileMenuPanel.__menu
+    );
     this.__mobileMenuPanel.__menu.remove();
 
     this.__menuPanel = mainMenu;
@@ -1185,7 +1205,6 @@ class BaseMenuPanel extends HTMLComponentConvertable {
 }
 
 class MenuPanel extends BaseMenuPanel {
- 
   /**
    *
    * @param {DecentrallizedModal} modal
@@ -1344,7 +1363,6 @@ class MenuPanel extends BaseMenuPanel {
 }
 
 class MobileMenuPanel extends BaseMenuPanel {
-
   constructor(modal, menus, selectedMenu) {
     super(modal, menus, selectedMenu);
     this.__menu = undefined;
