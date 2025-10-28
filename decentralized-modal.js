@@ -1117,6 +1117,23 @@ class DecentrallizedModal {
     element.parentElement.insertBefore(this.__contentPanel.asHTML(), element);
     element.remove();
   }
+
+  refreshMenuPanel() {
+    const mainMenu = new MenuPanel(this, this.__menuItems, this.selectedMenu);
+    const mobileMenu = new MobileMenuPanel(
+      this,
+      this.__menuItems,
+      this.selectedMenu
+    );
+    this.__menuPanel.__menu.parentElement.append(mainMenu.asHTML());
+    this.__menuPanel.__menu.remove();
+    
+    this.__mobileMenuPanel.__menu.parentElement.append(mobileMenu.asHTML());
+    this.__mobileMenuPanel.__menu.remove();
+
+    this.__menuPanel = mainMenu;
+    this.__mobileMenuPanel = mobileMenu;
+  }
 }
 class BaseMenuPanel extends HTMLComponentConvertable {
   /**
@@ -1168,6 +1185,10 @@ class BaseMenuPanel extends HTMLComponentConvertable {
 }
 
 class MenuPanel extends BaseMenuPanel {
+  constructor() {
+    super();
+    this.__menu = undefined;
+  }
   hideAllActive() {
     super.hideAllActive([
       "decentral-menu-element-container",
@@ -1177,6 +1198,9 @@ class MenuPanel extends BaseMenuPanel {
   }
 
   asHTML() {
+    if (this.__menu) {
+      return this.__menu;
+    }
     const container = setupClassNode("div", "decentral-menu-container");
     let isElementActiveSelected = false;
 
@@ -1193,7 +1217,7 @@ class MenuPanel extends BaseMenuPanel {
 
     this.setDefaultActiveState(isElementActiveSelected, container);
 
-    return container;
+    return (this.__menu = container);
   }
 
   createMenuContainer(itemName, menuItem, setActiveSelected) {
@@ -1308,6 +1332,7 @@ class MenuPanel extends BaseMenuPanel {
 }
 
 class MobileMenuPanel extends BaseMenuPanel {
+
   constructor(modal, menus, selectedMenu) {
     super(modal, menus, selectedMenu);
     this.__menu = undefined;
