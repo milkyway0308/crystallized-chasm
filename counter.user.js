@@ -9,7 +9,7 @@
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.3/decentralized-modal.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.4/decentralized-modal.js
 // @grant       GM_addStyle
 // ==/UserScript==
 !(async function () {
@@ -563,7 +563,6 @@
     const manager = ModalManager.getOrCreateManager("c2");
     manager.createMenu("결정화 캐즘 계수기", (modal) => {
       modal.replaceContentPanel((panel) => {
-        let changed = false;
         panel.addSwitchBox(
           "cntr-story",
           "스토리 채팅 계수기",
