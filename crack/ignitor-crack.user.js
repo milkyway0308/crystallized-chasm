@@ -311,7 +311,6 @@ GM_addStyle(`
             true
           );
         }
-        console.log(parts);
         const message = parts[0].text;
         if (!message) {
           return new LLMError(
@@ -388,8 +387,6 @@ GM_addStyle(`
               threshold: HarmBlockThreshold.OFF,
             },
           ];
-
-          console.log(JSON.stringify(option));
           const model = getGenerativeModel(ai, {
             model: option.modelId,
             safetySettings,
@@ -397,7 +394,6 @@ GM_addStyle(`
           const result = await model.generateContent(option.prompt);
           const response = result.response;
           const text = response.text();
-          console.log(response);
           return new GenericLLMResponse(
             text,
             new TokenUsage(
@@ -570,15 +566,12 @@ GM_addStyle(`
         settings[key] = json[key];
       }
     }
-    console.log("Loaded: ");
-    console.log(settings);
   }
 
   function saveSettings() {
     log("설정 저장중..");
     // Yay, no need to filtering anything!
     localStorage.setItem("chasm-ignt-settings", JSON.stringify(settings));
-    console.log(settings);
     log("설정 저장 완료");
   }
 
@@ -709,12 +702,8 @@ GM_addStyle(`
       const chatId = PlatformProvider.getProvider().getCurrentId();
       const menu = modal.__menuItems.get("결정화 캐즘 이그나이터");
       for (let key of Array.from(menu.__subMenus.keys())) {
-        console.log("Submenu: " + key);
         if (key.startsWith("요청 결과 #")) {
-          console.log("Deleted!");
           menu.__subMenus.delete(key);
-          console.log("Key after:");
-          console.log(Array.from(menu.__subMenus.keys()));
         }
       }
       const currentTopCount = ReconstructableResponse.getHighestCurrent(chatId);
@@ -729,8 +718,6 @@ GM_addStyle(`
           addMenuFromConstructables(modal, reconstructed);
         }
       }
-      console.log("Final menu: ");
-      console.log(Array.from(menu.__subMenus.keys()));
     });
   }
 
@@ -757,7 +744,6 @@ GM_addStyle(`
         provider,
         `chasm-ignt-provider-${provider}`,
         (id, node) => {
-          console.log("Running provider of " + provider);
           let index = 0;
           modelBox.clear();
           modelBox.addGroup("사용 모델");
@@ -768,25 +754,18 @@ GM_addStyle(`
               `chasm-ignt-model-listing-${index++}`,
               (_, node) => {
                 lastSelectedModel = item;
-                console.log("Model selected : ");
-                console.log(item);
                 return true;
               }
             );
-            console.log("Added " + `chasm-ignt-model-listing-${index - 1}`);
           }
-          console.log("Force selected");
           modelBox.setSelected(`chasm-ignt-model-listing-0`);
-          console.log("Change selected to chasm-ignt-model-listing-0");
           modelBox.runSelected();
-          console.log("Runned");
           return true;
         }
       );
     }
 
     providerBox.runSelected();
-    console.log("Adding option");
     // Option flag here
 
     const promptPreset = panel.constructSelectBox(
@@ -879,8 +858,6 @@ GM_addStyle(`
                   item.description.length <= 0
                     ? "이 프롬프트에는 설명이 없습니다."
                     : item.description;
-                console.log("Selected");
-                console.log(item.name);
                 settings.lastSelected = ["$prompt-library", item.name];
                 descriptionField.parentElement.parentElement.parentElement.removeAttribute(
                   "chasm-ignt-hide"
@@ -897,18 +874,13 @@ GM_addStyle(`
             element.selectedPrompt = item;
           }
         }
-        console.log("Test");
         if (settings.lastSelected) {
           if (settings.lastSelected[0] === "$prompt-library") {
-            console.log("Prompt library");
-            console.log(settings);
             let matched = false;
             for (let element of promptPreset.node.getElementsByClassName(
               "chasm-ignt-library-prompt"
             )) {
               const name = element.selectedPrompt.name;
-              console.log("Settings: " + settings.lastSelected[1]);
-              console.log("Scanning: " + name);
               if (name === settings.lastSelected[1]) {
                 matched = true;
                 element.onclick();
@@ -917,13 +889,10 @@ GM_addStyle(`
             }
             if (!matched) {
               const first = Object.keys(DEFAULT_PROMPTS)[0];
-              console.log("First: " + first);
-              console.log("second: " + DEFAULT_PROMPTS[first]);
               const second = Object.keys(DEFAULT_PROMPTS[first])[0];
               settings.lastSelected = [first, second];
             }
           } else if (settings.lastSelected[0] === "$custom") {
-            console.log("Test2");
             promptPreset.setSelected("chasm-ignt-prompt-option-custom");
           } else {
             let matched = false;
@@ -948,8 +917,6 @@ GM_addStyle(`
             }
           }
         }
-
-        console.log(`Running ${promptPreset.getSelected()}`);
         promptPreset.runSelected();
       })
       .catch((err) => {
@@ -962,7 +929,6 @@ GM_addStyle(`
       {
         defaultValue: settings.lastCustomPrompt ?? "",
         onChange: (_, text) => {
-          console.log("Custom prompt change to " + text);
           settings.lastCustomPrompt = text;
           saveSettings();
           lastSelectedPrompt = text;
@@ -1077,8 +1043,6 @@ GM_addStyle(`
       .footer(true)
       .addLoggingArea("chasm-ignt-log-container", "실행 로그", {
         suffixModifier: (parent) => {
-          console.log("Appending suffix!");
-          console.log(parent);
           parent.append(
             setupNode("p", (node) => {
               node.id = "chasm-ignt-llm-timer";
@@ -1098,10 +1062,7 @@ GM_addStyle(`
             return;
           }
           const fetcher = provider.getFetcher();
-          console.log("Fetcher validaty: " + fetcher.isValid());
-          console.log("Fetcher validaty: " + fetcher.chatId);
           if (!fetcher.isValid()) {
-            console.log("not valiud");
             node.setAttribute("disabled", "true");
             node.innerText = "사용 대상 페이지가 아닙니다";
             return;
@@ -1250,8 +1211,6 @@ GM_addStyle(`
       result.name,
       (modal) => {
         modal.replaceContentPanel((panel) => {
-          console.log("Replaced with message:");
-          console.log(result.response);
           panel.addTextAreaGrid("chasm-ignt-result-panel", "요쳥 결과", {
             defaultValue: result.response,
             initializer: (node) => {
@@ -1443,7 +1402,6 @@ GM_addStyle(`
                           .anyOf(item.name)
                           .delete()
                           .then((count) => {
-                            console.log("Deleted " + count);
                             modal.triggerSelect([
                               "결정화 캐즘 이그나이터",
                               "프롬프트 라이브러리",
@@ -1462,7 +1420,6 @@ GM_addStyle(`
                     lastModified[1] = item.author;
                     lastModified[2] = item.description;
                     lastModified[3] = item.prompt;
-                    console.log(item);
                     modal.triggerSelect([
                       "결정화 캐즘 이그나이터",
                       "프롬프트 수정",
@@ -1483,7 +1440,6 @@ GM_addStyle(`
           window.navigator.clipboard
             .readText()
             .then((text) => {
-              console.log(text);
               const json = JSON.parse(text);
               if (json.type !== "C2 Ignitor Prompt Share") {
                 alert("이 타입의 프롬프트는 가져올 수 없습니다.");
@@ -1584,7 +1540,6 @@ GM_addStyle(`
         defaultValue: lastModified[2],
         onChange: (node, text) => {
           lastModified[2] = text;
-          console.log("Changed");
         },
       }
     );
@@ -1595,7 +1550,6 @@ GM_addStyle(`
         defaultValue: lastModified[3],
         onChange: (node, text) => {
           lastModified[3] = text;
-          console.log("Changed");
         },
       }
     );
@@ -1713,7 +1667,6 @@ GM_addStyle(`
       {
         defaultValue: settings.firebaseScript ?? "",
         initializer: (_, parent) => {
-          console.log(parent);
           parent.id = "chasm-ignt-api-key-firebase-container";
           parent.classList.add("chasm-ignt-api-field");
           parent.setAttribute("chasm-ignt-hide", "true");
@@ -2134,7 +2087,6 @@ GM_addStyle(`
       const parser = new DOMParser();
       const doc = parser.parseFromString(rawText, "text/html");
       if (doc.documentElement.querySelector("parsererror")) {
-        console.log(doc.documentElement.querySelector("parsererror"));
         return false;
       } else {
         return true;
@@ -2224,7 +2176,6 @@ GM_addStyle(`
     async fetch(maxCount) {
       const messages = [];
       let url = `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${this.chatId}/messages?limit=40`;
-      console.log("Max message: " + maxCount);
       let currentCursor = undefined;
       while (maxCount === 0 || messages.length < maxCount) {
         const fetchResult = await authFetch("GET", url);
@@ -2255,8 +2206,6 @@ GM_addStyle(`
     }
 
     isValid() {
-      console.log(this.chatId);
-      console.log("Validaty: " + (this.chatId !== undefined));
       return this.chatId !== undefined;
     }
   }

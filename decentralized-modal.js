@@ -2755,7 +2755,6 @@ class ComponentAppender extends HTMLComponentConvertable {
           option.setAttribute("decentral-option-text", text);
           option.setAttribute("decentral-option-id", id);
           option.onclick = () => {
-            console.log("Onclick triggered at " + id);
             this.removeOuterClickDetection();
             topNode.removeAttribute("list-enabled");
             const selectedId = option.getAttribute("decentral-option-id");
@@ -2774,14 +2773,10 @@ class ComponentAppender extends HTMLComponentConvertable {
         topNode.getElementsByClassName("decentral-list")[0].innerHTML = "";
       },
       runSelected: () => {
-        console.log("Selected " + topNode.getAttribute("decentral-selected"));
-        console.log(topNode.getElementsByClassName("decentral-option"));
         for (const element of topNode.getElementsByClassName(
           "decentral-option"
         )) {
-          console.log("Canning " + element.id);
           if (element.id === topNode.getAttribute("decentral-selected")) {
-            console.log("Found selected: " + element);
             element.onclick();
           }
         }
