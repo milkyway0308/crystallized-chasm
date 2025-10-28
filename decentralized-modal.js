@@ -1125,10 +1125,10 @@ class DecentrallizedModal {
       this.__menuItems,
       this.selectedMenu
     );
-    this.__menuPanel.__menu.parentElement.append(mainMenu.asHTML());
+    this.__menuPanel.__menu.parentElement.insertBefore(mainMenu.asHTML(), this.__menuPanel.__menu);
     this.__menuPanel.__menu.remove();
     
-    this.__mobileMenuPanel.__menu.parentElement.append(mobileMenu.asHTML());
+    this.__mobileMenuPanel.__menu.parentElement.append(mobileMenu.asHTML(), this.__mobileMenuPanel.__menu);
     this.__mobileMenuPanel.__menu.remove();
 
     this.__menuPanel = mainMenu;
