@@ -2719,10 +2719,7 @@ class ComponentAppender extends HTMLComponentConvertable {
         }
       },
       setSelected: (id) => {
-        const toSelected = document.getElementById(id);
-        if (toSelected) {
-          topNode.setAttribute("decentral-selected", id);
-        }
+        topNode.setAttribute("decentral-selected", id);
       },
       getSelected: () => {
         return topNode.getAttribute("decentral-selected");
