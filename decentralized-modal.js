@@ -148,6 +148,7 @@ const DECENTRAL_CSS_VALUES = `
         color: var(--decentral-text-inactive);
         font-weight: 400;
         user-select: none;
+        overflow-y: auto;
     }
 
     /* 모달 최상단 메뉴 요소 */
@@ -239,6 +240,7 @@ const DECENTRAL_CSS_VALUES = `
         color: var(--decentral-text-inactive);
         font-weight: 400;
         user-select: none;
+        overflow-y: auto;
     }
 
     .decentral-mobile-menu-container[active="true"] {
