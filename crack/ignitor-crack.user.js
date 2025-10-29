@@ -1084,12 +1084,6 @@ GM_addStyle(`
             appendBurnerLog("메시지 가져오는 중..");
             const messages = await fetcher.fetch(settings.maxMessageRetreive);
             appendBurnerLog(`${messages.length}개의 메시지를 불러왔습니다.`);
-            const persona = await personaUtil.getRepresentivePersona();
-            if (persona instanceof Error) {
-              appendBurnerLog("페르소나 오류: " + persona.message);
-              return;
-            }
-            appendBurnerLog("페르소나 데이터: " + JSON.stringify(persona));
             appendBurnerLog(
               "현재 프롬프트 " + lastSelectedPrompt.length + "자"
             );
@@ -1100,13 +1094,26 @@ GM_addStyle(`
                 : messages.map((it) => it.anonymize()),
             };
             if (settings.includePersona) {
+              appendBurnerLog("페르소나 데이터 불러오는 중..");
+              const persona = await personaUtil.getRepresentivePersona();
+              if (persona instanceof Error) {
+                appendBurnerLog("페르소나 오류: " + persona.message);
+                return;
+              }
+              appendBurnerLog("페르소나 데이터: " + JSON.stringify(persona));
               messageStructure.userPersonaName = persona.name;
               messageStructure.userPersonaDescription = persona.description;
             }
             if (settings.includeUserNote) {
               const userNote = await noteUtil.fetch();
+              appendBurnerLog("유저노트 데이터 불러오는 중..");
               if (userNote.length > 0) {
                 messageStructure.userNote = userNote;
+                appendBurnerLog("유저노트 데이터: " + userNote);
+              } else {
+                appendBurnerLog(
+                  "유저노트 데이터가 없습니다. 유저노트 첨부 없이 진행합니다."
+                );
               }
             }
 
