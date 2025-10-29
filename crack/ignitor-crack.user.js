@@ -1089,9 +1089,6 @@ GM_addStyle(`
             );
             const messageStructure = {
               prompt: lastSelectedPrompt,
-              chatLog: settings.includePersona
-                ? messages.map((it) => it.withPersona(persona.name))
-                : messages.map((it) => it.anonymize()),
             };
             if (settings.includePersona) {
               appendBurnerLog("페르소나 데이터 불러오는 중..");
@@ -1101,8 +1098,13 @@ GM_addStyle(`
                 return;
               }
               appendBurnerLog("페르소나 데이터: " + JSON.stringify(persona));
+              messageStructure.chatLog = messages.map((it) =>
+                it.withPersona(persona.name)
+              );
               messageStructure.userPersonaName = persona.name;
               messageStructure.userPersonaDescription = persona.description;
+            } else {
+              messageStructure.chatLog = messages.map((it) => it.anonymize());
             }
             if (settings.includeUserNote) {
               const userNote = await noteUtil.fetch();
@@ -2263,6 +2265,10 @@ GM_addStyle(`
   }
 
   class CrackPersonaUtility extends PlatformPersonaUtility {
+    constructor(chatId) {
+      super();
+      this.chatId = chatId;
+    }
     /**
      *
      * @returns {Promise<PlatformPersona>}
@@ -2301,12 +2307,29 @@ GM_addStyle(`
       if (!personaResult) {
         return new Error("Persona list not found");
       }
-      for (let data of personaResult) {
-        if (data.isRepresentative === true) {
-          return new PlatformPersona(data.name, data.information);
-        }
+      const roomData = await authFetch(
+        "GET",
+        `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatId}`
+      );
+      if (!roomData) {
+        return new Error("Chatting room not found");
       }
-      return new Error("No representive persona");
+      if (roomData.data?.chatProfile?._id) {
+        for (let data of personaResult) {
+          if (data._id === roomData.data?.chatProfile?._id) {
+            return new PlatformPersona(data.name, data.information);
+          }
+        }
+        return new Error("No matching chatting room persona");
+      } else {
+        for (let data of personaResult) {
+          if (data.isRepresentative === true) {
+            return new PlatformPersona(data.name, data.information);
+          }
+        }
+
+        return new Error("No active representive persona");
+      }
     }
   }
 
