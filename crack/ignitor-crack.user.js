@@ -995,7 +995,7 @@ GM_addStyle(`
       "활성화시, LLM에 전송될 메시지에 유저노트 데이터을 첨부합니다.",
       {
         defaultValue: settings.includeUserNote,
-        action: (_, value) => {
+        onChange: (_, value) => {
           settings.includeUserNote = value;
           saveSettings();
         },
@@ -1008,7 +1008,7 @@ GM_addStyle(`
       "이그나이터로 생성된 메시지를 전송할 때, 고정 유저 메시지를 설정합니다.",
       {
         defaultValue: settings.promptUserMessage,
-        action: (_, value) => {
+        onChange: (_, value) => {
           settings.promptUserMessage = value;
           saveSettings();
         },
@@ -1020,8 +1020,8 @@ GM_addStyle(`
       "이그나이터로 생성된 메시지를 전송할 때, 맨 앞에 첨부될 메시지를 설정합니다.",
       {
         defaultValue: settings.promptPrefixMessage,
-        action: (_, value) => {
-          settings.promptSuffixMessage = value;
+        onChange: (_, value) => {
+          settings.promptPrefixMessage = value;
           saveSettings();
         },
       }
@@ -1029,11 +1029,11 @@ GM_addStyle(`
 
     panel.addBoxedInputGrid(
       "chasm-ignt-prompt-suffix",
-      "요약 메시지 머릿말",
+      "요약 메시지 꼬릿말",
       "이그나이터로 생성된 메시지를 전송할 때, 맨 뒤에 첨부될 메시지를 설정합니다.",
       {
         defaultValue: settings.promptSuffixMessage,
-        action: (_, value) => {
+        onChange: (_, value) => {
           settings.promptSuffixMessage = value;
           saveSettings();
         },
