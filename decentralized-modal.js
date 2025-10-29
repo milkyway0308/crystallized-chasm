@@ -684,6 +684,7 @@ const DECENTRAL_CSS_VALUES = `
         appearance: none; 
         -webkit-appearance: none; 
         -moz-appearance: none;
+        font-size: 14px;
     }
 
     .decentral-select .decentral-option { 
@@ -716,7 +717,7 @@ const DECENTRAL_CSS_VALUES = `
     }
 
     .decentral-option { 
-        padding: 10px; 
+        padding: 4px 10px; 
         background-color: transparent; 
         background-color: var(--decentral-text); 
         transition: color 0.1s ease, background-color 0.1s ease;  
