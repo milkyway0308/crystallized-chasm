@@ -954,7 +954,7 @@ GM_addStyle(`
       "요약에 불러올 메시지",
       "요약에 불러올 메시지 개수를 지정합니다. 기본 50이며, 0으로 설정시 모든 메시지를 불러옵니다. \n값이 클 수록 요청 시간이 길어지며 소모 비용 또한 늘어납니다.",
       {
-        defaultValue: 50,
+        defaultValue: settings.maxMessageRetreive,
         min: 0,
         max: 999,
         onChange: (_, value) => {
