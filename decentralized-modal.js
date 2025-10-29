@@ -2355,6 +2355,8 @@ class ComponentAppender extends HTMLComponentConvertable {
                 inputField.setAttribute("max", max);
                 if (defaultValue) {
                   inputField.value = defaultValue;
+                } else {
+                  inputField.value = 0;
                 }
                 if (initializer) {
                   initializer(inputField);
