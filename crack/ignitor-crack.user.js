@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Crack Chasm Crystallized Ignitor (크랙 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRAK-IGNT-v1.1.3
+// @version     CRAK-IGNT-v1.1.4
 // @description 캐즘 버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다. **기존 캐즘 버너 및 결정화 캐즘 버너+와 호환되지 않습니다. 버너 모듈을 제거하고 사용하세요.**
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -949,12 +949,13 @@ GM_addStyle(`
       }
     );
 
+    console.log("Def value: " +  settings.maxMessageRetreive)
     panel.addShortNumberBox(
       "chasm-ignt-max-item",
       "요약에 불러올 메시지",
       "요약에 불러올 메시지 개수를 지정합니다. 기본 50이며, 0으로 설정시 모든 메시지를 불러옵니다. \n값이 클 수록 요청 시간이 길어지며 소모 비용 또한 늘어납니다.",
       {
-        defaultValue: 50,
+        defaultValue: settings.maxMessageRetreive,
         min: 0,
         max: 999,
         onChange: (_, value) => {
@@ -1084,32 +1085,38 @@ GM_addStyle(`
             appendBurnerLog("메시지 가져오는 중..");
             const messages = await fetcher.fetch(settings.maxMessageRetreive);
             appendBurnerLog(`${messages.length}개의 메시지를 불러왔습니다.`);
-            const persona = await personaUtil.getRepresentivePersona();
-            if (persona instanceof Error) {
-              appendBurnerLog("페르소나 오류: " + persona.message);
-              return;
-            }
-            appendBurnerLog("페르소나 데이터: " + JSON.stringify(persona));
-            const note = await noteUtil.fetch();
-            appendBurnerLog("유저노트 데이터: " + note);
             appendBurnerLog(
               "현재 프롬프트 " + lastSelectedPrompt.length + "자"
             );
             const messageStructure = {
               prompt: lastSelectedPrompt,
-              chatLog: settings.includePersona
-                ? messages.map((it) => it.withPersona(persona.name))
-                : messages.map((it) => it.anonymize()),
             };
-            console.log(messageStructure);
             if (settings.includePersona) {
+              appendBurnerLog("페르소나 데이터 불러오는 중..");
+              const persona = await personaUtil.getRepresentivePersona();
+              if (persona instanceof Error) {
+                appendBurnerLog("페르소나 오류: " + persona.message);
+                return;
+              }
+              appendBurnerLog("페르소나 데이터: " + JSON.stringify(persona));
+              messageStructure.chatLog = messages.map((it) =>
+                it.withPersona(persona.name)
+              );
               messageStructure.userPersonaName = persona.name;
               messageStructure.userPersonaDescription = persona.description;
+            } else {
+              messageStructure.chatLog = messages.map((it) => it.anonymize());
             }
             if (settings.includeUserNote) {
               const userNote = await noteUtil.fetch();
+              appendBurnerLog("유저노트 데이터 불러오는 중..");
               if (userNote.length > 0) {
                 messageStructure.userNote = userNote;
+                appendBurnerLog("유저노트 데이터: " + userNote);
+              } else {
+                appendBurnerLog(
+                  "유저노트 데이터가 없습니다. 유저노트 첨부 없이 진행합니다."
+                );
               }
             }
 
@@ -2202,7 +2209,7 @@ GM_addStyle(`
      */
     async fetch(maxCount) {
       const messages = [];
-      let url = `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${this.chatId}/messages?limit=40`;
+      let url = `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatId}/messages?limit=20`;
       let currentCursor = undefined;
       while (maxCount === 0 || messages.length < maxCount) {
         const fetchResult = await authFetch("GET", url);
@@ -2224,7 +2231,7 @@ GM_addStyle(`
           fetchResult.data.nextCursor != currentCursor
         ) {
           currentCursor = fetchResult.data.nextCursor;
-          url = `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${this.chatId}/messages?limit=40&cursor=${fetchResult.data.nextCursor}`;
+          url = `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatId}/messages?limit=20&cursor=${fetchResult.data.nextCursor}`;
         } else {
           break;
         }
@@ -2259,6 +2266,10 @@ GM_addStyle(`
   }
 
   class CrackPersonaUtility extends PlatformPersonaUtility {
+    constructor(chatId) {
+      super();
+      this.chatId = chatId;
+    }
     /**
      *
      * @returns {Promise<PlatformPersona>}
@@ -2297,12 +2308,29 @@ GM_addStyle(`
       if (!personaResult) {
         return new Error("Persona list not found");
       }
-      for (let data of personaResult) {
-        if (data.isRepresentative === true) {
-          return new PlatformPersona(data.name, data.information);
-        }
+      const roomData = await authFetch(
+        "GET",
+        `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatId}`
+      );
+      if (!roomData) {
+        return new Error("Chatting room not found");
       }
-      return new Error("No representive persona");
+      if (roomData.data?.chatProfile?._id) {
+        for (let data of personaResult) {
+          if (data._id === roomData.data?.chatProfile?._id) {
+            return new PlatformPersona(data.name, data.information);
+          }
+        }
+        return new Error("No matching chatting room persona");
+      } else {
+        for (let data of personaResult) {
+          if (data.isRepresentative === true) {
+            return new PlatformPersona(data.name, data.information);
+          }
+        }
+
+        return new Error("No active representive persona");
+      }
     }
   }
 
@@ -2357,7 +2385,10 @@ GM_addStyle(`
      * @returns {PlatformPersonaUtility}
      */
     getPersonaUtil() {
-      return new CrackPersonaUtility();
+      const split = window.location.pathname.substring(1).split("/");
+      const characterId = split[1];
+      const chatRoomId = split[3];
+      return new CrackPersonaUtility(chatRoomId);
     }
   }
 
