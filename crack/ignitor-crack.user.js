@@ -2384,7 +2384,10 @@ GM_addStyle(`
      * @returns {PlatformPersonaUtility}
      */
     getPersonaUtil() {
-      return new CrackPersonaUtility();
+      const split = window.location.pathname.substring(1).split("/");
+      const characterId = split[1];
+      const chatRoomId = split[3];
+      return new CrackPersonaUtility(chatRoomId);
     }
   }
 
