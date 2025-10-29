@@ -949,7 +949,6 @@ GM_addStyle(`
       }
     );
 
-    console.log("Def value: " +  settings.maxMessageRetreive)
     panel.addShortNumberBox(
       "chasm-ignt-max-item",
       "요약에 불러올 메시지",
