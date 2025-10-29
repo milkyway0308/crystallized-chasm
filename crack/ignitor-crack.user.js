@@ -1090,8 +1090,6 @@ GM_addStyle(`
               return;
             }
             appendBurnerLog("페르소나 데이터: " + JSON.stringify(persona));
-            const note = await noteUtil.fetch();
-            appendBurnerLog("유저노트 데이터: " + note);
             appendBurnerLog(
               "현재 프롬프트 " + lastSelectedPrompt.length + "자"
             );
