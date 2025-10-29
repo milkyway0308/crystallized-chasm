@@ -3,7 +3,7 @@
 // decentrallized-modal.js는 서드 파티 스크립트들을 위한 임베드 가능한 모달 프레임워크입니다.
 // 거의 대부분의 커스터마이징을 제공하며, 임베딩된 펑션을 통한 간편한 모달 표시 및 통합이 가능합니다.
 // CSS 삽입을 위해 GM_addStyle이 필요합니다.
-const DECENTRAL_VERSION = "Decentrallized Modal v1.0.6-Pre";
+const DECENTRAL_VERSION = "Decentrallized Modal v1.0.7-Pre";
 
 const DECENTRAL_CSS_VALUES = `
     /*
@@ -765,16 +765,41 @@ const DECENTRAL_CSS_VALUES = `
         .decentral-modal-mobile-menu[active="true"] {
             display: flex;
          }
+
+        .decentral-grid {
+            grid-template-columns: 100%; 
+            column-count: 1;
+        }
+         
+        .decentral-grid-element {
+            grid-column: 1 / 1;
+        }
+        .decentral-grid-element-long {
+            grid-column: 1 / 1;
+        }
+        .decentral-grid-element-long-semi-flat {
+            grid-column: 1 / 1;
+        }
+        .decentral-grid-element-long-flat {
+            grid-column: 1 / 1;
+        }
     }
 
     @media screen and (max-width:850px) {
         .decentral-grid {
-            grid-template-columns: minmax(150px, 1fr); column-count: 1;
+            grid-template-columns: 100%; 
+            column-count: 1;
         }
         .decentral-grid-element {
             grid-column: 1 / 1;
         }
         .decentral-grid-element-long {
+            grid-column: 1 / 1;
+        }
+        .decentral-grid-element-long-semi-flat {
+            grid-column: 1 / 1;
+        }
+        .decentral-grid-element-long-flat {
             grid-column: 1 / 1;
         }
     }
