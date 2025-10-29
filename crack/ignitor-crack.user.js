@@ -1101,7 +1101,6 @@ GM_addStyle(`
                 ? messages.map((it) => it.withPersona(persona.name))
                 : messages.map((it) => it.anonymize()),
             };
-            console.log(messageStructure);
             if (settings.includePersona) {
               messageStructure.userPersonaName = persona.name;
               messageStructure.userPersonaDescription = persona.description;
@@ -2202,7 +2201,7 @@ GM_addStyle(`
      */
     async fetch(maxCount) {
       const messages = [];
-      let url = `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${this.chatId}/messages?limit=40`;
+      let url = `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatId}/messages?limit=20`;
       let currentCursor = undefined;
       while (maxCount === 0 || messages.length < maxCount) {
         const fetchResult = await authFetch("GET", url);
@@ -2224,7 +2223,7 @@ GM_addStyle(`
           fetchResult.data.nextCursor != currentCursor
         ) {
           currentCursor = fetchResult.data.nextCursor;
-          url = `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${this.chatId}/messages?limit=40&cursor=${fetchResult.data.nextCursor}`;
+          url = `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatId}/messages?limit=20&cursor=${fetchResult.data.nextCursor}`;
         } else {
           break;
         }
