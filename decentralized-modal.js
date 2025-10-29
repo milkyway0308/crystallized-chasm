@@ -755,7 +755,7 @@ const DECENTRAL_CSS_VALUES = `
     @media screen and (max-width:600px) {
         .decentral-menu-container {
           display: none;
-          width: 90%;
+          width: 100%;
         }
         .decentral-mobile-menu-button {
           display: block;
