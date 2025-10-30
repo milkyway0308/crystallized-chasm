@@ -60,7 +60,7 @@ GM_addStyle(`
 
 !(async function () {
   const PLATFORM_SAVE_KEY = "chasm-babe-ignt-settings";
-  const VERSION = "v1.0.4p";
+  const VERSION = "v1.0.5";
 
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
