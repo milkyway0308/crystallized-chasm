@@ -1,13 +1,13 @@
-/// <reference path="decentralized-modal.js" />
+/// <reference path="../decentralized-modal.js" />
 // ==UserScript==
-// @name        Core / Chasm Crystallized Ignitor (결정화 캐즘 점화기 코어)
+// @name        BabeChat / Chasm Crystallized Ignitor (베이비챗 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-IGNT-v0
-// @description 이그나이터 코어 소스 코드. 자체적인 작동이 존재하지 않습니다. 해당 스크립트가 아닌, 플랫폼 대상 스크립트를 설치하세요. 이 소스 코드는 플랫폼 확장 지원용 코어 코드입니다.
+// @version     BABE-IGNT-v1.0.0
+// @description 캐즘 버너 및 애프터버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
-// @match       https://site.doesnt.exists.whatever/*
-// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/ignitor-core.user.js
-// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/ignitor-core.user.js
+// @match       https://babechat.ai/*
+// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/ignitor-babe.user.js
+// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/ignitor-babe.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
 // @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.8/decentralized-modal.js
 // @grant        GM_addStyle
@@ -59,7 +59,7 @@ GM_addStyle(`
   `);
 
 !(async function () {
-  const PLATFORM_SAVE_KEY = "chasm-ignt-settings";
+  const PLATFORM_SAVE_KEY = "chasm-babe-ignt-settings";
   const VERSION = "v1.0.0";
 
   const { initializeApp } = await import(
@@ -2166,4 +2166,471 @@ GM_addStyle(`
       },
     },
   };
+
+  // BabeChat 호환 코드
+
+  /**
+   * BabeChat의 토큰을 인증 수단으로 사용하여 요청을 보냅니다.
+   * @param {string} method 요청 메서드
+   * @param {string} url 요청 URL
+   * @param {any | undefined} body 요청 바디 파라미터
+   * @returns {any | Error} 파싱된 값 혹은 오류
+   */
+  async function authFetch(method, url, body) {
+    try {
+      const param = {
+        method: method,
+        headers: {
+          Authorization: `Bearer ${extractCookie("bc__session")}`,
+          "Content-Type": "application/json",
+        },
+      };
+      if (body) {
+        param.body = JSON.stringify(body);
+      }
+      const result = await fetch(url, param);
+      if (!result.ok)
+        return new Error(
+          `HTTP 요청 실패 (${result.status}) [${await result.json()}]`
+        );
+      return await result.json();
+    } catch (t) {
+      return new Error(`알 수 없는 오류 (${t.message ?? JSON.stringify(t)})`);
+    }
+  }
+
+  class BabeChatFetcher extends PlatformMessageFetcher {
+    constructor(chatId, roomId) {
+      super();
+      this.chatId = chatId;
+      this.roomId = roomId;
+    }
+
+    isValid() {
+      return this.chatId !== undefined;
+    }
+
+    /**
+     *
+     * @param {number} count
+     * @returns {Promise<PlatformMessage[]>}
+     */
+    async fetch(maxCount) {
+      const items = [];
+      const ids = [];
+      let currentOffset = 0;
+      while (items.length < maxCount) {
+        const result = await authFetch(
+          "GET",
+          `https://api.babechatapi.com/ko/api/messages/7286548e-a4a9-4f92-b17b-e27031ea42bf/false/${this.roomId}?offset=${currentOffset}&limit=20`
+        );
+        if (!result) {
+          return new Error("채팅 데이터를 불러오지 못했습니다.");
+        }
+        if (!result.messages || result.messages.length <= 0) break;
+        for (const item of result.messages) {
+          if (ids.includes(item.id)) continue;
+          ids.push(item.id);
+          items.push(new PlatformMessage(item.role, "user", item.content));
+          if (items.length >= maxCount) break;
+        }
+        // All item fetched, stop re-fetch
+        if (result.count <= items.length) {
+          break;
+        }
+        currentOffset += 20;
+      }
+      return items;
+    }
+  }
+
+  class BabeChatSender extends PlatformMessageSender {
+    constructor(chatId, roomdId) {
+      super();
+      this.chatId = chatId;
+      this.roomId = roomdId;
+    }
+    /**
+     *
+     * @param {string} message
+     */
+    async send(message) {
+      const result = await fetch(
+        `https://babechatapi.com/ko/api/u/message/${this.chatId}`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            enablePass: true,
+            impersonation: false,
+            isMultipleImage: true,
+            model: "free",
+            outputLanguage: "",
+            proChatCount: 0,
+            prompt: message,
+            roomId: this.roomId,
+          }),
+          headers: {
+            Authorization: `Bearer ${extractCookie("bc__session")}`,
+          },
+        }
+      );
+
+      // Phase 2 - Consume all stream
+      const reader = result.body.getReader();
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+      }
+      const messageToEdit = await authFetch(
+        "GET",
+        `https://api.babechatapi.com/ko/api/messages/${this.chatId}/false/${this.roomId}?offset=0&limit=20`
+      );
+      if (messageToEdit instanceof Error) {
+        return messageToEdit;
+      }
+      const lastId = messageToEdit.messages[0].id;
+      return async (botMessage) => {
+        const botEditResult = await authFetch(
+          "PUT",
+          `https://api.babechatapi.com/ko/api/edit-message/${lastId}`,
+          { message: botMessage }
+        );
+        return botEditResult?.success === "true";
+      };
+    }
+  }
+
+  class BabePersonaUtil extends PlatformPersonaUtility {
+    constructor(chatId, roomId) {
+      super();
+      this.chatId = chatId;
+      this.roomId = roomId;
+    }
+    /**
+     *
+     * @returns {Promise<PlatformPersona>}
+     */
+    async getRepresentivePersona() {
+      // Get room data
+      const data = await authFetch(
+        "GET",
+        `https://api.babechatapi.com/ko/api/message-room/${this.chatId}/false/${this.roomId}`
+      );
+      if (data instanceof Error) {
+        return data;
+      }
+      const expectedPersona = data.persona;
+      if (expectedPersona.id === 0) {
+        return new PlatformPersona(
+          expectedPersona.nickname,
+          expectedPersona.introduction
+        );
+      }
+      // Let's build default persona here
+      const userData = await authFetch(
+        "GET",
+        `https://api.babechatapi.com/ko/api/user`
+      );
+      if (userData instanceof Error) {
+        return userData;
+      }
+      return new PlatformPersona(userData.nickname, undefined);
+    }
+  }
+
+  class BabeUsernoteUtil extends UserNoteUtility {
+    constructor(chatId, roomId) {
+      super();
+      this.chatId = chatId;
+      this.roomId = roomId;
+    }
+
+    /**
+     * @returns {Promise<string>}
+     */
+    async fetch() {
+      // Get room data
+      const data = await authFetch(
+        "GET",
+        `https://api.babechatapi.com/ko/api/message-room/${this.chatId}/false/${this.roomId}`
+      );
+      if (data instanceof Error) {
+        return data;
+      }
+      if (data.noteBook) {
+        return data.noteBook.content;
+      }
+      return "";
+    }
+  }
+
+  class BabeChatProvider extends PlatformProvider {
+    /**
+     * @returns {PlatformMessageFetcher}
+     */
+    getFetcher() {
+      return new BabeChatFetcher(
+        this.getCurrentCharacterId(),
+        this.getCurrentRoomId()
+      );
+    }
+
+    /**
+     * @returns {PlatformMessageSender}
+     */
+    getSender() {
+      return new BabeChatSender(
+        this.getCurrentCharacterId(),
+        this.getCurrentRoomId()
+      );
+    }
+
+    /**
+     * @returns {UserNoteUtility}
+     */
+    getUserNoteUtil() {
+      return new BabeUsernoteUtil(
+        this.getCurrentCharacterId(),
+        this.getCurrentRoomId()
+      );
+    }
+
+    /**
+     * @returns {string}
+     */
+    getCurrentId() {
+      const id = this.getCurrentCharacterId();
+      if (!id) return id;
+      return `id=${id};room=${this.getCurrentRoomId()}`;
+    }
+
+    getCurrentCharacterId() {
+      if (/\/(.*?)\/character\/(.*?)\/(.*?)\/chat/.test(location.pathname)) {
+        return location.pathname.split("/")[4];
+      }
+      return undefined;
+    }
+
+    getCurrentRoomId() {
+      const searchParam = new URLSearchParams(window.location.search);
+      const roomIdString = searchParam.get("roomId");
+      const roomId = roomIdString ? parseInt(roomIdString) : 0;
+      return roomId;
+    }
+    /**
+     *
+     * @returns {PlatformPersonaUtility}
+     */
+    getPersonaUtil() {
+      return new BabePersonaUtil(
+        this.getCurrentCharacterId(),
+        this.getCurrentRoomId()
+      );
+    }
+  }
+  PlatformProvider.bindProvider(new BabeChatProvider());
+
+  async function injectInputbutton() {
+    const selected = document.getElementsByClassName("burner-input-button");
+    if (selected && selected.length > 0) {
+      return;
+    }
+    // Top element
+    const data = document.getElementsByClassName(
+      "absolute bottom-0 flex items-center right-[52px]"
+    );
+    if (data && data.length > 0) {
+      const top = data[0];
+      const buttonCloned = top.childNodes[0].cloneNode(true);
+      buttonCloned.className = "burner-input-button " + buttonCloned.className;
+      // https://www.svgrepo.com/svg/521664/fire
+      buttonCloned.innerHTML =
+        '<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>fire_fill</title> <g id="页面-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="System" transform="translate(-480.000000, -48.000000)" fill-rule="nonzero"> <g id="fire_fill" transform="translate(480.000000, 48.000000)"> <path d="M24,0 L24,24 L0,24 L0,0 L24,0 Z M12.5934901,23.257841 L12.5819402,23.2595131 L12.5108777,23.2950439 L12.4918791,23.2987469 L12.4918791,23.2987469 L12.4767152,23.2950439 L12.4056548,23.2595131 C12.3958229,23.2563662 12.3870493,23.2590235 12.3821421,23.2649074 L12.3780323,23.275831 L12.360941,23.7031097 L12.3658947,23.7234994 L12.3769048,23.7357139 L12.4804777,23.8096931 L12.4953491,23.8136134 L12.4953491,23.8136134 L12.5071152,23.8096931 L12.6106902,23.7357139 L12.6232938,23.7196733 L12.6232938,23.7196733 L12.6266527,23.7031097 L12.609561,23.275831 C12.6075724,23.2657013 12.6010112,23.2592993 12.5934901,23.257841 L12.5934901,23.257841 Z M12.8583906,23.1452862 L12.8445485,23.1473072 L12.6598443,23.2396597 L12.6498822,23.2499052 L12.6498822,23.2499052 L12.6471943,23.2611114 L12.6650943,23.6906389 L12.6699349,23.7034178 L12.6699349,23.7034178 L12.678386,23.7104931 L12.8793402,23.8032389 C12.8914285,23.8068999 12.9022333,23.8029875 12.9078286,23.7952264 L12.9118235,23.7811639 L12.8776777,23.1665331 C12.8752882,23.1545897 12.8674102,23.1470016 12.8583906,23.1452862 L12.8583906,23.1452862 Z M12.1430473,23.1473072 C12.1332178,23.1423925 12.1221763,23.1452606 12.1156365,23.1525954 L12.1099173,23.1665331 L12.0757714,23.7811639 C12.0751323,23.7926639 12.0828099,23.8018602 12.0926481,23.8045676 L12.108256,23.8032389 L12.3092106,23.7104931 L12.3186497,23.7024347 L12.3186497,23.7024347 L12.3225043,23.6906389 L12.340401,23.2611114 L12.337245,23.2485176 L12.337245,23.2485176 L12.3277531,23.2396597 L12.1430473,23.1473072 Z" id="MingCute" fill-rule="nonzero"> </path> <path d="M11.5144,2.14236 L10.2549,1.38672 L10.0135,2.83553 C9.63231,5.12379 8.06881,7.25037 6.34517,8.74417 C2.96986,11.6694 2.23067,14.8487 3.27601,17.4753 C4.27565,19.987 6.81362,21.7075 9.3895,21.9938 L9.98632,22.0601 C8.51202,21.1585 7.56557,19.0535 7.89655,17.4813 C8.22199,15.9355 9.33405,14.4869 11.4701,13.1519 L12.5472,12.4787 L12.9488,13.6836 C13.1863,14.3963 13.5962,14.968 14.0129,15.5492 C14.2138,15.8294 14.4162,16.1118 14.6018,16.4132 C15.2447,17.4581 15.415,18.6196 14.9999,19.7722 C14.6222,20.8211 13.9985,21.6446 13.1401,22.1016 L14.1105,21.9938 C16.5278,21.7252 18.3031,20.8982 19.4557,19.515 C20.5986,18.1436 20.9999,16.379 20.9999,14.4999 C20.9999,12.7494 20.2812,10.946 19.433,9.44531 C18.4392,7.68697 17.1418,6.22748 15.726,4.8117 C15.481,5.30173 15.5,5.5 14.9953,6.28698 C14.4118,4.73216 13.2963,3.21139 11.5144,2.14236 Z" id="路径" fill="var(--icon_tertiary)"> </path> </g> </g> </g> </g></svg>';
+      buttonCloned?.removeAttribute("onClick");
+      buttonCloned?.addEventListener("click", () => {
+        ModalManager.getOrCreateManager("c2")
+          .withLicenseCredential()
+          .display(document.body.getAttribute("data-theme") !== "light", [
+            "결정화 캐즘 이그나이터",
+          ]);
+      });
+      top.insertBefore(buttonCloned, top.childNodes[0]);
+    }
+  }
+
+  async function injectAtModelButton() {
+    if (!document.getElementById("chasm-ignt-open-menu")) {
+      const titleElements = document.getElementsByTagName("h2");
+      for (const element of titleElements) {
+        if (element.textContent === "AI 모델 선택") {
+          const closer =
+            document.querySelector("button.button.absolute.right-3.top-3") ??
+            document.querySelector("button.absolute.right-4.top-4");
+          const itemsToFind = element.parentElement.getElementsByClassName(
+            "flex items-center justify-between"
+          );
+          if (itemsToFind.length > 0) {
+            const toClone = itemsToFind[itemsToFind.length - 1];
+            const cloned = toClone.cloneNode(true);
+            cloned.id = "chasm-ignt-open-menu";
+            const textNodes = cloned.childNodes[0].getElementsByTagName("div");
+            textNodes[1].textContent = "결정화 캐즘 이그나이터";
+            textNodes[2].textContent = "오픈 소스!";
+            textNodes[3].textContent = "결정화 캐즘 이그나이터 탭을 엽니다.";
+
+            cloned.onclick = undefined;
+            cloned.addEventListener("click", (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              closer?.click();
+
+              ModalManager.getOrCreateManager("c2")
+                .withLicenseCredential()
+                .display(document.body.getAttribute("data-theme") !== "light", [
+                  "결정화 캐즘 이그나이터",
+                ]);
+            });
+
+            toClone.parentElement.append(
+              toClone.previousSibling.cloneNode(true)
+            );
+            toClone.parentElement.append(cloned);
+          }
+        }
+      }
+    }
+  }
+
+  async function injectAtRightPanel() {
+    if (!document.getElementById("chasm-ignt-right-panel-menu")) {
+      const panelElement = document.getElementsByClassName(
+        "mb-4 mt-1 flex flex-1 flex-col gap-9 overflow-y-auto"
+      );
+      if (panelElement) {
+      }
+      const tagElements = document.getElementsByClassName(
+        "flex w-full flex-col px-5"
+      );
+      if (tagElements.length <= 0) {
+        // We lost, but what cost?
+        // Of course, the next update! (I hate it)
+        return;
+      }
+      const closer = panelElement[0].childNodes[0].childNodes[1];
+      const panelToClone = tagElements[tagElements.length - 1];
+      const clonedPanel = panelToClone.cloneNode(true);
+      const titleElement = clonedPanel.childNodes[0];
+      const menuElement =
+        clonedPanel.childNodes[clonedPanel.childNodes.length - 1];
+      titleElement.textContent = "결정화 캐즘";
+      const clonedMenu = menuElement.childNodes[0].cloneNode(true);
+      for (const legacy of Array.from(menuElement.childNodes)) {
+        legacy.remove();
+      }
+      clonedMenu.childNodes[0].childNodes[1].textContent = "이그나이터";
+      clonedMenu.onclick = undefined;
+      clonedMenu.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        closer?.click();
+        ModalManager.getOrCreateManager("c2")
+          .withLicenseCredential()
+          .display(document.body.getAttribute("data-theme") !== "light", [
+            "결정화 캐즘 이그나이터",
+          ]);
+      });
+      clonedPanel.appendChild(clonedMenu);
+      clonedPanel.id = "chasm-ignt-right-panel-menu";
+      panelToClone.parentElement.insertBefore(
+        clonedPanel,
+        panelToClone.parentElement.childNodes[
+          panelToClone.parentElement.childNodes.length - 1
+        ]
+      );
+    }
+  }
+
+  async function doInjection() {
+    attachObserver(document, async () => {
+      if (!PlatformProvider.getProvider().getCurrentId()) {
+        return;
+      }
+      await injectInputbutton();
+      await injectAtModelButton();
+      await injectAtRightPanel();
+    });
+  }
+
+  "loading" === document.readyState
+    ? (document.addEventListener("DOMContentLoaded", doInjection),
+      window.addEventListener("load", doInjection))
+    : "interactive" === document.readyState ||
+      "complete" === document.readyState
+    ? await doInjection()
+    : setTimeout(doInjection, 100);
+
+  // =================================================
+  //                  메뉴 강제 추가
+  // =================================================
+
+  /**
+   *
+   * @param {string} buttonName
+   * @returns {HTMLElement | undefined}
+   */
+  function extractPanelButton(buttonName) {
+    const expectedPanel = document.querySelectorAll(
+      `[data-radix-popper-content-wrapper]`
+    );
+    if (expectedPanel.length > 0) {
+      for (const panel of expectedPanel) {
+        for (const element of panel.getElementsByTagName("button")) {
+          if (
+            element.childNodes[element.childNodes.length - 1].textContent ===
+            buttonName
+          ) {
+            return element;
+          }
+        }
+      }
+    }
+    return undefined;
+  }
+
+  function __updateModalMenu() {
+    let expectedPanelButton = undefined;
+    if (
+      !document.getElementById("chasm-decentral-menu") &&
+      (expectedPanelButton = extractPanelButton("설정"))
+    ) {
+      const newItem = expectedPanelButton.cloneNode(true);
+      newItem.id = "chasm-decentral-menu";
+      newItem.onclick = undefined;
+      newItem.addEventListener("click", (event) => {
+        ModalManager.getOrCreateManager("c2")
+          .withLicenseCredential()
+          .display(true);
+      });
+      const expectedTextNode =
+        newItem.childNodes[0].childNodes[
+          newItem.childNodes[0].childNodes.length - 1
+        ];
+      expectedTextNode.textContent = "결정화 캐즘";
+      expectedPanelButton.parentElement.insertBefore(
+        newItem,
+        expectedPanelButton
+      );
+    }
+  }
+
+  function __doModalMenuInit() {
+    if (document.c2ModalInit) return;
+    document.c2ModalInit = true;
+    attachObserver(document, () => {
+      __updateModalMenu();
+    });
+  }
+  __doModalMenuInit();
+
+  loadSettings();
 })();

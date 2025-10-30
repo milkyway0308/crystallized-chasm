@@ -75,6 +75,13 @@ Chasm Snack을 기반으로 수정되었으며, 원본 캐즘 버전은 [6월 11
 **결정화 캐즘 프로젝트는 스크립트별로 기능이 분리됩니다.**<br>
 **반드시 모든 스크립트를 설치할 필요는 없습니다. 필요한 기능만 골라 설치하세요.**
 
+
+## 결정화 캐즘 - 이그나이터 (BABE-IGNT-v1.0.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/ignitor.user.js) ]<br>
+
+결정화 캐즘 이그나이터는 재작성된 개선된 버너 모듈입니다.
+
+채팅방의 채팅을 외부 LLM에 의탁하여 요약하며, 프롬프트 공유 및 보관이 가능하도록 개선되었습니다.<br>
+
 ## 결정화 캐즘 - 절대 영도 (BABE-AZRO-v1.0.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/absolutezero.user.js) ]<br>
 
 결정화 캐즘 절대영도는 랭킹 화면에서의 GIF / WEBP 재생을 중지하고, 호버하는 대상에만 적용시킵니다.<br>
