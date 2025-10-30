@@ -60,7 +60,7 @@ GM_addStyle(`
 
 !(async function () {
   const PLATFORM_SAVE_KEY = "chasm-babe-ignt-settings";
-  const VERSION = "v1.0.2";
+  const VERSION = "v1.0.3p";
 
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
@@ -1188,6 +1188,11 @@ GM_addStyle(`
           new Promise(async () => {
             appendBurnerLog("메시지 가져오는 중..");
             const messages = await fetcher.fetch(settings.maxMessageRetreive);
+            if (messages instanceof Error) {
+                appendBurnerLog("메시지를 가져오는 중 오류가 발생하였습니다. 콘솔을 확인하세요.")
+                console.error(messages);
+                return;
+            }
             appendBurnerLog(`${messages.length}개의 메시지를 불러왔습니다.`);
             appendBurnerLog(
               "현재 프롬프트 " + lastSelectedPrompt.length + "자"
