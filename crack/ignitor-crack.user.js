@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Crack Chasm Crystallized Ignitor (크랙 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRAK-IGNT-v1.1.6
+// @version     CRAK-IGNT-v1.2.0
 // @description 캐즘 버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다. **기존 캐즘 버너 및 결정화 캐즘 버너+와 호환되지 않습니다. 버너 모듈을 제거하고 사용하세요.**
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -58,7 +58,8 @@ GM_addStyle(`
   `);
 
 !(async function () {
-  const VERSION = "v1.0.0";
+  const PLATFORM_SAVE_KEY = "chasm-ignt-settings";
+  const VERSION = "v1.2.0";
 
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
@@ -543,22 +544,30 @@ GM_addStyle(`
   const settings = {
     lastUsedProvider: "Google",
     lastUsedModel: "Gemini 2.5 Pro",
-    lastCustomPrompt: undefined,
     useAutoRetry: true,
     maxMessageRetreive: 50,
     addRandomHeader: false,
     includeUserNote: false,
     includePersona: true,
+    saveModifiedResult: true,
+    addPromptModifyBox: false,
+    allowResultResizing: false,
+    allowCustomBoxResize: false,
+    resultBoxHeight: 384,
+    customBoxHeight: 128,
     promptUserMessage: "**OOC: 현재까지의 롤플레잉 진행상황을 요약해줘.**",
     promptPrefixMessage:
       "**OOC: 현재까지의 롤플레잉 진행상황 요약입니다. 이후 응답에 이 요약 내용을 참조하겠습니다.**",
     promptSuffixMessage: "",
+    /** Optional paramers */
+    lastCustomPrompt: undefined,
+    lastSelectedProvider: undefined,
   };
 
   // It's good to use IndexedDB, but we have to use LocalStorage to block site
   // cause of risk from unloaded environment and unexpected behavior
   function loadSettings() {
-    const loadedSettings = localStorage.getItem("chasm-ignt-settings");
+    const loadedSettings = localStorage.getItem(PLATFORM_SAVE_KEY);
     if (loadedSettings) {
       const json = JSON.parse(loadedSettings);
       for (let key of Object.keys(json)) {
@@ -571,8 +580,12 @@ GM_addStyle(`
   function saveSettings() {
     log("설정 저장중..");
     // Yay, no need to filtering anything!
-    localStorage.setItem("chasm-ignt-settings", JSON.stringify(settings));
+    localStorage.setItem(PLATFORM_SAVE_KEY, JSON.stringify(settings));
     log("설정 저장 완료");
+  }
+
+  function saveSettingsSilent() {
+    localStorage.setItem(PLATFORM_SAVE_KEY, JSON.stringify(settings));
   }
 
   // =================================================
@@ -602,6 +615,46 @@ GM_addStyle(`
       init.headers["Content-Type"] = contentsType;
     }
     return fetch(url, init);
+  }
+
+  function extractCookie(key) {
+    const e = document.cookie.match(
+      new RegExp(
+        `(?:^|; )${key.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1")}=([^;]*)`
+      )
+    );
+    return e ? decodeURIComponent(e[1]) : null;
+  }
+
+  function detachHTMLDecoration(text) {
+    if (text.startsWith("```html")) {
+      if (text.endsWith("```")) {
+        return text.substring(7, text.length - 3);
+      }
+      return text.substring(7);
+    }
+    if (text.startsWith("```")) {
+      if (text.endsWith("```")) {
+        return text.substring(3, text.length - 3);
+      }
+      return text.substring(3);
+    }
+    return text;
+  }
+
+  function isHTMLCompatible(text) {
+    try {
+      const rawText = detachHTMLDecoration(text);
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(rawText, "text/html");
+      if (doc.documentElement.querySelector("parsererror")) {
+        return false;
+      } else {
+        return true;
+      }
+    } catch (err) {
+      return false;
+    }
   }
 
   function attachObserver(observeTarget, lambda) {
@@ -696,6 +749,11 @@ GM_addStyle(`
         modal.replaceContentPanel((panel) => {
           setupApiSettingSubmenu(panel);
         }, "API 설정");
+      })
+      .createSubMenu("모듈 설정", (modal) => {
+        modal.replaceContentPanel((panel) => {
+          setupModuelSettings(panel);
+        }, "모듈 설정");
       });
     // Restore current
     modal.getOpened().withPreOpenHandler((modal) => {
@@ -760,11 +818,16 @@ GM_addStyle(`
           }
           modelBox.setSelected(`chasm-ignt-model-listing-0`);
           modelBox.runSelected();
+          settings.lastSelectedProvider = id;
+          saveSettings();
           return true;
         }
       );
     }
 
+    if (settings.lastSelectedProvider) {
+      providerBox.setSelected(settings.lastSelectedProvider);
+    }
     providerBox.runSelected();
     // Option flag here
 
@@ -798,9 +861,15 @@ GM_addStyle(`
             descriptionField.parentElement.parentElement.parentElement.removeAttribute(
               "chasm-ignt-hide"
             );
-            document
-              .getElementById("chasm-ignt-custom-prompt")
-              .parentElement.setAttribute("chasm-ignt-hide", "true");
+
+            if (settings.addPromptModifyBox) {
+              document.getElementById("chasm-ignt-custom-prompt").value =
+                JSON.stringify(DEFAULT_PROMPTS[author][preset].prompt);
+            } else {
+              document
+                .getElementById("chasm-ignt-custom-prompt")
+                .parentElement.setAttribute("chasm-ignt-hide", "true");
+            }
             saveSettings();
             lastSelectedPrompt = JSON.stringify(
               DEFAULT_PROMPTS[author][preset].prompt
@@ -862,9 +931,14 @@ GM_addStyle(`
                 descriptionField.parentElement.parentElement.parentElement.removeAttribute(
                   "chasm-ignt-hide"
                 );
-                document
-                  .getElementById("chasm-ignt-custom-prompt")
-                  .parentElement.setAttribute("chasm-ignt-hide", "true");
+                if (settings.addPromptModifyBox) {
+                  document.getElementById("chasm-ignt-custom-prompt").value =
+                    item.prompt;
+                } else {
+                  document
+                    .getElementById("chasm-ignt-custom-prompt")
+                    .parentElement.setAttribute("chasm-ignt-hide", "true");
+                }
                 saveSettings();
                 lastSelectedPrompt = item.prompt;
                 return true;
@@ -922,7 +996,6 @@ GM_addStyle(`
       .catch((err) => {
         console.error(err);
       });
-
     const customPromptBox = panel.constructTextAreaGrid(
       "chasm-ignt-custom-prompt",
       "커스텀 프롬프트",
@@ -933,9 +1006,35 @@ GM_addStyle(`
           saveSettings();
           lastSelectedPrompt = text;
         },
+        initializer: (node) => {
+          if (settings.addPromptModifyBox) {
+            node.oninput = () => {
+              if (
+                promptPreset.getSelected() !== "chasm-ignt-prompt-option-custom"
+              ) {
+                settings.lastCustomPrompt = node.value;
+                saveSettings();
+                lastSelectedPrompt = node.value;
+                promptPreset.setSelected("chasm-ignt-prompt-option-custom");
+                promptPreset.runSelected();
+              }
+            };
+          }
+          if (settings.allowCustomBoxResize) {
+            node.style.cssText = `height: ${settings.customBoxHeight}px !important; resize: vertical !important;`;
+            new ResizeObserver(() => {
+              if (node.offsetHeight !== 0) {
+                settings.customBoxHeight = node.offsetHeight;
+                saveSettingsSilent();
+              }
+            }).observe(node);
+          }
+        },
       }
     );
-    customPromptBox.parentElement.setAttribute("chasm-ignt-hide", "true");
+    if (!settings.addPromptModifyBox) {
+      customPromptBox.parentElement.setAttribute("chasm-ignt-hide", "true");
+    }
     panel.addSwitchBox(
       "chasm-ignt-auto-retry",
       "오류 발생시 자동 재시도",
@@ -1221,7 +1320,32 @@ GM_addStyle(`
           panel.addTextAreaGrid("chasm-ignt-result-panel", "요쳥 결과", {
             defaultValue: result.response,
             initializer: (node) => {
-              node.style.cssText = "height: 384px !important;";
+              if (settings.allowResultResizing) {
+                node.style.cssText = `height: ${settings.resultBoxHeight}px !important; resize: vertical !important;`;
+                new ResizeObserver(() => {
+                  if (node.offsetHeight !== 0) {
+                    settings.resultBoxHeight = node.offsetHeight;
+                    saveSettingsSilent();
+                  }
+                }).observe(node);
+              } else {
+                node.style.cssText = "height: 384px !important;";
+              }
+              node.oninput = (ev) => {
+                document.getElementById(
+                  "chasm-ignt-result-length-display"
+                ).textContent = `${node.value.length}자`;
+              };
+            },
+            suffixModifier: (node) => {
+              new ComponentAppender(node).addText(
+                `${result.response.length}자`,
+                {
+                  initializer: (textNode) => {
+                    textNode.id = "chasm-ignt-result-length-display";
+                  },
+                }
+              );
             },
           });
           panel.addText(
@@ -1705,6 +1829,62 @@ GM_addStyle(`
     );
     box.runSelected();
   }
+
+  /**
+   *
+   * @param {ContentPanel} panel
+   */
+  function setupModuelSettings(panel) {
+    panel.addSwitchBox(
+      "chasm-ignt-save-modified-result",
+      "수정된 이그나이터 결과 저장",
+      "활성화시, 이그나이터 구동 후 나온 결과를 수정했을 때 저장합니다.\n비활성화 된 경우, 결과 탭을 다시 켜면 원본 내용으로 복구됩니다.",
+      {
+        defaultValue: settings.saveModifiedResult,
+        action: (_, value) => {
+          settings.saveModifiedResult = value;
+          saveSettings();
+        },
+      }
+    );
+    panel.addSwitchBox(
+      "chasm-ignt-add-prompt-modify-box",
+      "커스텀 프롬프트 수정 에이리어 추가",
+      "활성화시, 커스텀 프롬프트가 아니더라도 다른 프롬프트 또한 즉시 수정이 가능하도록 프롬프트 창이 추가됩니다.",
+      {
+        defaultValue: settings.addPromptModifyBox,
+        action: (_, value) => {
+          settings.addPromptModifyBox = value;
+          saveSettings();
+        },
+      }
+    );
+
+    panel.addSwitchBox(
+      "chasm-ignt-allow-result-resize",
+      "결과 박스 크기 재조정 허용",
+      "활성화시, 결과 박스의 크기 재조정을 허용합니다.\n결과 박스는 우측 아래를 드래그하여 크기 조정이 가능합니다.",
+      {
+        defaultValue: settings.allowResultResizing,
+        action: (_, value) => {
+          settings.allowResultResizing = value;
+          saveSettings();
+        },
+      }
+    );
+    panel.addSwitchBox(
+      "chasm-ignt-custom-prompt-resize",
+      "커스텀 프롬프트 박스 크기 재조정 허용",
+      "활성화시, 커스텀 프롬프트 박스의 크기 재조정을 허용합니다.\n커스텀 프롬프트 박스는 우측 아래를 드래그하여 크기 조정이 가능합니다.",
+      {
+        defaultValue: settings.allowCustomBoxResize,
+        action: (_, value) => {
+          settings.allowCustomBoxResize = value;
+          saveSettings();
+        },
+      }
+    );
+  }
   setTimeout(() => {
     setupModal();
   }, 1);
@@ -2086,46 +2266,6 @@ GM_addStyle(`
       return await result.json();
     } catch (t) {
       return new Error(`알 수 없는 오류 (${t.message ?? JSON.stringify(t)})`);
-    }
-  }
-
-  function extractCookie(key) {
-    const e = document.cookie.match(
-      new RegExp(
-        `(?:^|; )${key.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1")}=([^;]*)`
-      )
-    );
-    return e ? decodeURIComponent(e[1]) : null;
-  }
-
-  function detachHTMLDecoration(text) {
-    if (text.startsWith("```html")) {
-      if (text.endsWith("```")) {
-        return text.substring(7, text.length - 3);
-      }
-      return text.substring(7);
-    }
-    if (text.startsWith("```")) {
-      if (text.endsWith("```")) {
-        return text.substring(3, text.length - 3);
-      }
-      return text.substring(3);
-    }
-    return text;
-  }
-
-  function isHTMLCompatible(text) {
-    try {
-      const rawText = detachHTMLDecoration(text);
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(rawText, "text/html");
-      if (doc.documentElement.querySelector("parsererror")) {
-        return false;
-      } else {
-        return true;
-      }
-    } catch (err) {
-      return false;
     }
   }
 
