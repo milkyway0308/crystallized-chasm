@@ -617,6 +617,46 @@ GM_addStyle(`
     return fetch(url, init);
   }
 
+  function extractCookie(key) {
+    const e = document.cookie.match(
+      new RegExp(
+        `(?:^|; )${key.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1")}=([^;]*)`
+      )
+    );
+    return e ? decodeURIComponent(e[1]) : null;
+  }
+
+  function detachHTMLDecoration(text) {
+    if (text.startsWith("```html")) {
+      if (text.endsWith("```")) {
+        return text.substring(7, text.length - 3);
+      }
+      return text.substring(7);
+    }
+    if (text.startsWith("```")) {
+      if (text.endsWith("```")) {
+        return text.substring(3, text.length - 3);
+      }
+      return text.substring(3);
+    }
+    return text;
+  }
+
+  function isHTMLCompatible(text) {
+    try {
+      const rawText = detachHTMLDecoration(text);
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(rawText, "text/html");
+      if (doc.documentElement.querySelector("parsererror")) {
+        return false;
+      } else {
+        return true;
+      }
+    } catch (err) {
+      return false;
+    }
+  }
+
   function attachObserver(observeTarget, lambda) {
     const Observer = window.MutationObserver || window.WebKitMutationObserver;
     if (observeTarget && Observer) {
@@ -2226,46 +2266,6 @@ GM_addStyle(`
       return await result.json();
     } catch (t) {
       return new Error(`알 수 없는 오류 (${t.message ?? JSON.stringify(t)})`);
-    }
-  }
-
-  function extractCookie(key) {
-    const e = document.cookie.match(
-      new RegExp(
-        `(?:^|; )${key.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1")}=([^;]*)`
-      )
-    );
-    return e ? decodeURIComponent(e[1]) : null;
-  }
-
-  function detachHTMLDecoration(text) {
-    if (text.startsWith("```html")) {
-      if (text.endsWith("```")) {
-        return text.substring(7, text.length - 3);
-      }
-      return text.substring(7);
-    }
-    if (text.startsWith("```")) {
-      if (text.endsWith("```")) {
-        return text.substring(3, text.length - 3);
-      }
-      return text.substring(3);
-    }
-    return text;
-  }
-
-  function isHTMLCompatible(text) {
-    try {
-      const rawText = detachHTMLDecoration(text);
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(rawText, "text/html");
-      if (doc.documentElement.querySelector("parsererror")) {
-        return false;
-      } else {
-        return true;
-      }
-    } catch (err) {
-      return false;
     }
   }
 
