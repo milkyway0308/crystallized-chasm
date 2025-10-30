@@ -60,7 +60,7 @@ GM_addStyle(`
 
 !(async function () {
   const PLATFORM_SAVE_KEY = "chasm-babe-ignt-settings";
-  const VERSION = "v1.0.0";
+  const VERSION = "v1.0.1";
 
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
@@ -2227,7 +2227,11 @@ GM_addStyle(`
         if (!result) {
           return new Error("채팅 데이터를 불러오지 못했습니다.");
         }
-        if (!result.messages || result.messages.length <= 0) break;
+        if (!result.messages) break;
+        if (result.message.length <= 0) {
+          currentOffset = currentOffset + 20;
+          continue;
+        }
         for (const item of result.messages) {
           if (ids.includes(item.id)) continue;
           ids.push(item.id);
@@ -2235,10 +2239,10 @@ GM_addStyle(`
           if (items.length >= maxCount) break;
         }
         // All item fetched, stop re-fetch
-        if (result.count <= items.length) {
+        if (currentOffset + 20 >= result.count) {
           break;
         }
-        currentOffset += 20;
+        currentOffset = currentOffset + 20;
       }
       return items;
     }
