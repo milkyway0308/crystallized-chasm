@@ -543,7 +543,6 @@ GM_addStyle(`
   const settings = {
     lastUsedProvider: "Google",
     lastUsedModel: "Gemini 2.5 Pro",
-    lastCustomPrompt: undefined,
     useAutoRetry: true,
     maxMessageRetreive: 50,
     addRandomHeader: false,
@@ -553,6 +552,9 @@ GM_addStyle(`
     promptPrefixMessage:
       "**OOC: 현재까지의 롤플레잉 진행상황 요약입니다. 이후 응답에 이 요약 내용을 참조하겠습니다.**",
     promptSuffixMessage: "",
+    /** Optional paramers */
+    lastCustomPrompt: undefined,
+    lastSelectedProvider: undefined,
   };
 
   // It's good to use IndexedDB, but we have to use LocalStorage to block site
@@ -760,11 +762,16 @@ GM_addStyle(`
           }
           modelBox.setSelected(`chasm-ignt-model-listing-0`);
           modelBox.runSelected();
+          settings.lastSelectedProvider = id;
+          saveSettings();
           return true;
         }
       );
     }
 
+    if (settings.lastSelectedProvider) {
+      providerBox.setSelected(settings.lastSelectedProvider);
+    }
     providerBox.runSelected();
     // Option flag here
 
