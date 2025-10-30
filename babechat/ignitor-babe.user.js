@@ -2230,7 +2230,7 @@ GM_addStyle(`
         while (maxCount === 0 || items.length < maxCount) {
           const result = await authFetch(
             "GET",
-            `https://api.babechatapi.com/ko/api/messages/7286548e-a4a9-4f92-b17b-e27031ea42bf/false/${this.roomId}?offset=${currentOffset}&limit=20`
+            `https://api.babechatapi.com/ko/api/messages/${this.chatId}/false/${this.roomId}?offset=${currentOffset}&limit=20`
           );
           if (result instanceof Error) {
             return result;
@@ -2253,10 +2253,13 @@ GM_addStyle(`
             break;
           }
           currentOffset = currentOffset + 20;
-        await new Promise((resolve) => setTimeout(resolve, 50));
+          // Sleep to prevent ratelimit
+          await new Promise((resolve) => setTimeout(resolve, 50));
         }
       } catch (e) {
-        appendBurnerLog("메시지를 가져오는 도중 오류가 발생하였으나, 반환합니다.")
+        appendBurnerLog(
+          "메시지를 가져오는 도중 오류가 발생하였으나, 반환합니다."
+        );
       }
       return items;
     }
