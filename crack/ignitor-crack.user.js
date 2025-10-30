@@ -132,6 +132,11 @@ GM_addStyle(`
       return this;
     }
 
+    withResponse(response) {
+      this.response = response;
+      return this;
+    }
+
     /**
      *
      * @param {any} json
@@ -1336,6 +1341,12 @@ GM_addStyle(`
                   "chasm-ignt-result-length-display"
                 ).textContent = `${node.value.length}자`;
               };
+            },
+            onChange: (_, text) => {
+              sessionStorage.setItem(
+                result.sessionId,
+                JSON.stringify(result.withResponse(text))
+              );
             },
             suffixModifier: (node) => {
               new ComponentAppender(node).addText(
