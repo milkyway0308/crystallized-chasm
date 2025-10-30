@@ -60,7 +60,7 @@ GM_addStyle(`
 
 !(async function () {
   const PLATFORM_SAVE_KEY = "chasm-babe-ignt-settings";
-  const VERSION = "v1.0.2";
+  const VERSION = "v1.0.5";
 
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
@@ -1188,6 +1188,13 @@ GM_addStyle(`
           new Promise(async () => {
             appendBurnerLog("메시지 가져오는 중..");
             const messages = await fetcher.fetch(settings.maxMessageRetreive);
+            if (messages instanceof Error) {
+              appendBurnerLog(
+                "메시지를 가져오는 중 오류가 발생하였습니다. 콘솔을 확인하세요."
+              );
+              console.error(messages);
+              return;
+            }
             appendBurnerLog(`${messages.length}개의 메시지를 불러왔습니다.`);
             appendBurnerLog(
               "현재 프롬프트 " + lastSelectedPrompt.length + "자"
@@ -2218,31 +2225,41 @@ GM_addStyle(`
     async fetch(maxCount) {
       const items = [];
       const ids = [];
-      let currentOffset = 0;
-      while (items.length < maxCount) {
-        const result = await authFetch(
-          "GET",
-          `https://api.babechatapi.com/ko/api/messages/7286548e-a4a9-4f92-b17b-e27031ea42bf/false/${this.roomId}?offset=${currentOffset}&limit=20`
-        );
-        if (!result) {
-          return new Error("채팅 데이터를 불러오지 못했습니다.");
-        }
-        if (!result.messages) break;
-        if (result.messages.length <= 0) {
+      try {
+        let currentOffset = 0;
+        while (maxCount === 0 || items.length < maxCount) {
+          const result = await authFetch(
+            "GET",
+            `https://api.babechatapi.com/ko/api/messages/${this.chatId}/false/${this.roomId}?offset=${currentOffset}&limit=20`
+          );
+          if (result instanceof Error) {
+            return result;
+          }
+          if (!result.messages) {
+            return new Error(JSON.stringify(result.messages));
+          }
+          if (result.messages.length <= 0) {
+            currentOffset = currentOffset + 20;
+            continue;
+          }
+          for (const item of result.messages) {
+            if (ids.includes(item.id)) continue;
+            ids.push(item.id);
+            items.push(new PlatformMessage(item.role, "user", item.content));
+            if (items.length >= maxCount) break;
+          }
+          // All item fetched, stop re-fetch
+          if (currentOffset + 20 >= (result.count ?? 0)) {
+            break;
+          }
           currentOffset = currentOffset + 20;
-          continue;
+          // Sleep to prevent ratelimit
+          await new Promise((resolve) => setTimeout(resolve, 50));
         }
-        for (const item of result.messages) {
-          if (ids.includes(item.id)) continue;
-          ids.push(item.id);
-          items.push(new PlatformMessage(item.role, "user", item.content));
-          if (items.length >= maxCount) break;
-        }
-        // All item fetched, stop re-fetch
-        if (currentOffset + 20 >= result.count) {
-          break;
-        }
-        currentOffset = currentOffset + 20;
+      } catch (e) {
+        appendBurnerLog(
+          "메시지를 가져오는 도중 오류가 발생하였으나, 반환합니다."
+        );
       }
       return items;
     }
