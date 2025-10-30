@@ -12,6 +12,7 @@
 // @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.8/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
+
 GM_addStyle(`
     body {
       --decentral-text: #000000;
@@ -59,7 +60,7 @@ GM_addStyle(`
 
 !(async function () {
   const PLATFORM_SAVE_KEY = "chasm-ignt-settings";
-  const VERSION = "v1.2.0";
+  const VERSION = "v1.0.0";
 
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
@@ -129,6 +130,11 @@ GM_addStyle(`
      */
     withCurrentSessionId(id) {
       this.sessionId = id;
+      return this;
+    }
+
+    withResponse(response) {
+      this.response = response;
       return this;
     }
 
@@ -1336,6 +1342,14 @@ GM_addStyle(`
                   "chasm-ignt-result-length-display"
                 ).textContent = `${node.value.length}자`;
               };
+            },
+            onChange: (_, text) => {
+              if (settings.saveModifiedResult) {
+                sessionStorage.setItem(
+                  result.sessionId,
+                  JSON.stringify(result.withResponse(text))
+                );
+              }
             },
             suffixModifier: (node) => {
               new ComponentAppender(node).addText(
