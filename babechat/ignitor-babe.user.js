@@ -1186,14 +1186,14 @@ GM_addStyle(`
           const personaUtil = provider.getPersonaUtil();
           const noteUtil = provider.getUserNoteUtil();
           const chatId = provider.getCurrentId();
-          new Promise(async () => {
+          new Promise(async (resolve, reject) => {
             appendBurnerLog("메시지 가져오는 중..");
             const messages = await fetcher.fetch(settings.maxMessageRetreive);
             if (messages instanceof Error) {
               appendBurnerLog(
                 "메시지를 가져오는 중 오류가 발생하였습니다. 콘솔을 확인하세요."
               );
-              console.error(messages);
+              reject(messages);
               return;
             }
             appendBurnerLog(`${messages.length}개의 메시지를 불러왔습니다.`);
@@ -1257,13 +1257,14 @@ GM_addStyle(`
                     result.message
                 );
                 if (!settings.useAutoRetry) {
-                  break;
+                  reject(result);
+                  return;
                 }
                 if (!result.isRecoverable) {
                   appendBurnerLog(
                     "이 오류는 재시도 불가능한 오류입니다. 재시도를 중단합니다."
                   );
-                  break;
+                  return;
                 }
                 if (result.code === 429) {
                   appendBurnerLog(
@@ -1279,7 +1280,8 @@ GM_addStyle(`
                   appendBurnerLog(
                     "이 오류는 재시도 불가능한 오류입니다. 재시도를 중단합니다."
                   );
-                  break;
+                  reject(result);
+                  return;
                 }
               } else {
                 const nextId = ReconstructableResponse.getHighestNext(chatId);
@@ -1304,6 +1306,7 @@ GM_addStyle(`
                 break;
               }
             }
+            resolve();
           })
             .then(() => {
               // Call promise with empty then() call - DO NOT ERASE THIS EMPTY LAMBDA
