@@ -2,10 +2,10 @@
 // ==UserScript==
 // @name        BabeChat / Chasm Crystallized Ignitor (베이비챗 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     BABE-IGNT-v1.0.6
+// @version     BABE-IGNT-v1.0.7
 // @description 캐즘 버너 및 애프터버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
-// @match       https://babechat.ai/*
+// @include      /^https:/\/(www\.)?babechat.ai\/*/
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/ignitor-babe.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/ignitor-babe.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
@@ -2309,8 +2309,31 @@ GM_addStyle(`
       if (messageToEdit instanceof Error) {
         return messageToEdit;
       }
-      const lastId = messageToEdit.messages[0].id;
       return async (botMessage) => {
+        let nextMessage = messageToEdit;
+        let waiting = 0;
+        for (; waiting < 4; waiting++) {
+          if (
+            nextMessage[1].role === "user" &&
+            nextMessage[1].content === nextMessage
+          ) {
+            break;
+          }
+          const messageResult = await authFetch(
+            "GET",
+            `https://api.babechatapi.com/ko/api/messages/${this.chatId}/false/${this.roomId}?offset=0&limit=20`
+          );
+          if (!(messageResult instanceof Error) && messageResult.messages) {
+            lastMessage = messageResult.messages[0];
+          }
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        if (waiting >= 4) {
+          return new Error(
+            "메시지 전송 실패: 서버에서 잘못된 히스토리를 반환하였습니다."
+          );
+        }
+
         const botEditResult = await authFetch(
           "PUT",
           `https://api.babechatapi.com/ko/api/edit-message/${lastId}`,
