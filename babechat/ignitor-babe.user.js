@@ -1308,6 +1308,9 @@ GM_addStyle(`
             }
             resolve();
           })
+            .catch((err) => {
+              console.error(err);
+            })
             .then(() => {
               // Call promise with empty then() call - DO NOT ERASE THIS EMPTY LAMBDA
             })
