@@ -109,7 +109,7 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 > ⚠ 버너 모듈은 2025년 10월 29일 기준으로 은퇴 처리되었습니다.<br>
 > ⚠ 앞으로의 버너 모듈 기능 개발은 이그나이터 모듈로 대체됩니다. <br>
 
-## 결정화 캐즘 - 과포화 (v1.4.10) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/tmi.user.js) ]<br>
+## 결정화 캐즘 - 과포화 (v1.5.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/tmi.user.js) ]<br>
 
 결정화 캐즘 과포화는 채팅의 소모 개수를 과거의 슈퍼챗 개수 표기로 변환하여 소모량 및 잔여량을 더욱 가시적으로 보여줍니다.<br>
 
