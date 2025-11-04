@@ -2367,7 +2367,6 @@ GM_addStyle(`
           targetMessage = await this.findMessage(prefixedMessage);
           await new Promise((resolve) => setTimeout(resolve, 300));
         }
-        console.log(targetMessage);
         if (!targetMessage) {
           return new Error(
             "메시지 전송 실패: 서버에서 잘못된 히스토리를 반환하였습니다."
@@ -2385,10 +2384,6 @@ GM_addStyle(`
           `https://api.babechatapi.com/ko/api/edit-message/${targetMessage[1]}`,
           { message: botMessage }
         );
-        console.log(`Modified user message ${targetMessage[0]} to:`);
-        console.log(message);
-        console.log(`Modified bot message ${targetMessage[1]} to:`);
-        console.log(botMessage);
         return (
           userEditResult?.success === "true" &&
           botEditResult?.success === "true"
