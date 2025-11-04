@@ -1310,6 +1310,11 @@ GM_addStyle(`
           })
             .catch((err) => {
               console.error(err);
+              appendBurnerLog(
+                "알 수 없는 오류가 발생하였습니다. 자세한 사항은 콘솔을 확인하세요. (" +
+                  err.message +
+                  ")"
+              );
             })
             .then(() => {
               // Call promise with empty then() call - DO NOT ERASE THIS EMPTY LAMBDA
@@ -1486,9 +1491,11 @@ GM_addStyle(`
                     );
                     const modifyResult = await modifier(messageToSend);
                     if (modifyResult instanceof Error) {
-                      throw new Error(
-                        "유저 메시지 수정에 실패하였습니다: " +
-                          modifyResult.message
+                      reject(
+                        Error(
+                          "유저 메시지 수정에 실패하였습니다: " +
+                            modifyResult.message
+                        )
                       );
                     }
                     statusTextNode.textContent =
