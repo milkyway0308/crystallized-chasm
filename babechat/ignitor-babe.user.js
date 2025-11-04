@@ -1321,7 +1321,7 @@ GM_addStyle(`
             })
             .finally(() => {
               node.removeAttribute("disabled");
-              const timer = doc.getElementById("chasm-ignt-llm-timer");
+              const timer = document.getElementById("chasm-ignt-llm-timer");
               if (timer) {
                 timer.setAttribute("current-flow", "-1");
                 timer.textContent = "00:00";
