@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        BabeChat / Chasm Crystallized Ignitor (베이비챗 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     BABE-IGNT-v1.0.8
+// @version     BABE-IGNT-v1.1.0
 // @description 캐즘 버너 및 애프터버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://babechat.ai/*
@@ -61,7 +61,7 @@ GM_addStyle(`
 
 !(async function () {
   const PLATFORM_SAVE_KEY = "chasm-babe-ignt-settings";
-  const VERSION = "v1.0.8";
+  const VERSION = "v1.1.0";
 
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
@@ -1310,13 +1310,18 @@ GM_addStyle(`
           })
             .catch((err) => {
               console.error(err);
+              appendBurnerLog(
+                "알 수 없는 오류가 발생하였습니다. 자세한 사항은 콘솔을 확인하세요. (" +
+                  err.message +
+                  ")"
+              );
             })
             .then(() => {
               // Call promise with empty then() call - DO NOT ERASE THIS EMPTY LAMBDA
             })
             .finally(() => {
               node.removeAttribute("disabled");
-              const timer = doc.getElementById("chasm-ignt-llm-timer");
+              const timer = document.getElementById("chasm-ignt-llm-timer");
               if (timer) {
                 timer.setAttribute("current-flow", "-1");
                 timer.textContent = "00:00";
@@ -1486,9 +1491,11 @@ GM_addStyle(`
                     );
                     const modifyResult = await modifier(messageToSend);
                     if (modifyResult instanceof Error) {
-                      throw new Error(
-                        "유저 메시지 수정에 실패하였습니다: " +
-                          modifyResult.message
+                      reject(
+                        Error(
+                          "유저 메시지 수정에 실패하였습니다: " +
+                            modifyResult.message
+                        )
                       );
                     }
                     statusTextNode.textContent =
@@ -2278,11 +2285,46 @@ GM_addStyle(`
       this.chatId = chatId;
       this.roomId = roomdId;
     }
+
+    async findMessage(target, maxScan = 30) {
+      let scannedIndex = 0;
+      let previousMessage = undefined;
+      while (true) {
+        const result = await authFetch(
+          "GET",
+          `https://api.babechatapi.com/ko/api/messages/${this.chatId}/false/${this.roomId}?offset=${scannedIndex}&limit=20`
+        );
+        if (!result.messages) {
+          return new Error(JSON.stringify(result.messages));
+        }
+        for (const message of result.messages) {
+          if (message.content === target) {
+            if (!previousMessage) {
+              return undefined;
+            }
+            return [message.id, previousMessage.id];
+          }
+          previousMessage = message;
+          if (++scannedIndex >= maxScan) break;
+        }
+
+        if (scannedIndex >= maxScan) break;
+        if (scannedIndex + 20 >= (result.count ?? 0)) {
+          break;
+        }
+        if (result.messages.length <= 0) {
+          scannedIndex += 20;
+          continue;
+        }
+      }
+      return undefined;
+    }
     /**
      *
      * @param {string} message
      */
     async send(message) {
+      const prefixedMessage = `C2 Ignitor Message Placeholder ID (${crypto.randomUUID()});\n${message}`;
       const result = await fetch(
         `https://babechatapi.com/ko/api/u/message/${this.chatId}`,
         {
@@ -2294,7 +2336,7 @@ GM_addStyle(`
             model: "free",
             outputLanguage: "",
             proChatCount: 0,
-            prompt: message,
+            prompt: prefixedMessage,
             roomId: this.roomId,
           }),
           headers: {
@@ -2317,36 +2359,35 @@ GM_addStyle(`
         return messageToEdit;
       }
       return async (botMessage) => {
-        let nextMessage = messageToEdit;
-        let waiting = 0;
-        for (; waiting < 4; waiting++) {
-          if (
-            nextMessage[1].role === "user" &&
-            nextMessage[1].content === nextMessage
-          ) {
+        let targetMessage = await this.findMessage(prefixedMessage);
+        for (let i = 0; i < 4; i++) {
+          if (targetMessage) {
             break;
           }
-          const messageResult = await authFetch(
-            "GET",
-            `https://api.babechatapi.com/ko/api/messages/${this.chatId}/false/${this.roomId}?offset=0&limit=20`
-          );
-          if (!(messageResult instanceof Error) && messageResult.messages) {
-            lastMessage = messageResult.messages[0];
-          }
-          await new Promise((resolve) => setTimeout(resolve, 50));
+          targetMessage = await this.findMessage(prefixedMessage);
+          await new Promise((resolve) => setTimeout(resolve, 300));
         }
-        if (waiting >= 4) {
+        if (!targetMessage) {
           return new Error(
             "메시지 전송 실패: 서버에서 잘못된 히스토리를 반환하였습니다."
           );
         }
 
+        const userEditResult = await authFetch(
+          "PUT",
+          `https://api.babechatapi.com/ko/api/edit-message/${targetMessage[0]}`,
+          { message: message }
+        );
+
         const botEditResult = await authFetch(
           "PUT",
-          `https://api.babechatapi.com/ko/api/edit-message/${lastId}`,
+          `https://api.babechatapi.com/ko/api/edit-message/${targetMessage[1]}`,
           { message: botMessage }
         );
-        return botEditResult?.success === "true";
+        return (
+          userEditResult?.success === "true" &&
+          botEditResult?.success === "true"
+        );
       };
     }
   }

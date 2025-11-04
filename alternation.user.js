@@ -879,7 +879,7 @@ if (!document.chasmApi) {
         panel.addSwitchBox(
           "cntr-altr-use-temp-user-prompt",
           "임시 유저 프롬프트 첨부",
-          "차원이동 수행시, 임시 유저노트를 첨부할지의 여부입니다.\n이 옵션은 LLM의 답변 거부를 불러올 수 있습니다.",
+          "차원이동 수행시, 임시 유저 프롬프트를 첨부할지의 여부입니다.\n이 옵션은 LLM의 답변 거부를 불러올 수 있습니다.",
           {
             defaultValue: settings.useTemporaryUserPrompt,
             action: (_, value) => {
