@@ -560,6 +560,7 @@ GM_addStyle(`
     allowCustomBoxResize: false,
     resultBoxHeight: 384,
     customBoxHeight: 128,
+    useLegacyTurnLogic: true,
     promptUserMessage: "**OOC: 현재까지의 롤플레잉 진행상황을 요약해줘.**",
     promptPrefixMessage:
       "**OOC: 현재까지의 롤플레잉 진행상황 요약입니다. 이후 응답에 이 요약 내용을 참조하겠습니다.**",
@@ -1184,9 +1185,19 @@ GM_addStyle(`
           const personaUtil = provider.getPersonaUtil();
           const noteUtil = provider.getUserNoteUtil();
           const chatId = provider.getCurrentId();
-          new Promise(async () => {
+          new Promise(async (resolve, reject) => {
             appendBurnerLog("메시지 가져오는 중..");
-            const messages = await fetcher.fetch(settings.maxMessageRetreive);
+            const messages = await fetcher.fetch(
+              settings.maxMessageRetreive *
+                (settings.useLegacyTurnLogic ? 2 : 1)
+            );
+            if (messages instanceof Error) {
+              appendBurnerLog(
+                "메시지를 가져오는 중 오류가 발생하였습니다. 콘솔을 확인하세요."
+              );
+              reject(messages);
+              return;
+            }
             appendBurnerLog(`${messages.length}개의 메시지를 불러왔습니다.`);
             appendBurnerLog(
               "현재 프롬프트 " + lastSelectedPrompt.length + "자"
@@ -1248,13 +1259,14 @@ GM_addStyle(`
                     result.message
                 );
                 if (!settings.useAutoRetry) {
-                  break;
+                  reject(result);
+                  return;
                 }
                 if (!result.isRecoverable) {
                   appendBurnerLog(
                     "이 오류는 재시도 불가능한 오류입니다. 재시도를 중단합니다."
                   );
-                  break;
+                  return;
                 }
                 if (result.code === 429) {
                   appendBurnerLog(
@@ -1270,7 +1282,8 @@ GM_addStyle(`
                   appendBurnerLog(
                     "이 오류는 재시도 불가능한 오류입니다. 재시도를 중단합니다."
                   );
-                  break;
+                  reject(result);
+                  return;
                 }
               } else {
                 const nextId = ReconstructableResponse.getHighestNext(chatId);
@@ -1295,13 +1308,22 @@ GM_addStyle(`
                 break;
               }
             }
+            resolve();
           })
+            .catch((err) => {
+              console.error(err);
+              appendBurnerLog(
+                "알 수 없는 오류가 발생하였습니다. 자세한 사항은 콘솔을 확인하세요. (" +
+                  err.message +
+                  ")"
+              );
+            })
             .then(() => {
               // Call promise with empty then() call - DO NOT ERASE THIS EMPTY LAMBDA
             })
             .finally(() => {
               node.removeAttribute("disabled");
-              const timer = doc.getElementById("chasm-ignt-llm-timer");
+              const timer = document.getElementById("chasm-ignt-llm-timer");
               if (timer) {
                 timer.setAttribute("current-flow", "-1");
                 timer.textContent = "00:00";
@@ -1471,9 +1493,11 @@ GM_addStyle(`
                     );
                     const modifyResult = await modifier(messageToSend);
                     if (modifyResult instanceof Error) {
-                      throw new Error(
-                        "유저 메시지 수정에 실패하였습니다: " +
-                          modifyResult.message
+                      reject(
+                        Error(
+                          "유저 메시지 수정에 실패하였습니다: " +
+                            modifyResult.message
+                        )
                       );
                     }
                     statusTextNode.textContent =
@@ -1848,6 +1872,18 @@ GM_addStyle(`
    * @param {ContentPanel} panel
    */
   function setupModuelSettings(panel) {
+    panel.addSwitchBox(
+      "chasm-ignt-use-legacy-turn",
+      "레거시 버너 턴 사용",
+      "활성화시, 원본 캐즘의 턴 개념을 사용합니다.\n불러오는 메시지가 턴 단위로 변경되며, 턴당 2개의 메시지로 취급합니다.",
+      {
+        defaultValue: settings.useLegacyTurnLogic,
+        action: (_, value) => {
+          settings.useLegacyTurnLogic = value;
+          saveSettings();
+        },
+      }
+    );
     panel.addSwitchBox(
       "chasm-ignt-save-modified-result",
       "수정된 이그나이터 결과 저장",

@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized TMI (캐즘 과포화)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-TMI-v1.4.9
+// @version      CRYS-TMI-v1.5.0
 // @description  크랙 UI에 추가 정보 제공. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
@@ -347,11 +347,31 @@
     } else if (chatType === "파워챗") {
       nextText = chatType + " | 잔여 " + Math.floor(cracker / 15) + "회";
     } else if (chatType === "파워챗+") {
-      nextText = chatType + " | 잔여 " + Math.floor(cracker / 45) + "회";
+      let expectedCracker = 45;
+      const time = new Date();
+      // 이벤트는 2025-11-06부터 11월 끝까지 지속됨.
+      if (time.getFullYear() === 2025 && time.getMonth() === 10) {
+        // 오전 4시부터 오전 10시까지
+        if (time.getHours() > 3 && time.getHours() < 10) {
+          expectedCracker = 40;
+        }
+      }
+      nextText =
+        chatType + " | 잔여 " + Math.floor(cracker / expectedCracker) + "회";
     } else if (chatType === "슈퍼챗 1.5") {
       nextText = chatType + " | 잔여 " + Math.floor(cracker / 35) + "회";
     } else if (chatType === "슈퍼챗 2.0") {
-      nextText = chatType + " | 잔여 " + Math.floor(cracker / 35) + "회";
+      let expectedCracker = 45;
+      const time = new Date();
+      // 이벤트는 2025-11-06부터 11월 끝까지 지속됨.
+      if (time.getFullYear() === 2025 && time.getMonth() === 10) {
+        // 오전 4시부터 오전 10시까지
+        if (time.getHours() > 3 && time.getHours() < 10) {
+          expectedCracker = 40;
+        }
+      }
+      nextText =
+        chatType + " | 잔여 " + Math.floor(cracker / expectedCracker) + "회";
     } else if (chatType === "하이퍼챗") {
       nextText = chatType + " | 잔여 " + Math.floor(cracker / 175) + "회";
     }
