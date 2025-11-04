@@ -60,7 +60,7 @@ GM_addStyle(`
 !(async function () {
   const PLATFORM_SAVE_KEY = "chasm-ignt-settings";
   const VERSION = "v1.2.1";
-  
+
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
   );
@@ -560,6 +560,7 @@ GM_addStyle(`
     allowCustomBoxResize: false,
     resultBoxHeight: 384,
     customBoxHeight: 128,
+    useLegacyTurnLogic: true,
     promptUserMessage: "**OOC: 현재까지의 롤플레잉 진행상황을 요약해줘.**",
     promptPrefixMessage:
       "**OOC: 현재까지의 롤플레잉 진행상황 요약입니다. 이후 응답에 이 요약 내용을 참조하겠습니다.**",
@@ -1186,7 +1187,10 @@ GM_addStyle(`
           const chatId = provider.getCurrentId();
           new Promise(async (resolve, reject) => {
             appendBurnerLog("메시지 가져오는 중..");
-            const messages = await fetcher.fetch(settings.maxMessageRetreive);
+            const messages = await fetcher.fetch(
+              settings.maxMessageRetreive *
+                (settings.useLegacyTurnLogic ? 2 : 1)
+            );
             if (messages instanceof Error) {
               appendBurnerLog(
                 "메시지를 가져오는 중 오류가 발생하였습니다. 콘솔을 확인하세요."
@@ -1868,6 +1872,18 @@ GM_addStyle(`
    * @param {ContentPanel} panel
    */
   function setupModuelSettings(panel) {
+    panel.addSwitchBox(
+      "chasm-ignt-use-legacy-turn",
+      "레거시 버너 턴 사용",
+      "활성화시, 원본 캐즘의 턴 개념을 사용합니다.\n불러오는 메시지가 턴 단위로 변경되며, 턴당 2개의 메시지로 취급합니다.",
+      {
+        defaultValue: settings.useLegacyTurnLogic,
+        action: (_, value) => {
+          settings.useLegacyTurnLogic = value;
+          saveSettings();
+        },
+      }
+    );
     panel.addSwitchBox(
       "chasm-ignt-save-modified-result",
       "수정된 이그나이터 결과 저장",
