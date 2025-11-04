@@ -2278,11 +2278,46 @@ GM_addStyle(`
       this.chatId = chatId;
       this.roomId = roomdId;
     }
+
+    async findMessage(target, maxScan = 30) {
+      let scannedIndex = 0;
+      let previousMessage = undefined;
+      while (true) {
+        const result = await authFetch(
+          "GET",
+          `https://api.babechatapi.com/ko/api/messages/${this.chatId}/false/${this.roomId}?offset=${scannedIndex}&limit=20`
+        );
+        if (!result.messages) {
+          return new Error(JSON.stringify(result.messages));
+        }
+        for (const message of result.messages) {
+          if (message.content === target) {
+            if (!previousMessage) {
+              return undefined;
+            }
+            return [message.id, previousMessage.id];
+          }
+          previousMessage = message;
+          if (++scannedIndex >= maxScan) break;
+        }
+
+        if (scannedIndex >= maxScan) break;
+        if (scannedIndex + 20 >= (result.count ?? 0)) {
+          break;
+        }
+        if (result.messages.length <= 0) {
+          scannedIndex += 20;
+          continue;
+        }
+      }
+      return undefined;
+    }
     /**
      *
      * @param {string} message
      */
     async send(message) {
+      const prefixedMessage = `C2 Ignitor Message Placeholder ID (${crypto.randomUUID()});\n${message}`;
       const result = await fetch(
         `https://babechatapi.com/ko/api/u/message/${this.chatId}`,
         {
@@ -2294,7 +2329,7 @@ GM_addStyle(`
             model: "free",
             outputLanguage: "",
             proChatCount: 0,
-            prompt: message,
+            prompt: prefixedMessage,
             roomId: this.roomId,
           }),
           headers: {
@@ -2317,36 +2352,40 @@ GM_addStyle(`
         return messageToEdit;
       }
       return async (botMessage) => {
-        let nextMessage = messageToEdit;
-        let waiting = 0;
-        for (; waiting < 4; waiting++) {
-          if (
-            nextMessage[1].role === "user" &&
-            nextMessage[1].content === nextMessage
-          ) {
+        let targetMessage = await this.findMessage(prefixedMessage);
+        for (let i = 0; i < 4; i++) {
+          if (targetMessage) {
             break;
           }
-          const messageResult = await authFetch(
-            "GET",
-            `https://api.babechatapi.com/ko/api/messages/${this.chatId}/false/${this.roomId}?offset=0&limit=20`
-          );
-          if (!(messageResult instanceof Error) && messageResult.messages) {
-            lastMessage = messageResult.messages[0];
-          }
-          await new Promise((resolve) => setTimeout(resolve, 50));
+          targetMessage = await this.findMessage(prefixedMessage);
+          await new Promise((resolve) => setTimeout(resolve, 300));
         }
-        if (waiting >= 4) {
+        console.log(targetMessage);
+        if (!targetMessage) {
           return new Error(
             "메시지 전송 실패: 서버에서 잘못된 히스토리를 반환하였습니다."
           );
         }
 
+        const userEditResult = await authFetch(
+          "PUT",
+          `https://api.babechatapi.com/ko/api/edit-message/${targetMessage[0]}`,
+          { message: message }
+        );
+
         const botEditResult = await authFetch(
           "PUT",
-          `https://api.babechatapi.com/ko/api/edit-message/${lastId}`,
+          `https://api.babechatapi.com/ko/api/edit-message/${targetMessage[1]}`,
           { message: botMessage }
         );
-        return botEditResult?.success === "true";
+        console.log(`Modified user message ${targetMessage[0]} to:`);
+        console.log(message);
+        console.log(`Modified bot message ${targetMessage[1]} to:`);
+        console.log(botMessage);
+        return (
+          userEditResult?.success === "true" &&
+          botEditResult?.success === "true"
+        );
       };
     }
   }
