@@ -347,11 +347,31 @@
     } else if (chatType === "파워챗") {
       nextText = chatType + " | 잔여 " + Math.floor(cracker / 15) + "회";
     } else if (chatType === "파워챗+") {
-      nextText = chatType + " | 잔여 " + Math.floor(cracker / 45) + "회";
+      let expectedCracker = 45;
+      const time = new Date();
+      // 이벤트는 2025-11-06부터 11월 끝까지 지속됨.
+      if (time.getFullYear() === 2025 && time.getMonth() === 10) {
+        // 오전 4시부터 오전 10시까지
+        if (time.getHours() > 3 && time.getHours() < 10) {
+          expectedCracker = 40;
+        }
+      }
+      nextText =
+        chatType + " | 잔여 " + Math.floor(cracker / expectedCracker) + "회";
     } else if (chatType === "슈퍼챗 1.5") {
       nextText = chatType + " | 잔여 " + Math.floor(cracker / 35) + "회";
     } else if (chatType === "슈퍼챗 2.0") {
-      nextText = chatType + " | 잔여 " + Math.floor(cracker / 45) + "회";
+      let expectedCracker = 45;
+      const time = new Date();
+      // 이벤트는 2025-11-06부터 11월 끝까지 지속됨.
+      if (time.getFullYear() === 2025 && time.getMonth() === 10) {
+        // 오전 4시부터 오전 10시까지
+        if (time.getHours() > 3 && time.getHours() < 10) {
+          expectedCracker = 40;
+        }
+      }
+      nextText =
+        chatType + " | 잔여 " + Math.floor(cracker / expectedCracker) + "회";
     } else if (chatType === "하이퍼챗") {
       nextText = chatType + " | 잔여 " + Math.floor(cracker / 175) + "회";
     }
