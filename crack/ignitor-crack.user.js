@@ -1054,10 +1054,11 @@ GM_addStyle(`
       }
     );
 
+    const messageCountUnit = settings.useLegacyTurnLogic ? "턴" : "메시지";
     panel.addShortNumberBox(
       "chasm-ignt-max-item",
-      "요약에 불러올 메시지",
-      "요약에 불러올 메시지 개수를 지정합니다. 기본 50이며, 0으로 설정시 모든 메시지를 불러옵니다. \n값이 클 수록 요청 시간이 길어지며 소모 비용 또한 늘어납니다.",
+      `요약에 불러올 ${messageCountUnit}`,
+      `요약에 불러올 ${messageCountUnit}를 지정합니다. 기본 50이며, 0으로 설정시 모든 메시지를 불러옵니다. \n값이 클 수록 요청 시간이 길어지며 소모 비용 또한 늘어납니다.`,
       {
         defaultValue: settings.maxMessageRetreive,
         min: 0,
@@ -1198,7 +1199,15 @@ GM_addStyle(`
               reject(messages);
               return;
             }
-            appendBurnerLog(`${messages.length}개의 메시지를 불러왔습니다.`);
+            appendBurnerLog(
+              `${
+                settings.useLegacyTurnLogic
+                  ? Math.floor(messages.length / 2)
+                  : messages.length
+              }개의 ${
+                settings.useLegacyTurnLogic ? "턴을" : "메시지를"
+              } 불러왔습니다.`
+            );
             appendBurnerLog(
               "현재 프롬프트 " + lastSelectedPrompt.length + "자"
             );
