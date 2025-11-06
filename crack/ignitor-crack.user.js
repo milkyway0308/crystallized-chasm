@@ -55,6 +55,12 @@ GM_addStyle(`
   .burner-button { height: 32px; padding: 12px 12px; border-radius: 4px; cursor: pointer; display: flex; flex-direction: row; align-items: center; justify-items: center; border: 1px solid var(--text_action_blue_secondary); color: var(--text_action_blue_secondary); font-size: 14px; font-weight: 600; } 
     .burner-button:hover { background-color: var(--bg_dimmed2); }
     .burner-input-button { display: flex !important; }
+
+    @media screen and (max-width:600px) { 
+      .burner-button { 
+        display: none;
+      }
+    }
   `);
 
 !(async function () {
