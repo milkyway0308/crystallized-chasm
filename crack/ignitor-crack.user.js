@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Crack Chasm Crystallized Ignitor (크랙 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRAK-IGNT-v1.2.1
+// @version     CRAK-IGNT-v1.2.2
 // @description 캐즘 버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다. **기존 캐즘 버너 및 결정화 캐즘 버너+와 호환되지 않습니다. 버너 모듈을 제거하고 사용하세요.**
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -55,11 +55,17 @@ GM_addStyle(`
   .burner-button { height: 32px; padding: 12px 12px; border-radius: 4px; cursor: pointer; display: flex; flex-direction: row; align-items: center; justify-items: center; border: 1px solid var(--text_action_blue_secondary); color: var(--text_action_blue_secondary); font-size: 14px; font-weight: 600; } 
     .burner-button:hover { background-color: var(--bg_dimmed2); }
     .burner-input-button { display: flex !important; }
+
+    @media screen and (max-width:600px) { 
+      .burner-button { 
+        display: none;
+      }
+    }
   `);
 
 !(async function () {
   const PLATFORM_SAVE_KEY = "chasm-ignt-settings";
-  const VERSION = "v1.2.1";
+  const VERSION = "v1.2.2";
 
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
@@ -1054,10 +1060,11 @@ GM_addStyle(`
       }
     );
 
+    const messageCountUnit = settings.useLegacyTurnLogic ? "턴" : "메시지";
     panel.addShortNumberBox(
       "chasm-ignt-max-item",
-      "요약에 불러올 메시지",
-      "요약에 불러올 메시지 개수를 지정합니다. 기본 50이며, 0으로 설정시 모든 메시지를 불러옵니다. \n값이 클 수록 요청 시간이 길어지며 소모 비용 또한 늘어납니다.",
+      `요약에 불러올 ${messageCountUnit}`,
+      `요약에 불러올 ${messageCountUnit}를 지정합니다. 기본 50이며, 0으로 설정시 모든 메시지를 불러옵니다. \n값이 클 수록 요청 시간이 길어지며 소모 비용 또한 늘어납니다.`,
       {
         defaultValue: settings.maxMessageRetreive,
         min: 0,
@@ -1198,7 +1205,15 @@ GM_addStyle(`
               reject(messages);
               return;
             }
-            appendBurnerLog(`${messages.length}개의 메시지를 불러왔습니다.`);
+            appendBurnerLog(
+              `${
+                settings.useLegacyTurnLogic
+                  ? Math.floor(messages.length / 2)
+                  : messages.length
+              }개의 ${
+                settings.useLegacyTurnLogic ? "턴을" : "메시지를"
+              } 불러왔습니다.`
+            );
             appendBurnerLog(
               "현재 프롬프트 " + lastSelectedPrompt.length + "자"
             );
