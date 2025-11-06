@@ -745,10 +745,7 @@ if (!document.chasmApi) {
       );
       return;
     }
-    const menu = panel.childNodes[0];
-
-    const button = menu.childNodes[1].cloneNode(true);
-    button.childNodes[0].remove();
+    const button = panel.childNodes[1].cloneNode(true);
     button.childNodes[0].remove();
     button.childNodes[0].remove();
     const topContainer = document.createElement("div");
@@ -811,7 +808,7 @@ if (!document.chasmApi) {
       )[0].textContent = `차원 이동 준비 완료`;
     });
     // button.childNodes[1].textContent = "평행세계로 이동";
-    menu.appendChild(button);
+    panel.appendChild(button);
   }
 
   function prepare() {
@@ -918,7 +915,9 @@ if (!document.chasmApi) {
           "- decentralized-modal.js 프레임워크 사용 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)"
         )
         .addTitleText("도움 주신 분들")
-        .addText("- v1.4.0 하이퍼루프 업데이트 아이디어 (허니별/honeystar3417 / https://github.com/honeystar3417)");
+        .addText(
+          "- v1.4.0 하이퍼루프 업데이트 아이디어 (허니별/honeystar3417 / https://github.com/honeystar3417)"
+        );
     });
   }
   // =================================================
