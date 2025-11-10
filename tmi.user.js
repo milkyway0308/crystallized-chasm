@@ -358,27 +358,30 @@
     return nextText;
   }
   async function extractCharacterCracker() {
-    const root = document.getElementsByClassName("css-uxwch2");
+    const root = document.getElementsByClassName("css-c82bbp");
     if (!root || root.length <= 0) {
       return undefined;
     }
-    const menuElements = root[0].getElementsByClassName("css-j7qwjs");
-    if (!menuElements || menuElements.length <= 0) {
-      return undefined;
-    }
-    for (let element of menuElements) {
-      let expectedLabel = element.childNodes[0];
-      if (
-        expectedLabel.nodeName.toLowerCase() === "p" &&
-        expectedLabel.textContent === "나의 크래커"
-      ) {
-        return parseInt(
-          element.childNodes[1]
-            .getElementsByTagName("p")[0]
-            .textContent.replace(",", "")
-        );
+    for (const menuElement of root) {
+      const menuElements = menuElement.getElementsByClassName("css-uxwch2");
+      if (!menuElements || menuElements.length <= 0) {
+        return undefined;
+      }
+      for (let element of menuElements) {
+        let expectedLabel = element.childNodes[0];
+        if (
+          expectedLabel.nodeName.toLowerCase() === "p" &&
+          expectedLabel.textContent === "나의 크래커"
+        ) {
+          return parseInt(
+            element.childNodes[1]
+              .childNodes[1].childNodes[0]
+              .textContent.replace(",", "")
+          );
+        }
       }
     }
+    console.log("Undefined - 03");
     return undefined;
   }
 
