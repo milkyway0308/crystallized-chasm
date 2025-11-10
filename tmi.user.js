@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized TMI (캐즘 과포화)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-TMI-v1.5.0
+// @version      CRYS-TMI-v1.5.1
 // @description  크랙 UI에 추가 정보 제공. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
@@ -378,27 +378,30 @@
     return nextText;
   }
   async function extractCharacterCracker() {
-    const root = document.getElementsByClassName("css-uxwch2");
+    const root = document.getElementsByClassName("css-c82bbp");
     if (!root || root.length <= 0) {
       return undefined;
     }
-    const menuElements = root[0].getElementsByClassName("css-j7qwjs");
-    if (!menuElements || menuElements.length <= 0) {
-      return undefined;
-    }
-    for (let element of menuElements) {
-      let expectedLabel = element.childNodes[0];
-      if (
-        expectedLabel.nodeName.toLowerCase() === "p" &&
-        expectedLabel.textContent === "나의 크래커"
-      ) {
-        return parseInt(
-          element.childNodes[1]
-            .getElementsByTagName("p")[0]
-            .textContent.replace(",", "")
-        );
+    for (const menuElement of root) {
+      const menuElements = menuElement.getElementsByClassName("css-uxwch2");
+      if (!menuElements || menuElements.length <= 0) {
+        return undefined;
+      }
+      for (let element of menuElements) {
+        let expectedLabel = element.childNodes[0];
+        if (
+          expectedLabel.nodeName.toLowerCase() === "p" &&
+          expectedLabel.textContent === "나의 크래커"
+        ) {
+          return parseInt(
+            element.childNodes[1]
+              .childNodes[1].childNodes[0]
+              .textContent.replace(",", "")
+          );
+        }
       }
     }
+    console.log("Undefined - 03");
     return undefined;
   }
 
