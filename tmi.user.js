@@ -551,7 +551,7 @@
           {
             defaultValue: settings.enableCrackerDelta,
             action: (_, value) => {
-              settings.enableStoryChatLeft = value;
+              settings.enableCrackerDelta = value;
               saveSettings();
             },
           }
