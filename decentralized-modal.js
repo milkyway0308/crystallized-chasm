@@ -3,7 +3,7 @@
 // decentrallized-modal.js는 서드 파티 스크립트들을 위한 임베드 가능한 모달 프레임워크입니다.
 // 거의 대부분의 커스터마이징을 제공하며, 임베딩된 펑션을 통한 간편한 모달 표시 및 통합이 가능합니다.
 // CSS 삽입을 위해 GM_addStyle이 필요합니다.
-const DECENTRAL_VERSION = "Decentrallized Modal v1.0.8-Pre";
+const DECENTRAL_VERSION = "Decentrallized Modal v1.0.9-Pre";
 
 const DECENTRAL_CSS_VALUES = `
     /*
@@ -371,6 +371,9 @@ const DECENTRAL_CSS_VALUES = `
       user-select: none;
       width: 100%;
       align-items: bottom;
+    }
+
+    .decentral-modifiable-component {
     }
 
     .decentral-element-title-suffix {
@@ -1638,6 +1641,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     );
     return this;
   };
+
   /**
    * 이름과 필드를 쌍으로 가지는 입력 필드를 추가하고 반환합니다.
    * @param {string} id 필드의 ID
@@ -1673,7 +1677,7 @@ class ComponentAppender extends HTMLComponentConvertable {
         node.append(
           (inputNode = setupClassNode(
             "input",
-            "decentral-text-field",
+            "decentral-text-field decentral-modifiable-component",
             (inputField) => {
               inputField.id = id;
               inputField.setAttribute("type", "text");
@@ -1681,10 +1685,20 @@ class ComponentAppender extends HTMLComponentConvertable {
                 inputField.value = defaultValue;
               }
               if (onChange) {
+                let lastValue = inputField.value;
                 inputField.onchange = () => {
+                  lastValue = inputField.value;
                   onChange(inputField, inputField.value);
                 };
+
+                inputField.onVerifyChange = () => {
+                  if (lastValue != inputField.value) {
+                    lastValue = inputField.value;
+                    onChange(inputField, lastValue);
+                  }
+                };
               }
+
               if (initializer) {
                 initializer(inputField);
               }
@@ -1765,15 +1779,22 @@ class ComponentAppender extends HTMLComponentConvertable {
         node.append(
           (textNode = setupClassNode(
             "textarea",
-            "decentral-text-area",
+            "decentral-text-area decentral-modifiable-component",
             (area) => {
               area.id = id;
               if (defaultValue) {
                 area.value = defaultValue;
               }
               if (onChange) {
+                let lastValue = area.value;
                 area.onchange = () => {
                   onChange(area, area.value);
+                };
+                area.onVerifyChange = () => {
+                  if (lastValue != area.value) {
+                    lastValue = area.value;
+                    onChange(area, lastValue);
+                  }
                 };
               }
               if (initializer) {
@@ -1820,15 +1841,22 @@ class ComponentAppender extends HTMLComponentConvertable {
           node.append(
             (textNode = setupClassNode(
               "textarea",
-              "decentral-text-area",
+              "decentral-text-area decentral-modifiable-component",
               (area) => {
                 area.id = id;
                 if (defaultValue) {
                   area.value = defaultValue;
                 }
                 if (onChange) {
+                  let lastValue = area.value;
                   area.onchange = () => {
                     onChange(area, area.value);
+                  };
+                  area.onVerifyChange = () => {
+                    if (lastValue != area.value) {
+                      lastValue = area.value;
+                      onChange(area, lastValue);
+                    }
                   };
                 }
               }
@@ -2256,20 +2284,31 @@ class ComponentAppender extends HTMLComponentConvertable {
           "element-input-container",
           (container) => {
             container.append(
-              setupClassNode("input", "element-switch", (switcher) => {
-                switcher.id = id;
-                switcher.setAttribute("type", "checkbox");
-                switcher.setAttribute("role", "switch");
-                switcher.checked = defaultValue;
-                if (initializer) {
-                  initializer(switcher);
+              setupClassNode(
+                "input",
+                "element-switch decentral-modifiable-component",
+                (switcher) => {
+                  switcher.id = id;
+                  switcher.setAttribute("type", "checkbox");
+                  switcher.setAttribute("role", "switch");
+                  switcher.checked = defaultValue;
+                  if (initializer) {
+                    initializer(switcher);
+                  }
+                  if (action) {
+                    let lastValue = switcher.checked;
+                    switcher.onchange = () => {
+                      action(switcher, switcher.checked);
+                    };
+                    switcher.onVerifyChange = () => {
+                      if (lastValue != switcher.checked) {
+                        lastValue = switcher.checked;
+                        action(switcher, lastValue);
+                      }
+                    };
+                  }
                 }
-                if (action) {
-                  switcher.onchange = () => {
-                    action(switcher, switcher.checked);
-                  };
-                }
-              })
+              )
             );
           }
         ))
@@ -2344,11 +2383,11 @@ class ComponentAppender extends HTMLComponentConvertable {
           container.append(
             (inputNode = setupClassNode(
               "input",
-              type === 0
+              (type === 0
                 ? "element-small-input"
                 : type === 1
                 ? "element-medium-input"
-                : "element-large-input",
+                : "element-large-input") + " decentral-modifiable-component",
               (inputField) => {
                 inputField.id = id;
                 inputField.setAttribute("type", "number");
@@ -2363,8 +2402,15 @@ class ComponentAppender extends HTMLComponentConvertable {
                   initializer(inputField);
                 }
                 if (onChange) {
+                  let lastValue = inputField.value;
                   inputField.onchange = () => {
                     onChange(inputField, parseInt(inputField.value));
+                  };
+                  inputField.onVerifyChange = () => {
+                    if (lastValue != inputField.value) {
+                      lastValue = inputField.value;
+                      onChange(inputField, lastValue);
+                    }
                   };
                 }
               }
@@ -2903,6 +2949,15 @@ class ContentPanel extends ComponentAppender {
       this.__footerGrid.classList.add("decentral-vertical-container");
     }
     return this.__footerAppender;
+  }
+
+  verifyCaller() {
+    const foundElements = this.__verticalContainer.getElementsByClassName(
+      "decentral-modifiable-component"
+    );
+    for (const element of foundElements) {
+      if (element.onVerifyChange) element.onVerifyChange();
+    }
   }
 
   asHTML() {
