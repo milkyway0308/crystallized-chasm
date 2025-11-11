@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Crack Chasm Crystallized Ignitor (크랙 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRAK-IGNT-v1.2.1
+// @version     CRAK-IGNT-v1.2.2
 // @description 캐즘 버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다. **기존 캐즘 버너 및 결정화 캐즘 버너+와 호환되지 않습니다. 버너 모듈을 제거하고 사용하세요.**
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -55,11 +55,17 @@ GM_addStyle(`
   .burner-button { height: 32px; padding: 12px 12px; border-radius: 4px; cursor: pointer; display: flex; flex-direction: row; align-items: center; justify-items: center; border: 1px solid var(--text_action_blue_secondary); color: var(--text_action_blue_secondary); font-size: 14px; font-weight: 600; } 
     .burner-button:hover { background-color: var(--bg_dimmed2); }
     .burner-input-button { display: flex !important; }
+
+    @media screen and (max-width:600px) { 
+      .burner-button { 
+        display: none;
+      }
+    }
   `);
 
 !(async function () {
   const PLATFORM_SAVE_KEY = "chasm-ignt-settings";
-  const VERSION = "v1.2.1";
+  const VERSION = "v1.2.2";
 
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"

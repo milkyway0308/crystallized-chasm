@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized TMI (캐즘 과포화)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-TMI-v1.4.9
+// @version      CRYS-TMI-v1.5.2
 // @description  크랙 UI에 추가 정보 제공. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
@@ -307,7 +307,7 @@
     } else if (currentColor === "text_tertiary") {
       expectedChatType = "일반챗";
     } else if (currentColor == "text_cracker_secondary") {
-      expectedChatType = "파워챗+";
+      expectedChatType = "프로챗 1.0";
     }
     let nextText = formatChatLeft(expectedChatType, cracker);
     if (nextText === textTag.textContent) {
@@ -346,39 +346,62 @@
       nextText = chatType + " | ∞";
     } else if (chatType === "파워챗") {
       nextText = chatType + " | 잔여 " + Math.floor(cracker / 15) + "회";
-    } else if (chatType === "파워챗+") {
-      nextText = chatType + " | 잔여 " + Math.floor(cracker / 45) + "회";
+    } else if (chatType === "프로챗 1.0") {
+      let expectedCracker = 45;
+      const time = new Date();
+      // 이벤트는 2025-11-06부터 11월 끝까지 지속됨.
+      if (time.getFullYear() === 2025 && time.getMonth() === 10) {
+        // 오전 4시부터 오전 10시까지
+        if (time.getHours() > 3 && time.getHours() < 10) {
+          expectedCracker = 40;
+        }
+      }
+      nextText =
+        chatType + " | 잔여 " + Math.floor(cracker / expectedCracker) + "회";
     } else if (chatType === "슈퍼챗 1.5") {
       nextText = chatType + " | 잔여 " + Math.floor(cracker / 35) + "회";
     } else if (chatType === "슈퍼챗 2.0") {
-      nextText = chatType + " | 잔여 " + Math.floor(cracker / 35) + "회";
+      let expectedCracker = 45;
+      const time = new Date();
+      // 이벤트는 2025-11-06부터 11월 끝까지 지속됨.
+      if (time.getFullYear() === 2025 && time.getMonth() === 10) {
+        // 오전 4시부터 오전 10시까지
+        if (time.getHours() > 3 && time.getHours() < 10) {
+          expectedCracker = 40;
+        }
+      }
+      nextText =
+        chatType + " | 잔여 " + Math.floor(cracker / expectedCracker) + "회";
     } else if (chatType === "하이퍼챗") {
       nextText = chatType + " | 잔여 " + Math.floor(cracker / 175) + "회";
     }
     return nextText;
   }
   async function extractCharacterCracker() {
-    const root = document.getElementsByClassName("css-uxwch2");
+    const root = document.getElementsByClassName("css-c82bbp");
     if (!root || root.length <= 0) {
       return undefined;
     }
-    const menuElements = root[0].getElementsByClassName("css-j7qwjs");
-    if (!menuElements || menuElements.length <= 0) {
-      return undefined;
-    }
-    for (let element of menuElements) {
-      let expectedLabel = element.childNodes[0];
-      if (
-        expectedLabel.nodeName.toLowerCase() === "p" &&
-        expectedLabel.textContent === "나의 크래커"
-      ) {
-        return parseInt(
-          element.childNodes[1]
-            .getElementsByTagName("p")[0]
-            .textContent.replace(",", "")
-        );
+    for (const menuElement of root) {
+      const menuElements = menuElement.getElementsByClassName("css-uxwch2");
+      if (!menuElements || menuElements.length <= 0) {
+        return undefined;
+      }
+      for (let element of menuElements) {
+        let expectedLabel = element.childNodes[0];
+        if (
+          expectedLabel.nodeName.toLowerCase() === "p" &&
+          expectedLabel.textContent === "나의 크래커"
+        ) {
+          return parseInt(
+            element.childNodes[1]
+              .childNodes[1].childNodes[0]
+              .textContent.replace(",", "")
+          );
+        }
       }
     }
+    console.log("Undefined - 03");
     return undefined;
   }
 
@@ -528,7 +551,7 @@
           {
             defaultValue: settings.enableCrackerDelta,
             action: (_, value) => {
-              settings.enableStoryChatLeft = value;
+              settings.enableCrackerDelta = value;
               saveSettings();
             },
           }
