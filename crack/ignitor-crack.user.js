@@ -553,8 +553,8 @@ GM_addStyle(`
   //                      설정
   // =====================================================
   const settings = {
-    lastUsedProvider: "Google",
-    lastUsedModel: "Gemini 2.5 Pro",
+    lastUsedProvider: undefined,
+    lastUsedModel: undefined,
     useAutoRetry: true,
     maxMessageRetreive: 50,
     addRandomHeader: false,
@@ -573,7 +573,6 @@ GM_addStyle(`
     promptSuffixMessage: "",
     /** Optional paramers */
     lastCustomPrompt: undefined,
-    lastSelectedProvider: undefined,
   };
 
   // It's good to use IndexedDB, but we have to use LocalStorage to block site
@@ -822,25 +821,34 @@ GM_addStyle(`
             modelBox.addOption(
               item.display,
               `chasm-ignt-model-listing-${index++}`,
-              (_, node) => {
+              (idModel, node) => {
                 lastSelectedModel = item;
+                settings.lastUsedModel = idModel;
+                saveSettings();
                 return true;
               }
             );
           }
           modelBox.setSelected(`chasm-ignt-model-listing-0`);
           modelBox.runSelected();
-          settings.lastSelectedProvider = id;
+          settings.lastUsedProvider = id;
           saveSettings();
           return true;
         }
       );
     }
 
-    if (settings.lastSelectedProvider) {
-      providerBox.setSelected(settings.lastSelectedProvider);
+    // TODO: fix save logic triggering save at first
+    const lastSelected = settings.lastUsedModel;
+    if (settings.lastUsedProvider) {
+      providerBox.setSelected(settings.lastUsedProvider);
     }
     providerBox.runSelected();
+
+    if (lastSelected) {
+      modelBox.setSelected(lastSelected);
+    }
+    modelBox.runSelected();
     // Option flag here
 
     const promptPreset = panel.constructSelectBox(
