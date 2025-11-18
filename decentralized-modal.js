@@ -833,6 +833,9 @@ class ModalManager {
   /** @type {Map<string, ModalManager>} */
   static __modalMap = new Map();
 
+  /**
+   * 모달 관리자를 초기화합니다.
+   */
   static __doInit() {
     if (!this.doesInit) {
       this.doesInit = true;
@@ -869,31 +872,34 @@ class ModalManager {
   }
 
   /**
-   *
-   * @param {boolean} isDarktheme
-   * @param {string[]} preSelected
+   * 모달을 화면에 표시합니다.
+   * @param {boolean} isDarktheme 다크 테마 색상 적용 여부
+   * @param {string[]} preSelected 미리 선택할 메뉴
    */
   display(isDarktheme, preSelected = undefined) {
     this.__modal.display(isDarktheme, preSelected);
   }
 
   /**
-   *
-   * @returns {DecentrallizedModal}
+   * 현재 열린 모달을 반환합니다.
+   * @returns {DecentrallizedModal} 열린 모달
    */
   getOpened() {
     return this.__modal;
   }
 
+  /**
+   * 현재 열린 모달을 강제로 닫습니다.
+   */
   close() {
     this.__modal.close();
   }
 
   /**
-   *
-   * @param {string} menuName
-   * @param {(modal: DecentrallizedModal) => Promise<any>} menuAction
-   * @returns {ModalMenu}
+   * 모달에 새 메뉴를 생성합니다.
+   * @param {string} menuName 메뉴 이름
+   * @param {(modal: DecentrallizedModal) => Promise<any>} menuAction 메뉴 클릭시, 수행할 작업
+   * @returns {ModalMenu} 생성된 메뉴 인스턴스
    */
   createMenu(menuName, menuAction) {
     return this.__modal.createMenu(menuName, menuAction);
@@ -902,18 +908,20 @@ class ModalManager {
   __licenseAdjusters = [];
 
   /**
-   *
-   * @param {(panel: ContentPanel) => any} licenseAppender
-   * @returns {ModalManager}
+   * 라이선스 구축 컴포넌트를 추가합니다.
+   * 라이선스 구축 컴포넌트는 라이선스 메뉴 호출시 순서대로 호출됩니다.
+   * @param {(panel: ContentPanel) => any} licenseAppender 라이선스 구축 컴포넌트
+   * @returns {ModalManager} 현재 모달 관리자
    */
   addLicenseDisplay(licenseAppender) {
     this.__licenseAdjusters.push(licenseAppender);
     return this;
   }
+
   /**
-   *
-   * @param {*} menuName
-   * @returns {ModalManager}
+   * 현재 모달에 라이선스 크레딧 메뉴를 추가합니다.
+   * @param {string | undefined} menuName 메뉴 이름. 지정되지 않을 경우, "프레임워크에 대하여"로 기본 설정됩니다.
+   * @returns {ModalManager} 현재 모달 관리자
    */
   withLicenseCredential(menuName) {
     this.createMenu(menuName ?? "프레임워크에 대하여", (modal) => {
@@ -944,7 +952,7 @@ class ModalManager {
 }
 
 class ModalMenu {
-  /** @type {Map<string, SubModalMenu>} */
+  /** @type {Map<string, ModalMenu>} */
   __subMenus = new Map();
 
   __activiator = undefined;
@@ -952,16 +960,16 @@ class ModalMenu {
   __activiatorMobile = undefined;
 
   /**
-   *
-   * @param {async (modal: DecentrallizedModal) => any} action
+   * 새 모달 메뉴를 생성합니다.
+   * @param {async (modal: DecentrallizedModal) => any} action 모달 메뉴 클릭 / 호출시 실행될 펑션
    */
   constructor(action) {
     this.action = action;
   }
 
   /**
-   *
-   * @param {DecentrallizedModal} modal
+   * 메뉴 표시가 진행될 경우, 해당 펑션이 호출됩니다. 
+   * @param {DecentrallizedModal} modal 모달
    */
   async onDisplay(modal) {
     this.action(modal);
@@ -970,10 +978,10 @@ class ModalMenu {
   }
 
   /**
-   *
-   * @param {string} menuName
-   * @param {(modal: DecentrallizedModal) => any} menuAction
-   * @returns {ModalMenu}
+   * 새 서브메뉴를 만듭니다.
+   * @param {string} menuName 서브메뉴 이름
+   * @param {(modal: DecentrallizedModal) => any} menuAction 서브메뉴 선택시 실행할 람다
+   * @returns {ModalMenu} 현재 메뉴
    */
   createSubMenu(menuName, menuAction) {
     let menuItem = this.__subMenus.get(menuName);
@@ -985,11 +993,11 @@ class ModalMenu {
   }
 }
 
-class SubModalMenu extends ModalMenu {}
-
 class HTMLComponentConvertable {
   /**
-   * @returns {HTMLElement}
+   * 컴포넌트를 HTML로 변환하여 반환합니다.
+   * 해당 펑션에서 반환되는 HTML 요소는 재활용될 수 있으며, 반드시 새 요소가 반환되지 않습니다.
+   * @returns {HTMLElement} 변환된 HTML 컴포넌트
    */
   asHTML() {
     return document.createElement("div");
@@ -1032,10 +1040,10 @@ class DecentrallizedModal {
   }
 
   /**
-   *
-   * @param {string} menuName
-   * @param {(modal: DecentrallizedModal) => Promise<any>} menuAction
-   * @returns {ModalMenu}
+   * 최상위 메뉴를 생성합니다.
+   * @param {string} menuName 메뉴 이름
+   * @param {(modal: DecentrallizedModal) => Promise<any>} menuAction 메뉴 선택시 실행될 람다
+   * @returns {ModalMenu} 생성된 메뉴
    */
   createMenu(menuName, menuAction) {
     let menuItem = this.__menuItems.get(menuName);
@@ -1047,9 +1055,9 @@ class DecentrallizedModal {
   }
 
   /**
-   *
-   * @param {isDarkTheme} isDarkTheme
-   * @returns
+   * 현재 모달을 표시합니다.
+   * @param {isDarkTheme} isDarkTheme 다크 모드 색상 사용 여부
+   * @param {string[] | undefined} 미리 선택할 메뉴
    */
   display(isDarkTheme, preSelected) {
     if (this.__container) {
@@ -1064,15 +1072,17 @@ class DecentrallizedModal {
   }
 
   /**
-   *
-   * @param {(modal: DecentrallizedModal) => any} handler
+   * 사전 표시 핸들러를 추가 등록합니다.
+   * 사전 표시 핸들러는 모달의 표시 직전에 호출됩니다.
+   * @param {(modal: DecentrallizedModal) => any} handler 사전 표시 핸들러
    */
   withPreOpenHandler(handler) {
     this.__preOpenHandler.push(handler);
   }
+
   /**
-   *
-   * @param {string[]|undefined} preSelected
+   * 특정 이름의 메뉴의 선택 이벤트를 강제 호출합니다.
+   * @param {string[]|undefined} preSelected 선택될 메뉴. 만약 입력되지 않았다면, 현재 선택된 메뉴를 대상으로 합니다.
    */
   triggerSelect(preSelected) {
     if (preSelected) {
@@ -1089,6 +1099,9 @@ class DecentrallizedModal {
     }
   }
 
+  /**
+   * 현재 모달을 닫습니다.
+   */
   close() {
     if (this.__container) {
       this.__container.remove();
@@ -1098,9 +1111,8 @@ class DecentrallizedModal {
   }
 
   /**
-   *
-   * @param {boolean} isDarkTheme
-   * @returns
+   * 모달을 초기화합니다.
+   * @param {boolean} isDarkTheme 다크 테마 색상 적용 여부
    */
   init(isDarkTheme) {
     for (let handler of this.__preOpenHandler) {
@@ -2860,6 +2872,16 @@ class ComponentAppender extends HTMLComponentConvertable {
       },
       getSelected: () => {
         return topNode.getAttribute("decentral-selected");
+      },
+      findSelected: () => {
+        for (const element of topNode.getElementsByClassName(
+          "decentral-option"
+        )) {
+          if (element.id === topNode.getAttribute("decentral-selected")) {
+            return element;
+          }
+        }
+        return undefined;
       },
       /**
        *
