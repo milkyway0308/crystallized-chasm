@@ -308,6 +308,8 @@
       expectedChatType = "일반챗";
     } else if (currentColor == "text_cracker_secondary") {
       expectedChatType = "프로챗 1.0";
+    } else if (currentColor == "text_secondary") {
+      expectedChatType = "프로챗 2.0";
     }
     let nextText = formatChatLeft(expectedChatType, cracker);
     if (nextText === textTag.textContent) {
@@ -374,6 +376,8 @@
         chatType + " | 잔여 " + Math.floor(cracker / expectedCracker) + "회";
     } else if (chatType === "하이퍼챗") {
       nextText = chatType + " | 잔여 " + Math.floor(cracker / 175) + "회";
+    } else if (chatType === "프로챗 2.0") {
+      nextText = chatType + " | 잔여 " + Math.floor(cracker / 60) + "회";
     }
     return nextText;
   }
@@ -394,14 +398,14 @@
           expectedLabel.textContent === "나의 크래커"
         ) {
           return parseInt(
-            element.childNodes[1]
-              .childNodes[1].childNodes[0]
-              .textContent.replace(",", "")
+            element.childNodes[1].childNodes[1].childNodes[0].textContent.replace(
+              ",",
+              ""
+            )
           );
         }
       }
     }
-    console.log("Undefined - 03");
     return undefined;
   }
 
