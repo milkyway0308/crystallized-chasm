@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized TMI (캐즘 과포화)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-TMI-v1.5.3
+// @version      CRYS-TMI-v1.5.4
 // @description  크랙 UI에 추가 정보 제공. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
@@ -306,9 +306,9 @@
       expectedChatType = "파워챗";
     } else if (currentColor === "text_tertiary") {
       expectedChatType = "일반챗";
-    } else if (currentColor == "text_cracker_secondary") {
+    } else if (currentColor === "text_cracker_secondary") {
       expectedChatType = "프로챗 1.0";
-    } else if (currentColor == "text_secondary") {
+    } else if (currentColor === "text_mint_primary") {
       expectedChatType = "프로챗 2.0";
     }
     let nextText = formatChatLeft(expectedChatType, cracker);
@@ -335,7 +335,6 @@
         textNode.getAttribute("chasm-tmi-modal-origin"),
         cracker
       );
-
       if (nextText !== textNode.textContent) {
         textNode.textContent = nextText;
       }
