@@ -968,7 +968,7 @@ class ModalMenu {
   }
 
   /**
-   * 메뉴 표시가 진행될 경우, 해당 펑션이 호출됩니다. 
+   * 메뉴 표시가 진행될 경우, 해당 펑션이 호출됩니다.
    * @param {DecentrallizedModal} modal 모달
    */
   async onDisplay(modal) {
@@ -2866,6 +2866,11 @@ class ComponentAppender extends HTMLComponentConvertable {
             element.onclick();
           }
         }
+      },
+      listGroup: () => {
+        return Array.from(topNode.getElementsByClassName("decentral-option"))
+          .map((it) => it.getAttribute("decentral-selected"))
+          .filter((it) => it != undefined);
       },
       setSelected: (id) => {
         topNode.setAttribute("decentral-selected", id);
