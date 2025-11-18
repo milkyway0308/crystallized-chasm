@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        BabeChat Chasm Crystallized Whiteout (결정화 캐즘 백시현상)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     BABE-WHOU-v1.0.0
+// @version     BABE-WHOU-v1.0.1
 // @description 화이트 모드 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://babechat.ai/*
@@ -210,7 +210,6 @@ GM_addStyle(`
         <path stroke="var(--chasm-whiteout-notification-color)" d="M15.3752 17.5556V18.6667C15.3752 20.5076 13.8642 22 12.0002 22C10.1362 22 8.6251 20.5076 8.6251 18.6667V17.5556M15.3752 17.5556H8.6251M15.3752 17.5556H19.4146C19.8449 17.5556 20.0612 17.5556 20.2354 17.4975C20.5683 17.3866 20.8287 17.1285 20.941 16.7998C21 16.627 21 16.4128 21 15.9844C21 15.7969 20.9998 15.7032 20.9849 15.6138C20.9569 15.4449 20.8905 15.2848 20.7894 15.1458C20.736 15.0723 20.6682 15.0053 20.5343 14.8731L20.0961 14.4403C19.9547 14.3007 19.8753 14.1113 19.8753 13.9138V9.77778C19.8753 5.48222 16.3495 1.99999 12.0002 2C7.65085 2.00001 4.12502 5.48224 4.12502 9.77778V13.9138C4.12502 14.1113 4.04542 14.3007 3.90403 14.4403L3.46583 14.8731C3.33161 15.0057 3.26443 15.0723 3.21094 15.1458C3.10986 15.2849 3.04291 15.4449 3.01485 15.6138C3 15.7032 3 15.7969 3 15.9844C3 16.4128 3 16.6269 3.05901 16.7997C3.17128 17.1285 3.4329 17.3866 3.76576 17.4975C3.94002 17.5556 4.15541 17.5556 4.58578 17.5556H8.6251" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>`;
 
-
   function log(message) {
     console.log(
       "%cChasm Crystallized Whiteout: %cInfo: %c" + message,
@@ -372,6 +371,9 @@ GM_addStyle(`
   function prepare() {
     replaceAllSystemImage();
     attachObserver(document.body, () => {
+      if (settings.useLightMode && !document.body.hasAttribute("theme")) {
+        document.body.setAttribute("theme", "light");
+      }
       replaceAllSystemImage();
     });
   }
@@ -382,9 +384,12 @@ GM_addStyle(`
 
   loadSettings();
   addMenu();
+
   if (settings.useLightMode) {
     document.body.setAttribute("theme", "light");
+    modified = true;
   } else {
+    clearInterval(interval);
     document.body.removeAttribute("theme");
   }
   // =================================================
