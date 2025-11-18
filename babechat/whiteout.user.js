@@ -7,7 +7,7 @@
 // @author      milkyway0308
 // @match       https://babechat.ai/*
 // @match       https://www.babechat.ai/*
-// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/whiteout.user.js
+// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/whiteout.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/whiteout.user.js
 // @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.8/decentralized-modal.js
 // @grant        GM_addStyle
