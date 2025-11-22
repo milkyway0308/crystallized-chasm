@@ -680,7 +680,8 @@ const DECENTRAL_CSS_VALUES = `
         width: 100%;
         border-radius: 3px;
         background-color: transparent; 
-        overflow: hidden; 
+        overflow: hidden;
+        position: relative; 
         color: var(--decentral-text); 
         border: 1px solid var(--decentral-text-border);
         user-select: none; 
@@ -691,6 +692,7 @@ const DECENTRAL_CSS_VALUES = `
     }
 
     .decentral-select .decentral-option { 
+      position: relative;
       background-color: var(--decentral-background);
       color: var(--decentral-text);
       float: left;
@@ -710,6 +712,7 @@ const DECENTRAL_CSS_VALUES = `
         width: 100%; 
         height: 100% 
     }
+
     .decentral-option-group { 
         font-size: 12px; 
         color: var(--decentral-text-formal); 
@@ -2740,7 +2743,10 @@ class ComponentAppender extends HTMLComponentConvertable {
   createOuterClickDetection(lambda) {
     return setupClassNode("div", "decentral-outer-click-detection", (node) => {
       node.id = "decentral-outer-click-detection";
-      node.onclick = lambda;
+      node.onclick = (event) => {
+        event.preventDefault();
+        lambda();
+      };
     });
   }
 
