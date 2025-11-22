@@ -134,9 +134,7 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 
 결정화 캐즘 절대영도는 랭킹 화면에서의 GIF / WEBP 재생을 중지하고, 호버하는 대상에만 적용시킵니다.<br>
 
-
-
-## 결정화 캐즘 - 꿈일기 (v1.0.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/dreamdiary.user.js) ]<br>
+## 결정화 캐즘 - 꿈일기 (v1.1.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/dreamdiary.user.js) ]<br>
 
 결정화 캐즘 꿈일기는 유저노트에 목록을 만들어줍니다. <br>
 
