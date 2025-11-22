@@ -4,7 +4,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized DreamDiary (크랙 / 캐즘 꿈일기)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-DDIA-v1.0.0
+// @version      CRYS-DDIA-v1.1.0
 // @description  유저노트 저장 / 불러오기 기능 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
@@ -46,6 +46,13 @@ GM_addStyle(`
       this.noteContent = noteContent;
       this.savedAt = savedAt;
     }
+  }
+
+  function formatNumber(number, minDigit = 1, maxdigit = 1) {
+    return number.toLocaleString("en-US", {
+      minimumFractionDigits: minDigit,
+      maximumFractionDigits: maxdigit,
+    });
   }
   // =====================================================
   //                      설정
@@ -172,6 +179,13 @@ GM_addStyle(`
     );
   }
 
+  async function deleteNoteOf(character, noteName) {
+    try {
+      await db.noteStore.delete(`${character}!+${noteName}`);
+    } catch (err) {
+      console.error(err);
+    }
+  }
   async function saveNoteOf(character, noteName, contents) {
     try {
       await db.noteStore.put({
@@ -216,6 +230,7 @@ GM_addStyle(`
     }
     return undefined;
   }
+
   function injectModal() {
     if (document.getElementById("chasm-ddia-note-listing")) {
       return;
@@ -232,11 +247,66 @@ GM_addStyle(`
     textArea[0].before(listing);
     const appender = new ComponentAppender(listing);
     const box = appender.constructSelectBox(
-      "유저노트 프리셋",
+      "유저노트 프리셋 [3.0초 길게 눌러 노트 삭제]",
       settings.lastPromptName ?? "--이름을 지정하세요--",
       "chasm-ddia-settings#nonreachable",
       true
     );
+    const textNode = box.node.parentElement.childNodes[0];
+    textNode.onmousedown = () => {
+      let pressTime = 30;
+      const timer = setInterval(() => {
+        if (pressTime-- <= 0) {
+          clearInterval(timer);
+          textNode.textContent = "유저노트 프리셋 [3.0초 길게 눌러 노트 삭제]";
+          if (settings.isCustom) {
+            doToastifyAlert(
+              "프롬프트 프리셋을 선택하지 않은 상태에서는 삭제할 수 없어요.",
+              STANDARD_NOTIFICATION_TIME
+            );
+          } else if (!settings.lastPromptName) {
+            doToastifyAlert(
+              "프롬프트 프리셋을 선택하지 않은 상태에서는 삭제할 수 없어요.",
+              STANDARD_NOTIFICATION_TIME
+            );
+          } else {
+            deleteNoteOf(settings.boundCharacter, settings.lastPromptName)
+              .then(() => {
+                refreshSelectBoxElement(
+                  modal,
+                  box,
+                  textArea[0],
+                  characterId
+                ).finally(() => {
+                  box.setSelected("#custom");
+                  box.runSelected();
+                  doToastifyAlert(
+                    "선택한 유저노트를 삭제했어요.\n예기치 못한 오류를 방지하기 위해 현재 선택한 유저노트는 커스텀으로 변경됐어요.",
+                    STANDARD_NOTIFICATION_TIME
+                  );
+                });
+              })
+              .catch((err) => {
+                console.error(err);
+                doToastifyAlert(
+                  "유저노트를 삭제하는 도중 오류가 발생했어요.\n콘솔에 발생한 오류를 제보해주시면 캐즘 프로젝트의 개선에 도움을 줄 수 있어요.",
+                  STANDARD_NOTIFICATION_TIME
+                );
+              });
+          }
+        } else {
+          textNode.textContent = `유저노트 프리셋 [${formatNumber(
+            0.1 * pressTime,
+            1,
+            1
+          )}초 길게 눌러 노트 삭제]`;
+        }
+      }, 100);
+      textNode.onmouseup = () => {
+        clearInterval(timer);
+        textNode.textContent = "유저노트 프리셋 [3.0초 길게 눌러 노트 삭제]";
+      };
+    };
     box.node.parentElement.style = "padding: 0px;";
     box.node.previousSibling.style = "padding: 0px; padding-bottom: 8px;";
 
@@ -245,27 +315,14 @@ GM_addStyle(`
 
     const split = window.location.pathname.substring(1).split("/");
     const characterId = split[1];
-    findAllNoteOf(characterId)
-      .then((array) => {
-        box.addGroup("커스텀");
-        box.addOption("커스텀", "#custom", () => {
-          document.getElementById(
-            "chasm-ddia-user-note-name"
-          ).parentElement.style.cssText = "display: block;";
-          document
-            .getElementById("chasm-ddia-save")
-            .removeAttribute("aria-disabled");
-          settings.isCustom = true;
-          settings.boundCharacter = undefined;
-          settings.lastPromptName = undefined;
-          setLastSelected(characterId, "#custom");
-          return true;
-        });
-        addElements(modal, box, textArea[0], characterId, array);
-      })
-      .catch((err) => {
-        console.error(err);
+    refreshSelectBoxElement(modal, box, textArea[0], characterId).then(() => {
+      getSelected(characterId).then((result) => {
+        if (result) {
+          box.setSelected(result);
+          box.runSelected();
+        }
       });
+    });
     box.node.id = "chasm-ddia-note-listing";
 
     const node = appender.constructInputGrid(
@@ -307,7 +364,14 @@ GM_addStyle(`
             : `전역 유저 노트 \n"${noteId}"\n를 저장했어요.`;
           saveNoteOf(isGlobal ? "#global" : characterId, noteId, textContent)
             .then(() => {
-              doToastifyAlert(message, STANDARD_NOTIFICATION_TIME);
+              refreshSelectBoxElement(
+                modal,
+                box,
+                textArea[0],
+                characterId
+              ).then(() => {
+                doToastifyAlert(message, STANDARD_NOTIFICATION_TIME);
+              });
             })
             .catch((err) => {
               doToastifyAlert(
@@ -327,7 +391,14 @@ GM_addStyle(`
             textContent
           )
             .then(() => {
-              doToastifyAlert(message, STANDARD_NOTIFICATION_TIME);
+              refreshSelectBoxElement(
+                modal,
+                box,
+                textArea[0],
+                characterId
+              ).then(() => {
+                doToastifyAlert(message, STANDARD_NOTIFICATION_TIME);
+              });
             })
             .catch((err) => {
               console.error(err);
@@ -348,6 +419,26 @@ GM_addStyle(`
 
   function setup() {
     injectModal();
+  }
+
+  async function refreshSelectBoxElement(modal, box, textArea, characterId) {
+    const array = await findAllNoteOf(characterId);
+    box.clear();
+    box.addGroup("커스텀");
+    box.addOption("커스텀", "#custom", () => {
+      document.getElementById(
+        "chasm-ddia-user-note-name"
+      ).parentElement.style.cssText = "display: block;";
+      document
+        .getElementById("chasm-ddia-save")
+        .removeAttribute("aria-disabled");
+      settings.isCustom = true;
+      settings.boundCharacter = undefined;
+      settings.lastPromptName = undefined;
+      setLastSelected(characterId, "#custom");
+      return true;
+    });
+    addElements(modal, box, textArea, characterId, array);
   }
 
   function addElements(modal, box, textArea, characterId, array) {
@@ -439,13 +530,6 @@ GM_addStyle(`
         });
       }
     }
-
-    getSelected(characterId).then((result) => {
-      if (result) {
-        box.setSelected(result);
-        box.runSelected();
-      }
-    });
   }
 
   async function processNoteApply(arr, modal, textArea) {
