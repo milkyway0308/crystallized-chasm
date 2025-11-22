@@ -4,7 +4,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized DreamDiary (크랙 / 캐즘 꿈일기)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-DDIA-v1.1.0
+// @version      CRYS-DDIA-v1.1.1
 // @description  유저노트 저장 / 불러오기 기능 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
@@ -24,7 +24,7 @@ GM_addStyle(`
     } 
 `);
 !(async function () {
-  const STANDARD_NOTIFICATION_TIME = 30000;
+  const STANDARD_NOTIFICATION_TIME = 3000;
   const db = new Dexie("chasm-dream-diary");
   await db.version(1).stores({
     noteStore: `keyName, noteName, boundCharacter, noteContent, savedAt`,
