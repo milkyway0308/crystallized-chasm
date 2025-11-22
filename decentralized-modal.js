@@ -2744,6 +2744,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     return setupClassNode("div", "decentral-outer-click-detection", (node) => {
       node.id = "decentral-outer-click-detection";
       node.onclick = (event) => {
+        event.stopPropagation();
         event.preventDefault();
         lambda();
       };
