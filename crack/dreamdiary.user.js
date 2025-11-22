@@ -24,7 +24,7 @@ GM_addStyle(`
     } 
 `);
 !(async function () {
-  const STANDARD_NOTIFICATION_TIME = 30000;
+  const STANDARD_NOTIFICATION_TIME = 3000;
   const db = new Dexie("chasm-dream-diary");
   await db.version(1).stores({
     noteStore: `keyName, noteName, boundCharacter, noteContent, savedAt`,
