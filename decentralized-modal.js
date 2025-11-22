@@ -2744,8 +2744,8 @@ class ComponentAppender extends HTMLComponentConvertable {
     return setupClassNode("div", "decentral-outer-click-detection", (node) => {
       node.id = "decentral-outer-click-detection";
       node.onclick = (event) => {
-        event.stopPropagation();
-        event.preventDefault();
+        event?.stopPropagation();
+        event?.preventDefault();
         lambda();
       };
     });
@@ -2802,8 +2802,10 @@ class ComponentAppender extends HTMLComponentConvertable {
             );
           })
         );
-        option.onclick = () => {
+        option.onclick = (event) => {
           if (__proxy.hasOuterClickDetection()) {
+            event.preventDefault();
+            event.stopPropagation();
             this.triggerOuterClickDetection();
             return;
           }
