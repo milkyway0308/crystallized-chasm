@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Neo-Copy (결정화 캐즘 네오-카피)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-NCPY-v2.2.0
+// @version     CRYS-NCPY-v2.2.1
 // @description 크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -10,7 +10,7 @@
 // @grant       GM_addStyle
 // ==/UserScript==
 
-const VERSION = "CRYS-COPY-v2.2.0";
+const VERSION = "CRYS-COPY-v2.2.1";
 GM_addStyle(
   // Basic: 172px
   "#chasm-copy-dropdown-container { display: flex; flex-direction: row; min-width: 98px; background-color: var(--bg_screen); border-left: 1px solid var(--surface_chat_primary); border-top: 1px solid var(--surface_chat_primary); border-bottom: 1px solid var(--surface_chat_primary); padding: 0px 0px; border-radius: 1px; box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px; z-index: 11 !important; position: fixed !important; }" +
@@ -459,7 +459,8 @@ GM_addStyle(
   function __constructStory(clipboard) {
     return {
       name: clipboard.name,
-      description: clipboard.description,
+      simpleDescription: clipboard.simpleDescription ?? "",
+      detailDescription: clipboard.detailDescription ?? clipboard.description,
       profileImageUrl:
         clipboard.profileImage?.origin || clipboard.profileImageUrl,
       model: clipboard.model.toLowerCase(),
@@ -609,10 +610,12 @@ GM_addStyle(
     return data;
   }
 
-  function __constructStoryFrom(remote, categoryId, state, safety) {
+  function __constructStoryFrom(remote, defaultGenReId, state, safety) {
     return {
       name: remote.name,
-      description: remote.description,
+      // description: remote.description,
+      simpleDescription: remote.simpleDescription ?? "",
+      detailDescription: remote.detailDescription ?? remote.description,
       profileImageUrl: remote.profileImage.origin,
       model: remote.model,
       initialMessages: remote.initialMessages,
@@ -620,7 +623,7 @@ GM_addStyle(
       replySuggestions: remote.replySuggestions,
       chatExamples: remote.chatExamples,
       situationImages: remote.situationImages,
-      categoryIds: [categoryId],
+      // categoryIds: [categoryId],
       tags: remote.tags,
       visibility: state === 0 ? "public" : state === 1 ? "private" : "linkonly",
       promptTemplate: remote.promptTemplate?.template || remote.promptTemplate,
@@ -640,6 +643,7 @@ GM_addStyle(
       target: remote.target,
       isMovingImage: remote.isMovingImage ? remote.isMovingImage : false,
       chatType: remote.chatType ? remote.chatType : "simulation",
+      genreId: remote.genreId ?? defaultGenReId,
     };
   }
 
@@ -832,7 +836,7 @@ GM_addStyle(
     }
     if (originInfo.isStory()) {
       let categoryForceUpdated = false;
-      let categoryId = origin.categories[0]?._id;
+      let categoryId = origin.genreId;
       if (!categoryId) {
         categoryForceUpdated = true;
         categoryId = "65e808c01a9eea7b2f66092c";
