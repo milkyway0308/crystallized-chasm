@@ -459,7 +459,8 @@ GM_addStyle(
   function __constructStory(clipboard) {
     return {
       name: clipboard.name,
-      description: clipboard.description,
+      simpleDescription: clipboard.simpleDescription ?? "",
+      detailDescription: clipboard.detailDescription ?? clipboard.description,
       profileImageUrl:
         clipboard.profileImage?.origin || clipboard.profileImageUrl,
       model: clipboard.model.toLowerCase(),
@@ -609,10 +610,12 @@ GM_addStyle(
     return data;
   }
 
-  function __constructStoryFrom(remote, categoryId, state, safety) {
+  function __constructStoryFrom(remote, defaultGenReId, state, safety) {
     return {
       name: remote.name,
-      description: remote.description,
+      // description: remote.description,
+      simpleDescription: remote.simpleDescription ?? "",
+      detailDescription: remote.detailDescription ?? remote.description,
       profileImageUrl: remote.profileImage.origin,
       model: remote.model,
       initialMessages: remote.initialMessages,
@@ -620,7 +623,7 @@ GM_addStyle(
       replySuggestions: remote.replySuggestions,
       chatExamples: remote.chatExamples,
       situationImages: remote.situationImages,
-      categoryIds: [categoryId],
+      // categoryIds: [categoryId],
       tags: remote.tags,
       visibility: state === 0 ? "public" : state === 1 ? "private" : "linkonly",
       promptTemplate: remote.promptTemplate?.template || remote.promptTemplate,
@@ -640,6 +643,7 @@ GM_addStyle(
       target: remote.target,
       isMovingImage: remote.isMovingImage ? remote.isMovingImage : false,
       chatType: remote.chatType ? remote.chatType : "simulation",
+      genreId: remote.genreId ?? defaultGenReId,
     };
   }
 
@@ -832,7 +836,7 @@ GM_addStyle(
     }
     if (originInfo.isStory()) {
       let categoryForceUpdated = false;
-      let categoryId = origin.categories[0]?._id;
+      let categoryId = origin.genreId;
       if (!categoryId) {
         categoryForceUpdated = true;
         categoryId = "65e808c01a9eea7b2f66092c";
