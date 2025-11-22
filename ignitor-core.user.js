@@ -548,8 +548,8 @@ GM_addStyle(`
   //                      설정
   // =====================================================
   const settings = {
-    lastUsedProvider: "Google",
-    lastUsedModel: "Gemini 2.5 Pro",
+    lastUsedProvider: undefined,
+    lastUsedModel: undefined,
     useAutoRetry: true,
     maxMessageRetreive: 50,
     addRandomHeader: false,
@@ -561,13 +561,13 @@ GM_addStyle(`
     allowCustomBoxResize: false,
     resultBoxHeight: 384,
     customBoxHeight: 128,
+    useLegacyTurnLogic: true,
     promptUserMessage: "**OOC: 현재까지의 롤플레잉 진행상황을 요약해줘.**",
     promptPrefixMessage:
       "**OOC: 현재까지의 롤플레잉 진행상황 요약입니다. 이후 응답에 이 요약 내용을 참조하겠습니다.**",
     promptSuffixMessage: "",
     /** Optional paramers */
     lastCustomPrompt: undefined,
-    lastSelectedProvider: undefined,
   };
 
   // It's good to use IndexedDB, but we have to use LocalStorage to block site
@@ -816,25 +816,34 @@ GM_addStyle(`
             modelBox.addOption(
               item.display,
               `chasm-ignt-model-listing-${index++}`,
-              (_, node) => {
+              (idModel, node) => {
                 lastSelectedModel = item;
+                settings.lastUsedModel = idModel;
+                saveSettings();
                 return true;
               }
             );
           }
           modelBox.setSelected(`chasm-ignt-model-listing-0`);
           modelBox.runSelected();
-          settings.lastSelectedProvider = id;
+          settings.lastUsedProvider = id;
           saveSettings();
           return true;
         }
       );
     }
 
-    if (settings.lastSelectedProvider) {
-      providerBox.setSelected(settings.lastSelectedProvider);
+    // TODO: fix save logic triggering save at first
+    const lastSelected = settings.lastUsedModel;
+    if (settings.lastUsedProvider) {
+      providerBox.setSelected(settings.lastUsedProvider);
     }
     providerBox.runSelected();
+
+    if (lastSelected) {
+      modelBox.setSelected(lastSelected);
+    }
+    modelBox.runSelected();
     // Option flag here
 
     const promptPreset = panel.constructSelectBox(
@@ -1054,10 +1063,11 @@ GM_addStyle(`
       }
     );
 
+    const messageCountUnit = settings.useLegacyTurnLogic ? "턴" : "메시지";
     panel.addShortNumberBox(
       "chasm-ignt-max-item",
-      "요약에 불러올 메시지",
-      "요약에 불러올 메시지 개수를 지정합니다. 기본 50이며, 0으로 설정시 모든 메시지를 불러옵니다. \n값이 클 수록 요청 시간이 길어지며 소모 비용 또한 늘어납니다.",
+      `요약에 불러올 ${messageCountUnit}`,
+      `요약에 불러올 ${messageCountUnit}를 지정합니다. 기본 50이며, 0으로 설정시 모든 메시지를 불러옵니다. \n값이 클 수록 요청 시간이 길어지며 소모 비용 또한 늘어납니다.`,
       {
         defaultValue: settings.maxMessageRetreive,
         min: 0,
@@ -1187,7 +1197,10 @@ GM_addStyle(`
           const chatId = provider.getCurrentId();
           new Promise(async (resolve, reject) => {
             appendBurnerLog("메시지 가져오는 중..");
-            const messages = await fetcher.fetch(settings.maxMessageRetreive);
+            const messages = await fetcher.fetch(
+              settings.maxMessageRetreive *
+                (settings.useLegacyTurnLogic ? 2 : 1)
+            );
             if (messages instanceof Error) {
               appendBurnerLog(
                 "메시지를 가져오는 중 오류가 발생하였습니다. 콘솔을 확인하세요."
@@ -1195,7 +1208,15 @@ GM_addStyle(`
               reject(messages);
               return;
             }
-            appendBurnerLog(`${messages.length}개의 메시지를 불러왔습니다.`);
+            appendBurnerLog(
+              `${
+                settings.useLegacyTurnLogic
+                  ? Math.floor(messages.length / 2)
+                  : messages.length
+              }개의 ${
+                settings.useLegacyTurnLogic ? "턴을" : "메시지를"
+              } 불러왔습니다.`
+            );
             appendBurnerLog(
               "현재 프롬프트 " + lastSelectedPrompt.length + "자"
             );
@@ -1869,6 +1890,18 @@ GM_addStyle(`
    * @param {ContentPanel} panel
    */
   function setupModuelSettings(panel) {
+    panel.addSwitchBox(
+      "chasm-ignt-use-legacy-turn",
+      "레거시 버너 턴 사용",
+      "활성화시, 원본 캐즘의 턴 개념을 사용합니다.\n불러오는 메시지가 턴 단위로 변경되며, 턴당 2개의 메시지로 취급합니다.",
+      {
+        defaultValue: settings.useLegacyTurnLogic,
+        action: (_, value) => {
+          settings.useLegacyTurnLogic = value;
+          saveSettings();
+        },
+      }
+    );
     panel.addSwitchBox(
       "chasm-ignt-save-modified-result",
       "수정된 이그나이터 결과 저장",

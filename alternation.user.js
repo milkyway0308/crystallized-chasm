@@ -746,8 +746,12 @@ if (!document.chasmApi) {
       return;
     }
     const button = panel.childNodes[1].cloneNode(true);
-    button.childNodes[0].remove();
-    button.childNodes[0].remove();
+    if (button.childNodes.length > 0) {
+      button.childNodes[0].remove();
+    }
+    if (button.childNodes.length > 0) {
+      button.childNodes[0].remove();
+    }
     const topContainer = document.createElement("div");
     topContainer.style.cssText =
       "display: flex; flex-direction: row; align-items: center;";

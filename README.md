@@ -76,7 +76,7 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 **결정화 캐즘 프로젝트는 스크립트별로 기능이 분리됩니다.**<br>
 **반드시 모든 스크립트를 설치할 필요는 없습니다. 필요한 기능만 골라 설치하세요.**
 
-## 결정화 캐즘 - 네오-카피(v2.2.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/neocopy.user.js) ]<br>
+## 결정화 캐즘 - 네오-카피(v2.2.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/neocopy.user.js) ]<br>
 
 결정화 캐즘 네오-카피는 크랙 캐릭터 제작자를 위한 보조 도구입니다.<br>
 캐릭터의 원본 데이터를 JSON 형태로 추출하거나 개정된 원본 데이터를 붙여넣고,<br>
@@ -95,7 +95,7 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 > ⚠ 세션 아래 표시되는 소모량은 세션 소모량이 아닌 캐릭터 소모량입니다.<br>
 > ⚠ 6월 크래커 업데이트 이전 소모된 슈퍼챗은 크래커 35개로 환산되어 계산됩니다.
 
-## 결정화 캐즘 - 이그나이터 / 점화기 (v1.2.3) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/ignitor-crack.user.js) ]<br>
+## 결정화 캐즘 - 이그나이터 / 점화기 (v1.3.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/ignitor-crack.user.js) ]<br>
 
 결정화 캐즘 이그나이터는 재작성된 개선된 버너 모듈입니다.
 
@@ -109,7 +109,7 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 > ⚠ 버너 모듈은 2025년 10월 29일 기준으로 은퇴 처리되었습니다.<br>
 > ⚠ 앞으로의 버너 모듈 기능 개발은 이그나이터 모듈로 대체됩니다. <br>
 
-## 결정화 캐즘 - 과포화 (v1.5.3) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/tmi.user.js) ]<br>
+## 결정화 캐즘 - 과포화 (v1.5.5) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/tmi.user.js) ]<br>
 
 결정화 캐즘 과포화는 채팅의 소모 개수를 과거의 슈퍼챗 개수 표기로 변환하여 소모량 및 잔여량을 더욱 가시적으로 보여줍니다.<br>
 
