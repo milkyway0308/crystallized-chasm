@@ -2,7 +2,7 @@
 /// <reference path="../libraries/dexie.js" />
 
 // ==UserScript==
-// @name         Chasm Crystallized DreamDiary (크랙 / 캐즘 몽상일기)
+// @name         Chasm Crystallized DreamDiary (크랙 / 캐즘 꿈일기)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
 // @version      CRYS-DDIA-v1.0.0
 // @description  유저노트 저장 / 불러오기 기능 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
@@ -675,7 +675,7 @@ GM_addStyle(`
   function addMenu() {
     const manager = ModalManager.getOrCreateManager("c2");
     manager.addLicenseDisplay((panel) => {
-      panel.addTitleText("결정화 캐즘 몽상일기");
+      panel.addTitleText("결정화 캐즘 꿈일기");
       panel.addText(
         "- decentralized-modal.js 프레임워크 사용 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)"
       );
