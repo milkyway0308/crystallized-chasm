@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Crack Chasm Crystallized Ignitor (크랙 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRAK-IGNT-v1.2.3
+// @version     CRAK-IGNT-v1.3.1
 // @description 캐즘 버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다. **기존 캐즘 버너 및 결정화 캐즘 버너+와 호환되지 않습니다. 버너 모듈을 제거하고 사용하세요.**
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -65,7 +65,7 @@ GM_addStyle(`
 
 !(async function () {
   const PLATFORM_SAVE_KEY = "chasm-ignt-settings";
-  const VERSION = "v1.2.3";
+  const VERSION = "v1.3.1";
 
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
@@ -553,8 +553,8 @@ GM_addStyle(`
   //                      설정
   // =====================================================
   const settings = {
-    lastUsedProvider: "Google",
-    lastUsedModel: "Gemini 2.5 Pro",
+    lastUsedProvider: undefined,
+    lastUsedModel: undefined,
     useAutoRetry: true,
     maxMessageRetreive: 50,
     addRandomHeader: false,
@@ -573,7 +573,6 @@ GM_addStyle(`
     promptSuffixMessage: "",
     /** Optional paramers */
     lastCustomPrompt: undefined,
-    lastSelectedProvider: undefined,
   };
 
   // It's good to use IndexedDB, but we have to use LocalStorage to block site
@@ -822,25 +821,34 @@ GM_addStyle(`
             modelBox.addOption(
               item.display,
               `chasm-ignt-model-listing-${index++}`,
-              (_, node) => {
+              (idModel, node) => {
                 lastSelectedModel = item;
+                settings.lastUsedModel = idModel;
+                saveSettings();
                 return true;
               }
             );
           }
           modelBox.setSelected(`chasm-ignt-model-listing-0`);
           modelBox.runSelected();
-          settings.lastSelectedProvider = id;
+          settings.lastUsedProvider = id;
           saveSettings();
           return true;
         }
       );
     }
 
-    if (settings.lastSelectedProvider) {
-      providerBox.setSelected(settings.lastSelectedProvider);
+    // TODO: fix save logic triggering save at first
+    const lastSelected = settings.lastUsedModel;
+    if (settings.lastUsedProvider) {
+      providerBox.setSelected(settings.lastUsedProvider);
     }
     providerBox.runSelected();
+
+    if (lastSelected) {
+      modelBox.setSelected(lastSelected);
+    }
+    modelBox.runSelected();
     // Option flag here
 
     const promptPreset = panel.constructSelectBox(
