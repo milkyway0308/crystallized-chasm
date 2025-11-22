@@ -3,13 +3,13 @@
 // decentrallized-modal.js는 서드 파티 스크립트들을 위한 임베드 가능한 모달 프레임워크입니다.
 // 거의 대부분의 커스터마이징을 제공하며, 임베딩된 펑션을 통한 간편한 모달 표시 및 통합이 가능합니다.
 // CSS 삽입을 위해 GM_addStyle이 필요합니다.
-const DECENTRAL_VERSION = "Decentrallized Modal v1.0.9-Pre";
+const DECENTRAL_VERSION = "Decentrallized Modal v1.0.10";
 
 const DECENTRAL_CSS_VALUES = `
     /*
      * 변수 선언부 
      */
-    .decentral-modal-container {
+    .decentral-color-container {
         --decentral-text: #000000;
         --decentral-text-inverted: #FFFFFF;
         --decentral-text-formal: #64748B;
@@ -27,10 +27,9 @@ const DECENTRAL_CSS_VALUES = `
         --decentral-text-border: #E2E8F0;
         --decentral-switch-background: #F8FAFC;
         --decentral-switch-inactive: #CBD5E1;
-        font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
     }
 
-    .decentral-modal-container[theme="dark"] {
+    .decentral-color-container[theme="dark"] {
         --decentral-text: #FFFFFF;
         --decentral-text-inverted: #000000;
         --decentral-text-formal: #b3b7bdff;
@@ -66,6 +65,7 @@ const DECENTRAL_CSS_VALUES = `
         width: 100%;
         height: 100%;
         position: absolute;
+        font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
     }
         
 
@@ -680,7 +680,8 @@ const DECENTRAL_CSS_VALUES = `
         width: 100%;
         border-radius: 3px;
         background-color: transparent; 
-        overflow: hidden; 
+        overflow: hidden;
+        position: relative; 
         color: var(--decentral-text); 
         border: 1px solid var(--decentral-text-border);
         user-select: none; 
@@ -691,6 +692,7 @@ const DECENTRAL_CSS_VALUES = `
     }
 
     .decentral-select .decentral-option { 
+      position: relative;
       background-color: var(--decentral-background);
       color: var(--decentral-text);
       float: left;
@@ -710,6 +712,7 @@ const DECENTRAL_CSS_VALUES = `
         width: 100%; 
         height: 100% 
     }
+
     .decentral-option-group { 
         font-size: 12px; 
         color: var(--decentral-text-formal); 
@@ -1120,7 +1123,7 @@ class DecentrallizedModal {
     }
     this.__container = setupClassNode(
       "div",
-      "decentral-modal-container",
+      "decentral-modal-container decentral-color-container",
       (node) => {
         node.id = `decentral-container-${this.baseId}`;
       }
@@ -2740,7 +2743,11 @@ class ComponentAppender extends HTMLComponentConvertable {
   createOuterClickDetection(lambda) {
     return setupClassNode("div", "decentral-outer-click-detection", (node) => {
       node.id = "decentral-outer-click-detection";
-      node.onclick = lambda;
+      node.onclick = (event) => {
+        event?.stopPropagation();
+        event?.preventDefault();
+        lambda();
+      };
     });
   }
 
@@ -2795,8 +2802,10 @@ class ComponentAppender extends HTMLComponentConvertable {
             );
           })
         );
-        option.onclick = () => {
+        option.onclick = (event) => {
           if (__proxy.hasOuterClickDetection()) {
+            event.preventDefault();
+            event.stopPropagation();
             this.triggerOuterClickDetection();
             return;
           }
@@ -2837,7 +2846,6 @@ class ComponentAppender extends HTMLComponentConvertable {
       addOption: (text, id, onclick) => {
         const element = setupClassNode("div", "decentral-option", (option) => {
           option.textContent = text;
-          option.id = id;
           option.setAttribute("decentral-option-text", text);
           option.setAttribute("decentral-option-id", id);
           option.onclick = () => {
@@ -2862,7 +2870,7 @@ class ComponentAppender extends HTMLComponentConvertable {
         for (const element of topNode.getElementsByClassName(
           "decentral-option"
         )) {
-          if (element.id === topNode.getAttribute("decentral-selected")) {
+          if (element.getAttribute("decentral-option-id") === topNode.getAttribute("decentral-selected")) {
             element.onclick();
           }
         }
