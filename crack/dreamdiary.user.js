@@ -4,7 +4,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized DreamDiary (크랙 / 캐즘 꿈일기)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-DDIA-v1.1.0
+// @version      CRYS-DDIA-v1.1.1
 // @description  유저노트 저장 / 불러오기 기능 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
@@ -252,8 +252,10 @@ GM_addStyle(`
       "chasm-ddia-settings#nonreachable",
       true
     );
+    /** @type {HTMLElement} */
     const textNode = box.node.parentElement.childNodes[0];
-    textNode.onmousedown = () => {
+    textNode.style.cssText = "user-select: none !important;";
+    textNode.onmousedown = (event) => {
       let pressTime = 30;
       const timer = setInterval(() => {
         if (pressTime-- <= 0) {
@@ -302,7 +304,78 @@ GM_addStyle(`
           )}초 길게 눌러 노트 삭제]`;
         }
       }, 100);
+
       textNode.onmouseup = () => {
+        clearInterval(timer);
+        textNode.textContent = "유저노트 프리셋 [3.0초 길게 눌러 노트 삭제]";
+      };
+    };
+
+    textNode.ontouchstart = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      let pressTime = 30;
+      const timer = setInterval(() => {
+        if (pressTime-- <= 0) {
+          clearInterval(timer);
+          textNode.textContent = "유저노트 프리셋 [3.0초 길게 눌러 노트 삭제]";
+          if (settings.isCustom) {
+            doToastifyAlert(
+              "프롬프트 프리셋을 선택하지 않은 상태에서는 삭제할 수 없어요.",
+              STANDARD_NOTIFICATION_TIME
+            );
+          } else if (!settings.lastPromptName) {
+            doToastifyAlert(
+              "프롬프트 프리셋을 선택하지 않은 상태에서는 삭제할 수 없어요.",
+              STANDARD_NOTIFICATION_TIME
+            );
+          } else {
+            if (
+              !confirm(
+                "정말로 현재 노트를 삭제할까요?\n모바일 환경은 실수를 방지하기 위해 확인 절차가 존재해요."
+              )
+            ) {
+              return;
+            }
+            deleteNoteOf(settings.boundCharacter, settings.lastPromptName)
+              .then(() => {
+                refreshSelectBoxElement(
+                  modal,
+                  box,
+                  textArea[0],
+                  characterId
+                ).finally(() => {
+                  box.setSelected("#custom");
+                  box.runSelected();
+                  doToastifyAlert(
+                    "선택한 유저노트를 삭제했어요.\n예기치 못한 오류를 방지하기 위해 현재 선택한 유저노트는 커스텀으로 변경됐어요.",
+                    STANDARD_NOTIFICATION_TIME
+                  );
+                });
+              })
+              .catch((err) => {
+                console.error(err);
+                doToastifyAlert(
+                  "유저노트를 삭제하는 도중 오류가 발생했어요.\n콘솔에 발생한 오류를 제보해주시면 캐즘 프로젝트의 개선에 도움을 줄 수 있어요.",
+                  STANDARD_NOTIFICATION_TIME
+                );
+              });
+          }
+        } else {
+          textNode.textContent = `유저노트 프리셋 [${formatNumber(
+            0.1 * pressTime,
+            1,
+            1
+          )}초 길게 눌러 노트 삭제]`;
+        }
+      }, 100);
+
+      textNode.ontouchend = () => {
+        clearInterval(timer);
+        textNode.textContent = "유저노트 프리셋 [3.0초 길게 눌러 노트 삭제]";
+      };
+
+      textNode.ontouchcancel = () => {
         clearInterval(timer);
         textNode.textContent = "유저노트 프리셋 [3.0초 길게 눌러 노트 삭제]";
       };
