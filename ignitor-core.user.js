@@ -9,7 +9,7 @@
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/ignitor-core.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/ignitor-core.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.8/decentralized-modal.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.10/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 

@@ -2,13 +2,13 @@
 // ==UserScript==
 // @name        BabeChat / Chasm Crystallized AbsoluteZero (베이비챗 / 결정화 캐즘 절대영도)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     BABE-AZRO-v1.0.0
+// @version     BABE-AZRO-v1.0.1
 // @description 베이비챗 플랫폼에서 선택하거나 호버하지 않은 작품의 GIF 차단. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://babechat.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/absolutezero.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/absolutezero.user.js
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.8/decentralized-modal.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.10/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 
