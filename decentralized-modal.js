@@ -2846,7 +2846,6 @@ class ComponentAppender extends HTMLComponentConvertable {
       addOption: (text, id, onclick) => {
         const element = setupClassNode("div", "decentral-option", (option) => {
           option.textContent = text;
-          option.id = id;
           option.setAttribute("decentral-option-text", text);
           option.setAttribute("decentral-option-id", id);
           option.onclick = () => {
@@ -2871,7 +2870,7 @@ class ComponentAppender extends HTMLComponentConvertable {
         for (const element of topNode.getElementsByClassName(
           "decentral-option"
         )) {
-          if (element.id === topNode.getAttribute("decentral-selected")) {
+          if (element.getAttribute("decentral-option-id") === topNode.getAttribute("decentral-selected")) {
             element.onclick();
           }
         }
