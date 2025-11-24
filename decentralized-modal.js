@@ -2870,7 +2870,10 @@ class ComponentAppender extends HTMLComponentConvertable {
         for (const element of topNode.getElementsByClassName(
           "decentral-option"
         )) {
-          if (element.getAttribute("decentral-option-id") === topNode.getAttribute("decentral-selected")) {
+          if (
+            element.getAttribute("decentral-option-id") ===
+            topNode.getAttribute("decentral-selected")
+          ) {
             element.onclick();
           }
         }
@@ -2990,8 +2993,13 @@ class ContentPanel extends ComponentAppender {
     const foundElements = this.__verticalContainer.getElementsByClassName(
       "decentral-modifiable-component"
     );
+    console.log("Running " + foundElements.length + " verification");
     for (const element of foundElements) {
-      if (element.onVerifyChange) element.onVerifyChange();
+      if (element.onVerifyChange) {
+        console.log("Running verification");
+        console.log(element);
+        element.onVerifyChange();
+      }
     }
   }
 
