@@ -2986,7 +2986,7 @@ class ContentPanel extends ComponentAppender {
     return this.__footerAppender;
   }
 
-  verifyCaller() {
+  runModifyVerification() {
     const foundElements = this.__verticalContainer.getElementsByClassName(
       "decentral-modifiable-component"
     );
