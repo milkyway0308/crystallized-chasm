@@ -581,7 +581,7 @@ GM_addStyle(
   function __constructCharacterFrom(chatId, remote, state) {
     const data = {
       associatedStoryIds: remote.associatedStoryIds,
-      detailDescription: remote.detailDescription,
+      detailDescription: remote.detailDescription ?? "플레이스홀더 임시 설명",
       exampleMessages: remote.exampleMessages,
       genreId: remote.genreId,
       introInitialMessages: remote.introInitialMessages,
@@ -589,7 +589,7 @@ GM_addStyle(
       isMovingImage: remote.isMovingImage,
       name: remote.name,
       profileImageUrl: remote.profileImageUrl,
-      simpleDescription: remote.simpleDescription,
+      simpleDescription: remote.simpleDescription ?? "플레이스홀더 임시 설명",
       situationImages: remote.situationImages,
       systemPrompt: remote.systemPrompt,
       tags: remote.tags,
