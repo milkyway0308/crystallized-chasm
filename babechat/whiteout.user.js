@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        BabeChat Chasm Crystallized Whiteout (결정화 캐즘 백시현상)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     BABE-WHOU-v1.0.1
+// @version     BABE-WHOU-v1.0.2
 // @description 화이트 모드 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://babechat.ai/*
