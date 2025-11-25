@@ -2883,8 +2883,18 @@ class ComponentAppender extends HTMLComponentConvertable {
           .map((it) => it.getAttribute("decentral-selected"))
           .filter((it) => it != undefined);
       },
-      setSelected: (id) => {
-        topNode.setAttribute("decentral-selected", id);
+      setSelected: (target) => {
+        if (typeof target === "string") {
+          topNode.setAttribute("decentral-selected", target);
+        } else if (
+          target instanceof Element &&
+          target.hasAttribute("decentral-option-id")
+        ) {
+          topNode.setAttribute(
+            "decentral-selected",
+            target.getAttribute("decentral-option-id")
+          );
+        }
       },
       getSelected: () => {
         return topNode.getAttribute("decentral-selected");
@@ -2906,12 +2916,18 @@ class ComponentAppender extends HTMLComponentConvertable {
       appendTo: (node) => {
         node.append(topNode);
       },
-      addGroup: (text) => {
-        optionContainer.append(
-          setupClassNode("div", "decentral-option-group", (group) => {
+      addGroup: (text, lambda) => {
+        const node = setupClassNode(
+          "div",
+          "decentral-option-group",
+          (group) => {
             group.innerText = text;
-          })
+          }
         );
+        optionContainer.append(node);
+        if (lambda) {
+          lambda(node);
+        }
       },
     };
   }
