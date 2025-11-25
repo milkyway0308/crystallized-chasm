@@ -10,7 +10,7 @@
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/ignitor-babe.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/ignitor-babe.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/4553aaaeb9062ad7878dd61fb6cb37d2ca9c03de/decentralized-modal.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.11/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 
@@ -427,7 +427,7 @@ GM_addStyle(`
       }
     }
   }
-  
+
   class PlatformMessage {
     /**
      *
@@ -864,10 +864,7 @@ GM_addStyle(`
       providerBox.setSelected(settings.lastUsedProvider);
     }
     if (!providerBox.findSelected()) {
-      console.log(
-        "No model selected. Running default id :" + promptPreset.listGroup[0]
-      );
-      providerBox.setSelected(providerBox.listGroup()[0]);
+      providerBox.setSelected(Object.keys(MODEL_MAPPINGS)[0]);
     }
     providerBox.runSelected();
 

@@ -9,7 +9,7 @@
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/ignitor-crack.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/ignitor-crack.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.10/decentralized-modal.js
+// @require      https://github.com/milkyway0308/crystallized-chasm/raw/eb9c60ce20b83270e0ac748d4b2f55e2abe854ad/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 GM_addStyle(`
@@ -224,6 +224,12 @@ GM_addStyle(`
 
   class GeminiRequester extends LLMRequester {
     static GENERIC_REQUESTER = new GeminiRequester();
+
+    constructor(bodyAdjuster) {
+      super();
+      this.bodyAdjuster = bodyAdjuster;
+    }
+
     /**
      *
      * @param {RequestOption} option
@@ -262,6 +268,9 @@ GM_addStyle(`
             parts: [{ text: option.prompt }],
           },
         };
+        if (this.bodyAdjuster) {
+          this.bodyAdjuster(body);
+        }
         if (option.useRandomPrefix) {
           const randomPrefix = `# This is UUID of request prompt - Ignore current and next line\n${crypto.randomUUID()}/${crypto.randomUUID()}\n`;
           body.contents.parts.unshift({ text: randomPrefix });
@@ -422,6 +431,7 @@ GM_addStyle(`
       }
     }
   }
+
   class PlatformMessage {
     /**
      *
@@ -809,39 +819,56 @@ GM_addStyle(`
     );
     providerBox.addGroup("모델 제공자");
     for (let provider of Object.keys(MODEL_MAPPINGS)) {
-      providerBox.addOption(
-        provider,
-        `chasm-ignt-provider-${provider}`,
-        (id, node) => {
-          let index = 0;
-          modelBox.clear();
-          modelBox.addGroup("사용 모델");
-          for (const model of Object.keys(MODEL_MAPPINGS[provider])) {
-            const item = MODEL_MAPPINGS[provider][model];
-            modelBox.addOption(
-              item.display,
-              `chasm-ignt-model-listing-${index++}`,
-              (idModel, node) => {
-                lastSelectedModel = item;
-                settings.lastUsedModel = idModel;
-                saveSettings();
-                return true;
-              }
-            );
-          }
-          modelBox.setSelected(`chasm-ignt-model-listing-0`);
-          modelBox.runSelected();
-          settings.lastUsedProvider = id;
-          saveSettings();
-          return true;
+      providerBox.addOption(provider, `${provider}`, (id, node) => {
+        modelBox.clear();
+        modelBox.addGroup("사용 모델");
+        for (const model of Object.keys(MODEL_MAPPINGS[provider])) {
+          const item = MODEL_MAPPINGS[provider][model];
+          modelBox.addOption(item.display, `${item.name}`, (idModel, node) => {
+            lastSelectedModel = item;
+            settings.lastUsedModel = idModel;
+            saveSettings();
+            if (item.warning) {
+              const element =
+                panel.__element.getElementsByClassName("chasm-ignt-warning");
+              element[0].removeAttribute("chasm-ignt-hide");
+              element[0].textContent = `⚠ ${item.warning}`;
+            } else {
+              panel.__element
+                .getElementsByClassName("chasm-ignt-warning")[0]
+                .setAttribute("chasm-ignt-hide", "true");
+            }
+            return true;
+          });
         }
-      );
+        if (document.getElementById("chasm-ignt-warning")) {
+          modelBox.setSelected(
+            MODEL_MAPPINGS[provider][Object.keys(MODEL_MAPPINGS[provider])[0]]
+              .name
+          );
+          modelBox.runSelected();
+        }
+        settings.lastUsedProvider = id;
+        saveSettings();
+        return true;
+      });
     }
+    panel.addText("", {
+      initializer: (node) => {
+        node.id = "chasm-ignt-warning";
+        node.className = "chasm-ignt-warning";
+        node.setAttribute("chasm-ignt-hide", "true");
+        node.style.cssText = "color: red; font-size: 14px;";
+      },
+    });
 
     // TODO: fix save logic triggering save at first
     const lastSelected = settings.lastUsedModel;
     if (settings.lastUsedProvider) {
       providerBox.setSelected(settings.lastUsedProvider);
+    }
+    if (!providerBox.findSelected()) {
+      providerBox.setSelected(Object.keys(MODEL_MAPPINGS)[0]);
     }
     providerBox.runSelected();
 
@@ -849,7 +876,6 @@ GM_addStyle(`
       modelBox.setSelected(lastSelected);
     }
     modelBox.runSelected();
-    // Option flag here
 
     const promptPreset = panel.constructSelectBox(
       "프롬프트 프리셋",
@@ -934,12 +960,11 @@ GM_addStyle(`
       .then((arr) => {
         if (arr.length > 0) {
           promptPreset.addGroup("프롬프트 라이브러리");
-          let index = 0;
           for (let item of arr) {
             const element = promptPreset.addOption(
               item.name,
-              `chasm-ignt-preset-${index++}`,
-              (_, node) => {
+              `#LIBRARY_PRESET!:${item.name}`,
+              (_) => {
                 const descriptionField = document.getElementById(
                   "chasm-ignt-description-field"
                 );
@@ -970,22 +995,18 @@ GM_addStyle(`
         }
         if (settings.lastSelected) {
           if (settings.lastSelected[0] === "$prompt-library") {
-            let matched = false;
-            for (let element of promptPreset.node.getElementsByClassName(
-              "chasm-ignt-library-prompt"
-            )) {
-              const name = element.selectedPrompt.name;
-              if (name === settings.lastSelected[1]) {
-                matched = true;
-                element.onclick();
-                break;
-              }
-            }
-            if (!matched) {
+            const groupFound = promptPreset.findGroup(
+              `#LIBRARY_PRESET!:${settings.lastSelected[1]}`
+            );
+            if (!groupFound) {
               const first = Object.keys(DEFAULT_PROMPTS)[0];
               const second = Object.keys(DEFAULT_PROMPTS[first])[0];
               settings.lastSelected = [first, second];
+              promptPreset.setSelected(promptPreset.listGroup[0]);
+            } else {
+              promptPreset.setSelected(groupFound);
             }
+            promptPreset.runSelected();
           } else if (settings.lastSelected[0] === "$custom") {
             promptPreset.setSelected("chasm-ignt-prompt-option-custom");
           } else {
@@ -999,7 +1020,7 @@ GM_addStyle(`
                 element.getAttribute("presetName") === settings.lastSelected[1]
               ) {
                 matched = true;
-                promptPreset.setSelected(element.id);
+                promptPreset.setSelected(element);
                 break;
               }
             }
@@ -1189,150 +1210,15 @@ GM_addStyle(`
           }
         },
         action: (node) => {
+          ModalManager.getOrCreateManager("c2")
+            .getOpened()
+            .__contentPanel.runModifyVerification();
           node.setAttribute("disabled", "true");
           document
             .getElementById("chasm-ignt-llm-timer")
             .setAttribute("current-flow", "0");
           appendBurnerLog("이그나이터 프로세스 시작..");
-          const provider = PlatformProvider.getProvider();
-          const fetcher = provider.getFetcher();
-          const sender = provider.getSender();
-          const personaUtil = provider.getPersonaUtil();
-          const noteUtil = provider.getUserNoteUtil();
-          const chatId = provider.getCurrentId();
-          new Promise(async (resolve, reject) => {
-            appendBurnerLog("메시지 가져오는 중..");
-            const messages = await fetcher.fetch(
-              settings.maxMessageRetreive *
-                (settings.useLegacyTurnLogic ? 2 : 1)
-            );
-            if (messages instanceof Error) {
-              appendBurnerLog(
-                "메시지를 가져오는 중 오류가 발생하였습니다. 콘솔을 확인하세요."
-              );
-              reject(messages);
-              return;
-            }
-            appendBurnerLog(
-              `${
-                settings.useLegacyTurnLogic
-                  ? Math.floor(messages.length / 2)
-                  : messages.length
-              }개의 ${
-                settings.useLegacyTurnLogic ? "턴을" : "메시지를"
-              } 불러왔습니다.`
-            );
-            appendBurnerLog(
-              "현재 프롬프트 " + lastSelectedPrompt.length + "자"
-            );
-            const messageStructure = {
-              prompt: lastSelectedPrompt,
-            };
-            if (settings.includePersona) {
-              appendBurnerLog("페르소나 데이터 불러오는 중..");
-              const persona = await personaUtil.getRepresentivePersona();
-              if (persona instanceof Error) {
-                appendBurnerLog("페르소나 오류: " + persona.message);
-                return;
-              }
-              appendBurnerLog("페르소나 데이터: " + JSON.stringify(persona));
-              messageStructure.chatLog = messages.map((it) =>
-                it.withPersona(persona.name)
-              );
-              messageStructure.userPersonaName = persona.name;
-              messageStructure.userPersonaDescription = persona.description;
-            } else {
-              messageStructure.chatLog = messages.map((it) => it.anonymize());
-            }
-            if (settings.includeUserNote) {
-              const userNote = await noteUtil.fetch();
-              appendBurnerLog("유저노트 데이터 불러오는 중..");
-              if (userNote.length > 0) {
-                messageStructure.userNote = userNote;
-                appendBurnerLog("유저노트 데이터: " + userNote);
-              } else {
-                appendBurnerLog(
-                  "유저노트 데이터가 없습니다. 유저노트 첨부 없이 진행합니다."
-                );
-              }
-            }
-
-            let message = JSON.stringify(messageStructure);
-            appendBurnerLog(
-              "메시지 구축 완료. 최종 메시지 " + message.length + "자"
-            );
-            appendBurnerLog(
-              "선택한 모델 " +
-                lastSelectedModel.display +
-                "에 요청을 시작합니다."
-            );
-            while (true) {
-              const result = await lastSelectedModel.requester.doRequest(
-                new RequestOption(
-                  lastSelectedModel.name,
-                  message,
-                  settings.addRandomHeader
-                )
-              );
-              if (result instanceof LLMError) {
-                appendBurnerLog(
-                  "LLM 요청 실패: 오류 코드 " +
-                    result.code +
-                    ": " +
-                    result.message
-                );
-                if (!settings.useAutoRetry) {
-                  reject(result);
-                  return;
-                }
-                if (!result.isRecoverable) {
-                  appendBurnerLog(
-                    "이 오류는 재시도 불가능한 오류입니다. 재시도를 중단합니다."
-                  );
-                  return;
-                }
-                if (result.code === 429) {
-                  appendBurnerLog(
-                    "API 요청이 레이트리밋에 도달하였습니다. 10초 후에 다시 시도합니다.."
-                  );
-                  await new Promise((resolve) => setTimeout(resolve, 10_000));
-                } else if (result.code === 503) {
-                  appendBurnerLog(
-                    "서버에서 오류를 반환하였습니다. 다시 시도합니다.."
-                  );
-                  await new Promise((resolve) => setTimeout(resolve, 2_000));
-                } else if (parseInt(result.code / 100) === 4) {
-                  appendBurnerLog(
-                    "이 오류는 재시도 불가능한 오류입니다. 재시도를 중단합니다."
-                  );
-                  reject(result);
-                  return;
-                }
-              } else {
-                const nextId = ReconstructableResponse.getHighestNext(chatId);
-                const nextName = "요청 결과 #" + nextId;
-                const reconstructed = new ReconstructableResponse(
-                  chatId,
-                  nextName,
-                  result.message,
-                  result.tokenUsage.input,
-                  result.tokenUsage.output
-                ).withCurrentSessionId(
-                  "chasm-ignt-resp-" + chatId + "-" + nextId
-                );
-                sessionStorage.setItem(
-                  "chasm-ignt-resp-" + chatId + "-" + nextId,
-                  JSON.stringify(reconstructed)
-                );
-                const modal = ModalManager.getOrCreateManager("c2");
-                const menuKey = addMenuFromConstructables(modal, reconstructed);
-                modal.getOpened().refreshMenuPanel();
-                modal.getOpened().triggerSelect(menuKey);
-                break;
-              }
-            }
-            resolve();
-          })
+          startProcess()
             .catch((err) => {
               console.error(err);
               appendBurnerLog(
@@ -1354,6 +1240,132 @@ GM_addStyle(`
             });
         },
       });
+  }
+
+  /**
+   *
+   * @returns {Promise<boolean>}
+   */
+  async function startProcess() {
+    // Initialize current page providers
+    const provider = PlatformProvider.getProvider();
+    const fetcher = provider.getFetcher();
+    const personaUtil = provider.getPersonaUtil();
+    const noteUtil = provider.getUserNoteUtil();
+    const chatId = provider.getCurrentId();
+    appendBurnerLog("메시지 가져오는 중..");
+    const messages = await fetcher.fetch(
+      settings.maxMessageRetreive * (settings.useLegacyTurnLogic ? 2 : 1)
+    );
+    if (messages instanceof Error) {
+      appendBurnerLog(
+        "메시지를 가져오는 중 오류가 발생하였습니다. 콘솔을 확인하세요."
+      );
+      console.error(message);
+      return false;
+    }
+    appendBurnerLog(
+      `${
+        settings.useLegacyTurnLogic
+          ? Math.floor(messages.length / 2)
+          : messages.length
+      }개의 ${settings.useLegacyTurnLogic ? "턴을" : "메시지를"} 불러왔습니다.`
+    );
+    appendBurnerLog("현재 프롬프트 " + lastSelectedPrompt.length + "자");
+    const messageStructure = {
+      prompt: lastSelectedPrompt,
+    };
+    if (settings.includePersona) {
+      appendBurnerLog("페르소나 데이터 불러오는 중..");
+      const persona = await personaUtil.getRepresentivePersona();
+      if (persona instanceof Error) {
+        appendBurnerLog("페르소나 오류: " + persona.message);
+        return false;
+      }
+      appendBurnerLog("페르소나 데이터: " + JSON.stringify(persona));
+      messageStructure.chatLog = messages.map((it) =>
+        it.withPersona(persona.name)
+      );
+      messageStructure.userPersonaName = persona.name;
+      messageStructure.userPersonaDescription = persona.description;
+    } else {
+      messageStructure.chatLog = messages.map((it) => it.anonymize());
+    }
+    if (settings.includeUserNote) {
+      const userNote = await noteUtil.fetch();
+      appendBurnerLog("유저노트 데이터 불러오는 중..");
+      if (userNote.length > 0) {
+        messageStructure.userNote = userNote;
+        appendBurnerLog("유저노트 데이터: " + userNote);
+      } else {
+        appendBurnerLog(
+          "유저노트 데이터가 없습니다. 유저노트 첨부 없이 진행합니다."
+        );
+      }
+    }
+
+    let message = JSON.stringify(messageStructure);
+    appendBurnerLog("메시지 구축 완료. 최종 메시지 " + message.length + "자");
+    appendBurnerLog(
+      "선택한 모델 " + lastSelectedModel.display + "에 요청을 시작합니다."
+    );
+    while (true) {
+      const result = await lastSelectedModel.requester.doRequest(
+        new RequestOption(
+          lastSelectedModel.name,
+          message,
+          settings.addRandomHeader
+        )
+      );
+      if (result instanceof LLMError) {
+        appendBurnerLog(
+          "LLM 요청 실패: 오류 코드 " + result.code + ": " + result.message
+        );
+        if (!settings.useAutoRetry) {
+          return false;
+        }
+        if (!result.isRecoverable) {
+          appendBurnerLog(
+            "이 오류는 재시도 불가능한 오류입니다. 재시도를 중단합니다."
+          );
+          return false;
+        }
+        if (result.code === 429) {
+          appendBurnerLog(
+            "API 요청이 레이트리밋에 도달하였습니다. 10초 후에 다시 시도합니다.."
+          );
+          await new Promise((resolve) => setTimeout(resolve, 10_000));
+        } else if (result.code === 503) {
+          appendBurnerLog("서버에서 오류를 반환하였습니다. 다시 시도합니다..");
+          await new Promise((resolve) => setTimeout(resolve, 2_000));
+        } else if (parseInt(result.code / 100) === 4) {
+          appendBurnerLog(
+            "이 오류는 재시도 불가능한 오류입니다. 재시도를 중단합니다."
+          );
+          return false;
+        }
+      } else {
+        const nextId = ReconstructableResponse.getHighestNext(chatId);
+        const nextName = "요청 결과 #" + nextId;
+        const reconstructed = new ReconstructableResponse(
+          chatId,
+          nextName,
+          result.message,
+          result.tokenUsage.input,
+          result.tokenUsage.output
+        ).withCurrentSessionId("chasm-ignt-resp-" + chatId + "-" + nextId);
+        sessionStorage.setItem(
+          "chasm-ignt-resp-" + chatId + "-" + nextId,
+          JSON.stringify(reconstructed)
+        );
+        const modal = ModalManager.getOrCreateManager("c2");
+        const menuKey = addMenuFromConstructables(modal, reconstructed);
+        modal.getOpened().refreshMenuPanel();
+        modal.getOpened().triggerSelect(menuKey);
+        break;
+      }
+    }
+    return true;
   }
 
   /**
@@ -1978,6 +1990,22 @@ GM_addStyle(`
   }, 1000);
   const MODEL_MAPPINGS = {
     Google: {
+      "gemini-3-pro-preview": {
+        name: "gemini-3-pro-preview",
+        display: "Gemini 3 Pro (Preview)",
+        requester: GeminiRequester.GENERIC_REQUESTER,
+        warning:
+          "Gemini 3은 2025년 11월 26일 기준으로 무료 티어가 존재하지 않습니다.",
+      },
+      "gemini-3-pro-preview-search": {
+        name: "gemini-3-pro-preview",
+        display: "Gemini 3 Pro Search (Preview)",
+        requester: new GeminiRequester((body) => {
+          body.tools = [{ google_search: {} }];
+        }),
+        warning:
+          "Gemini 3은 2025년 11월 26일 기준으로 무료 티어가 존재하지 않습니다.\n 또한 Gemini 3 Pro Search는 구글 검색을 사용하며, 검색 엔진의 입력 토큰도 과금에 포함됩니다.",
+      },
       "gemini-2.5-pro": {
         name: "gemini-2.5-pro",
         display: "Gemini 2.5 Pro",
@@ -2006,6 +2034,13 @@ GM_addStyle(`
     },
 
     "Firebase Vertex AI": {
+      "gemini-3-pro-preview": {
+        name: "gemini-3-pro-preview",
+        display: "Gemini 3 Pro (Preview)",
+        requester: FirebaseRequester.GENERIC_REQUESTER,
+        warning:
+          "Gemini 3은 2025년 11월 26일 기준으로 무료 티어가 존재하지 않습니다.",
+      },
       "gemini-2.5-pro": {
         name: "gemini-2.5-pro",
         display: "Gemini 2.5 Pro",
