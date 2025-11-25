@@ -2903,7 +2903,7 @@ class ComponentAppender extends HTMLComponentConvertable {
         for (const element of topNode.getElementsByClassName(
           "decentral-option"
         )) {
-          if (element.id === topNode.getAttribute("decentral-selected")) {
+          if (element.getAttribute("decentral-option-id") === topNode.getAttribute("decentral-selected")) {
             return element;
           }
         }
@@ -2915,6 +2915,16 @@ class ComponentAppender extends HTMLComponentConvertable {
        */
       appendTo: (node) => {
         node.append(topNode);
+      },
+      findGroup: (groupId) => {
+        for (const element of topNode.getElementsByClassName(
+          "decentral-option"
+        )) {
+          if (element.getAttribute("decentral-option-id") === groupId) {
+            return element;
+          }
+        }
+        return undefined;
       },
       addGroup: (text, lambda) => {
         const node = setupClassNode(
