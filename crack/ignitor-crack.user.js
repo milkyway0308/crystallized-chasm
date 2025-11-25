@@ -9,7 +9,7 @@
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/ignitor-crack.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/ignitor-crack.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/eb9c60ce20b83270e0ac748d4b2f55e2abe854ad/decentralized-modal.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.11/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 GM_addStyle(`
