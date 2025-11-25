@@ -3,7 +3,7 @@
 // decentrallized-modal.js는 서드 파티 스크립트들을 위한 임베드 가능한 모달 프레임워크입니다.
 // 거의 대부분의 커스터마이징을 제공하며, 임베딩된 펑션을 통한 간편한 모달 표시 및 통합이 가능합니다.
 // CSS 삽입을 위해 GM_addStyle이 필요합니다.
-const DECENTRAL_VERSION = "Decentrallized Modal v1.0.10";
+const DECENTRAL_VERSION = "Decentrallized Modal v1.0.11";
 
 const DECENTRAL_CSS_VALUES = `
     /*
@@ -366,7 +366,7 @@ const DECENTRAL_CSS_VALUES = `
       flex-direction: row;
       font-size: 13px;
       font-weight: light;
-      padding: 8px 0px;
+      padding-bottom: 8px;
       color: var(--decentral-text-formal);
       user-select: none;
       width: 100%;
@@ -2870,7 +2870,10 @@ class ComponentAppender extends HTMLComponentConvertable {
         for (const element of topNode.getElementsByClassName(
           "decentral-option"
         )) {
-          if (element.getAttribute("decentral-option-id") === topNode.getAttribute("decentral-selected")) {
+          if (
+            element.getAttribute("decentral-option-id") ===
+            topNode.getAttribute("decentral-selected")
+          ) {
             element.onclick();
           }
         }
@@ -2880,8 +2883,18 @@ class ComponentAppender extends HTMLComponentConvertable {
           .map((it) => it.getAttribute("decentral-selected"))
           .filter((it) => it != undefined);
       },
-      setSelected: (id) => {
-        topNode.setAttribute("decentral-selected", id);
+      setSelected: (target) => {
+        if (typeof target === "string") {
+          topNode.setAttribute("decentral-selected", target);
+        } else if (
+          target instanceof Element &&
+          target.hasAttribute("decentral-option-id")
+        ) {
+          topNode.setAttribute(
+            "decentral-selected",
+            target.getAttribute("decentral-option-id")
+          );
+        }
       },
       getSelected: () => {
         return topNode.getAttribute("decentral-selected");
@@ -2890,7 +2903,7 @@ class ComponentAppender extends HTMLComponentConvertable {
         for (const element of topNode.getElementsByClassName(
           "decentral-option"
         )) {
-          if (element.id === topNode.getAttribute("decentral-selected")) {
+          if (element.getAttribute("decentral-option-id") === topNode.getAttribute("decentral-selected")) {
             return element;
           }
         }
@@ -2903,12 +2916,28 @@ class ComponentAppender extends HTMLComponentConvertable {
       appendTo: (node) => {
         node.append(topNode);
       },
-      addGroup: (text) => {
-        optionContainer.append(
-          setupClassNode("div", "decentral-option-group", (group) => {
+      findGroup: (groupId) => {
+        for (const element of topNode.getElementsByClassName(
+          "decentral-option"
+        )) {
+          if (element.getAttribute("decentral-option-id") === groupId) {
+            return element;
+          }
+        }
+        return undefined;
+      },
+      addGroup: (text, lambda) => {
+        const node = setupClassNode(
+          "div",
+          "decentral-option-group",
+          (group) => {
             group.innerText = text;
-          })
+          }
         );
+        optionContainer.append(node);
+        if (lambda) {
+          lambda(node);
+        }
       },
     };
   }
@@ -2986,12 +3015,14 @@ class ContentPanel extends ComponentAppender {
     return this.__footerAppender;
   }
 
-  verifyCaller() {
+  runModifyVerification() {
     const foundElements = this.__verticalContainer.getElementsByClassName(
       "decentral-modifiable-component"
     );
     for (const element of foundElements) {
-      if (element.onVerifyChange) element.onVerifyChange();
+      if (element.onVerifyChange) {
+        element.onVerifyChange();
+      }
     }
   }
 
