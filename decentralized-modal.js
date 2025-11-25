@@ -3019,11 +3019,8 @@ class ContentPanel extends ComponentAppender {
     const foundElements = this.__verticalContainer.getElementsByClassName(
       "decentral-modifiable-component"
     );
-    console.log("Running " + foundElements.length + " verification");
     for (const element of foundElements) {
       if (element.onVerifyChange) {
-        console.log("Running verification");
-        console.log(element);
         element.onVerifyChange();
       }
     }
