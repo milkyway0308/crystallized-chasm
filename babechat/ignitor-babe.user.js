@@ -1230,7 +1230,7 @@ GM_addStyle(`
             .getElementById("chasm-ignt-llm-timer")
             .setAttribute("current-flow", "0");
           appendBurnerLog("이그나이터 프로세스 시작..");
-          startProcess()
+          startWrappedProcess()
             .catch((err) => {
               console.error(err);
               appendBurnerLog(
@@ -1254,6 +1254,20 @@ GM_addStyle(`
       });
   }
 
+  /**
+   *
+   * @returns {Promise<boolean>}
+   */
+  async function startWrappedProcess() {
+    try {
+      return await startProcess();
+    } catch (e) {
+      appendBurnerLog("알 수 없는 오류가 발생하였습니다.");
+      appendBurnerLog(e.toString());
+      console.error(e);
+      return false;
+    }
+  }
   /**
    *
    * @returns {Promise<boolean>}
