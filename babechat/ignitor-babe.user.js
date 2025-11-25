@@ -220,6 +220,12 @@ GM_addStyle(`
 
   class GeminiRequester extends LLMRequester {
     static GENERIC_REQUESTER = new GeminiRequester();
+
+    constructor(bodyAdjuster) {
+      super();
+      this.bodyAdjuster = bodyAdjuster;
+    }
+
     /**
      *
      * @param {RequestOption} option
@@ -258,6 +264,9 @@ GM_addStyle(`
             parts: [{ text: option.prompt }],
           },
         };
+        if (this.bodyAdjuster) {
+          this.bodyAdjuster(body);
+        }
         if (option.useRandomPrefix) {
           const randomPrefix = `# This is UUID of request prompt - Ignore current and next line\n${crypto.randomUUID()}/${crypto.randomUUID()}\n`;
           body.contents.parts.unshift({ text: randomPrefix });
@@ -418,6 +427,7 @@ GM_addStyle(`
       }
     }
   }
+  
   class PlatformMessage {
     /**
      *
@@ -805,34 +815,48 @@ GM_addStyle(`
     );
     providerBox.addGroup("모델 제공자");
     for (let provider of Object.keys(MODEL_MAPPINGS)) {
-      providerBox.addOption(
-        provider,
-        `chasm-ignt-provider-${provider}`,
-        (id, node) => {
-          let index = 0;
-          modelBox.clear();
-          modelBox.addGroup("사용 모델");
-          for (const model of Object.keys(MODEL_MAPPINGS[provider])) {
-            const item = MODEL_MAPPINGS[provider][model];
-            modelBox.addOption(
-              item.display,
-              `chasm-ignt-model-listing-${index++}`,
-              (idModel, node) => {
-                lastSelectedModel = item;
-                settings.lastUsedModel = idModel;
-                saveSettings();
-                return true;
-              }
-            );
-          }
-          modelBox.setSelected(`chasm-ignt-model-listing-0`);
-          modelBox.runSelected();
-          settings.lastUsedProvider = id;
-          saveSettings();
-          return true;
+      providerBox.addOption(provider, `${provider}`, (id, node) => {
+        modelBox.clear();
+        modelBox.addGroup("사용 모델");
+        for (const model of Object.keys(MODEL_MAPPINGS[provider])) {
+          const item = MODEL_MAPPINGS[provider][model];
+          modelBox.addOption(item.display, `${item.name}`, (idModel, node) => {
+            lastSelectedModel = item;
+            settings.lastUsedModel = idModel;
+            saveSettings();
+            if (item.warning) {
+              const element =
+                panel.__element.getElementsByClassName("chasm-ignt-warning");
+              element[0].removeAttribute("chasm-ignt-hide");
+              element[0].textContent = `⚠ ${item.warning}`;
+            } else {
+              panel.__element
+                .getElementsByClassName("chasm-ignt-warning")[0]
+                .setAttribute("chasm-ignt-hide", "true");
+            }
+            return true;
+          });
         }
-      );
+        if (document.getElementById("chasm-ignt-warning")) {
+          modelBox.setSelected(
+            MODEL_MAPPINGS[provider][Object.keys(MODEL_MAPPINGS[provider])[0]]
+              .name
+          );
+          modelBox.runSelected();
+        }
+        settings.lastUsedProvider = id;
+        saveSettings();
+        return true;
+      });
     }
+    panel.addText("", {
+      initializer: (node) => {
+        node.id = "chasm-ignt-warning";
+        node.className = "chasm-ignt-warning";
+        node.setAttribute("chasm-ignt-hide", "true");
+        node.style.cssText = "color: red; font-size: 14px;";
+      },
+    });
 
     // TODO: fix save logic triggering save at first
     const lastSelected = settings.lastUsedModel;
@@ -840,6 +864,9 @@ GM_addStyle(`
       providerBox.setSelected(settings.lastUsedProvider);
     }
     if (!providerBox.findSelected()) {
+      console.log(
+        "No model selected. Running default id :" + promptPreset.listGroup[0]
+      );
       providerBox.setSelected(providerBox.listGroup()[0]);
     }
     providerBox.runSelected();
@@ -848,7 +875,6 @@ GM_addStyle(`
       modelBox.setSelected(lastSelected);
     }
     modelBox.runSelected();
-    // Option flag here
 
     const promptPreset = panel.constructSelectBox(
       "프롬프트 프리셋",
@@ -1963,6 +1989,22 @@ GM_addStyle(`
   }, 1000);
   const MODEL_MAPPINGS = {
     Google: {
+      "gemini-3-pro-preview": {
+        name: "gemini-3-pro-preview",
+        display: "Gemini 3 Pro (Preview)",
+        requester: GeminiRequester.GENERIC_REQUESTER,
+        warning:
+          "Gemini 3은 2025년 11월 26일 기준으로 무료 티어가 존재하지 않습니다.",
+      },
+      "gemini-3-pro-preview-search": {
+        name: "gemini-3-pro-preview",
+        display: "Gemini 3 Pro Search (Preview)",
+        requester: new GeminiRequester((body) => {
+          body.tools = [{ google_search: {} }];
+        }),
+        warning:
+          "Gemini 3은 2025년 11월 26일 기준으로 무료 티어가 존재하지 않습니다.\n 또한 Gemini 3 Pro Search는 구글 검색을 사용하며, 검색 엔진의 입력 토큰도 과금에 포함됩니다.",
+      },
       "gemini-2.5-pro": {
         name: "gemini-2.5-pro",
         display: "Gemini 2.5 Pro",
@@ -1991,6 +2033,13 @@ GM_addStyle(`
     },
 
     "Firebase Vertex AI": {
+      "gemini-3-pro-preview": {
+        name: "gemini-3-pro-preview",
+        display: "Gemini 3 Pro (Preview)",
+        requester: FirebaseRequester.GENERIC_REQUESTER,
+        warning:
+          "Gemini 3은 2025년 11월 26일 기준으로 무료 티어가 존재하지 않습니다.",
+      },
       "gemini-2.5-pro": {
         name: "gemini-2.5-pro",
         display: "Gemini 2.5 Pro",
