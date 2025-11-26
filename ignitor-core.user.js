@@ -885,6 +885,13 @@ GM_addStyle(`
     if (lastSelected) {
       modelBox.setSelected(lastSelected);
     }
+    if (!modelBox.findSelected()) {
+      modelBox.setSelected(
+        MODEL_MAPPINGS[settings.lastUsedProvider][
+          Object.keys(MODEL_MAPPINGS[settings.lastUsedProvider])[0]
+        ].name
+      );
+    }
     modelBox.runSelected();
 
     const promptPreset = panel.constructSelectBox(

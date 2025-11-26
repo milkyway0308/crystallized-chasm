@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        BabeChat / Chasm Crystallized Ignitor (베이비챗 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     BABE-IGNT-v1.3.0
+// @version     BABE-IGNT-v1.3.1
 // @description 캐즘 버너 및 애프터버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://babechat.ai/*
@@ -836,22 +836,26 @@ GM_addStyle(`
         modelBox.addGroup("사용 모델");
         for (const model of Object.keys(MODEL_MAPPINGS[provider])) {
           const item = MODEL_MAPPINGS[provider][model];
-          modelBox.addOption(item.display, `${item.name}`, (idModel, node) => {
-            lastSelectedModel = item;
-            settings.lastUsedModel = idModel;
-            saveSettings();
-            if (item.warning) {
-              const element =
-                panel.__element.getElementsByClassName("chasm-ignt-warning");
-              element[0].removeAttribute("chasm-ignt-hide");
-              element[0].textContent = `⚠ ${item.warning}`;
-            } else {
-              panel.__element
-                .getElementsByClassName("chasm-ignt-warning")[0]
-                .setAttribute("chasm-ignt-hide", "true");
+          modelBox.addOption(
+            item?.display ?? "알 수 없음",
+            `${item.name}`,
+            (idModel, node) => {
+              lastSelectedModel = item;
+              settings.lastUsedModel = idModel;
+              saveSettings();
+              if (item.warning) {
+                const element =
+                  panel.__element.getElementsByClassName("chasm-ignt-warning");
+                element[0].removeAttribute("chasm-ignt-hide");
+                element[0].textContent = `⚠ ${item.warning}`;
+              } else {
+                panel.__element
+                  .getElementsByClassName("chasm-ignt-warning")[0]
+                  .setAttribute("chasm-ignt-hide", "true");
+              }
+              return true;
             }
-            return true;
-          });
+          );
         }
         if (document.getElementById("chasm-ignt-warning")) {
           modelBox.setSelected(
@@ -886,6 +890,13 @@ GM_addStyle(`
 
     if (lastSelected) {
       modelBox.setSelected(lastSelected);
+    }
+    if (!modelBox.findSelected()) {
+      modelBox.setSelected(
+        MODEL_MAPPINGS[settings.lastUsedProvider][
+          Object.keys(MODEL_MAPPINGS[settings.lastUsedProvider])[0]
+        ].name
+      );
     }
     modelBox.runSelected();
 
@@ -1230,7 +1241,7 @@ GM_addStyle(`
             .getElementById("chasm-ignt-llm-timer")
             .setAttribute("current-flow", "0");
           appendBurnerLog("이그나이터 프로세스 시작..");
-          startProcess()
+          startWrappedProcess()
             .catch((err) => {
               console.error(err);
               appendBurnerLog(
@@ -1254,6 +1265,20 @@ GM_addStyle(`
       });
   }
 
+  /**
+   *
+   * @returns {Promise<boolean>}
+   */
+  async function startWrappedProcess() {
+    try {
+      return await startProcess();
+    } catch (e) {
+      appendBurnerLog("알 수 없는 오류가 발생하였습니다.");
+      appendBurnerLog(e.toString());
+      console.error(e);
+      return false;
+    }
+  }
   /**
    *
    * @returns {Promise<boolean>}
@@ -1319,7 +1344,7 @@ GM_addStyle(`
     let message = JSON.stringify(messageStructure);
     appendBurnerLog("메시지 구축 완료. 최종 메시지 " + message.length + "자");
     appendBurnerLog(
-      "선택한 모델 " + lastSelectedModel.display + "에 요청을 시작합니다."
+      "선택한 모델 " + lastSelectedModel?.display + "에 요청을 시작합니다."
     );
     while (true) {
       const result = await lastSelectedModel.requester.doRequest(
