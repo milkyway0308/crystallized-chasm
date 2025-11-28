@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        BabeChat / Chasm Crystallized Ignitor (베이비챗 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     BABE-IGNT-v1.3.2p
+// @version     BABE-IGNT-v1.3.2.1p
 // @description 캐즘 버너 및 애프터버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://babechat.ai/*
@@ -2373,8 +2373,13 @@ GM_addStyle(`
             return new Error(JSON.stringify(result.messages));
           }
           if (result.messages.length <= 0) {
-            currentOffset = currentOffset + 20;
-            continue;
+            // All item fetched, stop re-fetch
+            if (currentOffset + 20 >= (result.count ?? 0)) {
+              break;
+            } else {
+              currentOffset = currentOffset + 20;
+              continue;
+            }
           }
           for (const item of result.messages) {
             if (ids.includes(item.id)) continue;
