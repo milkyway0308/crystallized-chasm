@@ -209,7 +209,28 @@
     );
   }
 
+  /**
+   * 현재 URL이 스토리챗의 URL인지 반환합니다.
+   * @returns 채팅 URL 일치 여부
+   */
+  function isStoryPath() {
+    // 2025-09-17 Path
+    return (
+      /\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname) ||
+      // Legacy Path
+      /\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)
+    );
+  }
+
+  /**
+   * 현재 URL이 캐릭터챗의 URL인지 반환합니다.
+   * @returns 채팅 URL 일치 여부
+   */
+  function isCharacterPath() {
+    return /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname);
+  }
   async function check() {
+    if (!isStoryPath() && !isCharacterPath()) return;
     const split = window.location.pathname.substring(1).split("/");
     const chatRoomId = split[3];
     const url = `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatRoomId}/summaries?limit=1`;
