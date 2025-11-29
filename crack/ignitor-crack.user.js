@@ -2444,11 +2444,11 @@ GM_addStyle(`
             return;
           }
           socket = io(
-            "wss://contents-api.wrtn.ai/v3/chats?EIO=4&transport=websocket",
+            "https://contents-api.wrtn.ai/v3/chats",
             {
-              reconnectionDelayMax: 10000,
+              reconnectionDelayMax: 1000,
               transports: ["websocket"],
-              path: "/v3/chats",
+              path: "/character-chat/socket.io",
               auth: {
                 token: extractCookie("access_token"),
                 refreshToken: extractCookie("refresh_token"),
