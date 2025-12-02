@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Crack Chasm Crystallized Ignitor (크랙 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRAK-IGNT-v1.4.2.2p
+// @version     CRAK-IGNT-v1.4.2.3p
 // @description 캐즘 버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다. **기존 캐즘 버너 및 결정화 캐즘 버너+와 호환되지 않습니다. 버너 모듈을 제거하고 사용하세요.**
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -1548,9 +1548,23 @@ GM_addStyle(`
                 new Promise(async (accept, reject) => {
                   try {
                     statusTextNode.textContent = "상태: 응답 전송중";
-                    const modifier = await sender.socketIoSend(
-                      settings.promptUserMessage
-                    );
+                    const modifier = await sender
+                      .send(settings.promptUserMessage)
+                      .catch((e) => {
+                        console.log("ERROR!");
+                        console.log(e);
+                      });
+                    console.log(modifier);
+                    if (modifier instanceof Error) {
+                      statusTextNode.textContent = "상태: 오류 발생";
+                      reject(
+                        Error(
+                          "메시지 전송에 수정에 실패하였습니다: " +
+                            modifyResult.message
+                        )
+                      );
+                      return;
+                    }
                     const modifyResult = await modifier(messageToSend);
                     if (modifyResult instanceof Error) {
                       reject(
@@ -1559,22 +1573,19 @@ GM_addStyle(`
                             modifyResult.message
                         )
                       );
+                      return;
                     }
                     statusTextNode.textContent =
                       "전송 완료! 페이지를 새로 고쳐 결과를 확인하세요.";
                     accept();
                   } catch (error) {
+                    console.log("Error occured");
+                    statusTextNode.textContent = "상태: 오류 발생";
                     reject(error);
                   }
-                })
-                  .catch((error) => {
-                    console.error(error);
-                    statusTextNode.textContent =
-                      "채팅 전송 종 오류가 발생하였습니다. 오류 내용은 콘솔을 확인하세요.";
-                  })
-                  .finally(() => {
-                    node.setAttribute("disabled", "false");
-                  });
+                }).finally(() => {
+                  node.setAttribute("disabled", "false");
+                });
               },
             })
             .addButton("chasm-ignt-delete-current", "결과 삭제", {
@@ -2430,119 +2441,206 @@ GM_addStyle(`
       return rawMessage[0]._id;
     }
 
-    async socketIoSend(message) {
-      const promise = new Promise(async (resolve, reject) => {
-        let socket;
-        try {
-          const modelChangeResult = await authFetch(
-            "PATCH",
-            `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatRoomId}`,
-            { crackerModel: "normalchat" }
-          );
-          if (modelChangeResult instanceof Error) {
-            reject(new Error("크래커 모델 변경에 실패하였습니다."));
+    // async socketIoSend(message) {
+    //   const promise = new Promise(async (resolve, reject) => {
+    //     let socket;
+    //     try {
+    //       const modelChangeResult = await authFetch(
+    //         "PATCH",
+    //         `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatRoomId}`,
+    //         { crackerModel: "normalchat" }
+    //       );
+    //       if (modelChangeResult instanceof Error) {
+    //         reject(new Error("크래커 모델 변경에 실패하였습니다."));
+    //         return;
+    //       }
+    //       socket = io("https://contents-api.wrtn.ai/v3/chats", {
+    //         reconnectionDelayMax: 1000,
+    //         transports: ["websocket"],
+    //         path: "/character-chat/socket.io",
+    //         auth: {
+    //           token: extractCookie("access_token"),
+    //           refreshToken: extractCookie("refresh_token"),
+    //           platform: "web",
+    //         },
+    //       });
+    //       socket.on("connectServer", () => {
+    //         socket.emit(
+    //           "enter",
+    //           { chatId: this.chatRoomId },
+    //           async (response) => {
+    //             if (response.result !== "success") {
+    //               reject(new Error("Socket.io 방 입장 감지에 실패하였습니다."));
+    //               socket.close();
+    //               return;
+    //             }
+    //             const id = await this.fetchLastMessageId();
+    //             if (id instanceof Error) {
+    //               reject(id);
+    //               socket.close();
+    //               return;
+    //             }
+    //             socket.emit(
+    //               "send",
+    //               {
+    //                 chatId: this.chatRoomId,
+    //                 message: message,
+    //                 prevMessageId: id,
+    //               },
+    //               async (sendResponse) => {
+    //                 if (sendResponse.result === "success") {
+    //                   const resolver = (response) => {
+    //                     if (response.result === "success") {
+    //                       resolve(async (message) => {
+    //                         const resultId = await this.fetchLastMessageId();
+    //                         if (resultId instanceof Error) {
+    //                           reject(
+    //                             new Error(
+    //                               "최종 메시지 가져오기에 실패하였습니다."
+    //                             )
+    //                           );
+    //                           return;
+    //                         }
+    //                         const url = `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatRoomId}/messages/${resultId}`;
+    //                         const result = await authFetch("PATCH", url, {
+    //                           message: message,
+    //                         });
+    //                         if (result.result === "SUCCESS") {
+    //                           return true;
+    //                         } else {
+    //                           return new Error(JSON.stringify(result));
+    //                         }
+    //                       });
+    //                     } else {
+    //                       reject(
+    //                         new Error(
+    //                           "socket.io 통신에 실패하였습니다. (" +
+    //                             JSON.stringify(resolve) +
+    //                             ")"
+    //                         )
+    //                       );
+    //                     }
+    //                     socket.close();
+    //                   };
+    //                   socket.on("characterMessageGenerated", (response) => {
+    //                     resolver(response);
+    //                   });
+    //                   // socket.on("parameterLoading", () => {
+    //                   //   console.log("Message parameter generated");
+    //                   //   resolver();
+    //                   // });
+    //                 } else {
+    //                   reject("socket.io 메시지 전송에 실패하였습니다.");
+    //                 }
+    //               }
+    //             );
+    //           }
+    //         );
+    //       });
+    //     } catch (e) {
+    //       console.error(e);
+    //       reject(e);
+    //       socket?.close();
+    //     }
+    //   });
+    //   return await promise;
+    // }
+
+    async send(message) {
+      const connection = await this.#openConnection();
+      try {
+        await this.#emitRoomEnter(connection);
+        const id = await this.fetchLastMessageId();
+        if (id instanceof Error) {
+          throw id;
+        }
+        return await this.#emitUserMessage(connection, message, id);
+      } catch (e) {
+        return e;
+      } finally {
+        connection.close();
+      }
+    }
+
+    async #emitUserMessage(socket, message, id) {
+      return await new Promise(async (resolve, reject) => {
+        socket.emit(
+          "send",
+          {
+            chatId: this.chatRoomId,
+            message: message,
+            prevMessageId: id,
+          },
+          async (sendResponse) => {
+            if (sendResponse.result === "success") {
+              socket.on("characterMessageGenerated", async (response) => {
+                await this.#handleMessage(response, resolve, reject);
+              });
+            } else {
+              reject("socket.io 메시지 전송에 실패하였습니다.");
+            }
+          }
+        );
+      });
+    }
+
+    async #handleMessage(response, resolve, reject) {
+      if (response.result === "success") {
+        resolve(async (message) => {
+          const resultId = await this.fetchLastMessageId();
+          if (resultId instanceof Error) {
+            reject(new Error("최종 메시지 가져오기에 실패하였습니다."));
             return;
           }
-          socket = io(
-            "https://contents-api.wrtn.ai/v3/chats",
-            {
-              reconnectionDelayMax: 1000,
-              transports: ["websocket"],
-              path: "/character-chat/socket.io",
-              auth: {
-                token: extractCookie("access_token"),
-                refreshToken: extractCookie("refresh_token"),
-                platform: "web",
-              },
-            }
-          );
-          socket.on("connectServer", () => {
-            socket.emit(
-              "enter",
-              { chatId: this.chatRoomId },
-              async (response) => {
-                if (response.result !== "success") {
-                  reject(new Error("Socket.io 방 입장 감지에 실패하였습니다."));
-                  socket.close();
-                  return;
-                }
-                const id = await this.fetchLastMessageId();
-                if (id instanceof Error) {
-                  reject(id);
-                  socket.close();
-                  return;
-                }
-                socket.emit(
-                  "send",
-                  {
-                    chatId: this.chatRoomId,
-                    message: message,
-                    prevMessageId: id,
-                  },
-                  async (sendResponse) => {
-                    if (sendResponse.result === "success") {
-                      const resolver = (response) => {
-                        if (response.result === "success") {
-                          resolve(async (message) => {
-                            const resultId = await this.fetchLastMessageId();
-                            if (resultId instanceof Error) {
-                              reject(
-                                new Error(
-                                  "최종 메시지 가져오기에 실패하였습니다."
-                                )
-                              );
-                              return;
-                            }
-                            const url = `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatRoomId}/messages/${resultId}`;
-                            const result = await authFetch("PATCH", url, {
-                              message: message,
-                            });
-                            if (result.result === "SUCCESS") {
-                              return true;
-                            } else {
-                              return new Error(JSON.stringify(result));
-                            }
-                          });
-                        } else {
-                          reject(
-                            new Error(
-                              "socket.io 통신에 실패하였습니다. (" +
-                                JSON.stringify(resolve) +
-                                ")"
-                            )
-                          );
-                        }
-                        socket.close();
-                      };
-                      socket.on("characterMessageGenerated", (response) => {
-                        resolver(response);
-                      });
-                      // socket.on("parameterLoading", () => {
-                      //   console.log("Message parameter generated");
-                      //   resolver();
-                      // });
-                    } else {
-                      reject("socket.io 메시지 전송에 실패하였습니다.");
-                    }
-                  }
-                );
-              }
-            );
+          const url = `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatRoomId}/messages/${resultId}`;
+          const result = await authFetch("PATCH", url, {
+            message: message,
           });
-        } catch (e) {
-          console.error(e);
-          reject(e);
-          socket?.close();
-        }
+          if (result.result === "SUCCESS") {
+            return true;
+          } else {
+            return new Error(JSON.stringify(result));
+          }
+        });
+      } else {
+        reject(
+          new Error(
+            "socket.io 통신에 실패하였습니다. (" + JSON.stringify(resolve) + ")"
+          )
+        );
+      }
+    }
+
+    async #emitRoomEnter(socket) {
+      await new Promise(async (resolve, reject) => {
+        socket.emit("enter", { chatId: this.chatRoomId }, async (response) => {
+          if (response.result !== "success") {
+            reject(new Error("socket.io 방 입장 감지에 실패하였습니다."));
+            return;
+          }
+          resolve();
+        });
       });
-      return await promise;
+    }
+
+    async #openConnection() {
+      return io("https://contents-api.wrtn.ai/v3/chats", {
+        reconnectionDelayMax: 1000,
+        transports: ["websocket"],
+        path: "/character-chat/socket.io",
+        auth: {
+          token: extractCookie("access_token"),
+          refreshToken: extractCookie("refresh_token"),
+          platform: "web",
+        },
+      });
     }
 
     /**
      *
      * @param {string} message
      */
-    async send(message) {
+    async sendLegacy(message) {
       const url = `https://contents-api.wrtn.ai/character-chat/characters/chat/${this.chatRoomId}/message`;
       const sendResult = await authFetch("POST", url, {
         message: message,
