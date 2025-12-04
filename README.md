@@ -134,7 +134,7 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 
 결정화 캐즘 절대영도는 랭킹 화면에서의 GIF / WEBP 재생을 중지하고, 호버하는 대상에만 적용시킵니다.<br>
 
-## 결정화 캐즘 - 국소지진계 (v1.0.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/local-seismometer.user.js) ]<br>
+## 결정화 캐즘 - 국소지진계 (v1.0.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/local-seismometer.user.js) ]<br>
 
 결정화 캐즘 국소지진계는 요약 메모리의 변경을 감지하고 알립니다. <br>
 
