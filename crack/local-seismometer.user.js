@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized Local Sesimometer (캐즘 국소지진계)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-LSEM-v1.0.0
+// @version      CRYS-LSEM-v1.0.1
 // @description  요약 메모리가 변경될 때 마다 알림 전송. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
@@ -209,7 +209,28 @@
     );
   }
 
+  /**
+   * 현재 URL이 스토리챗의 URL인지 반환합니다.
+   * @returns 채팅 URL 일치 여부
+   */
+  function isStoryPath() {
+    // 2025-09-17 Path
+    return (
+      /\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname) ||
+      // Legacy Path
+      /\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)
+    );
+  }
+
+  /**
+   * 현재 URL이 캐릭터챗의 URL인지 반환합니다.
+   * @returns 채팅 URL 일치 여부
+   */
+  function isCharacterPath() {
+    return /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname);
+  }
   async function check() {
+    if (!isStoryPath() && !isCharacterPath()) return;
     const split = window.location.pathname.substring(1).split("/");
     const chatRoomId = split[3];
     const url = `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatRoomId}/summaries?limit=1`;
