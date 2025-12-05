@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Alternation (결정화 캐즘 차원이동)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-ALTR-v1.4.3
+// @version     CRYS-ALTR-v1.4.4
 // @description 채팅 로그 복사 및 새 채팅방으로 포크. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -29,6 +29,9 @@ if (!document.chasmApi) {
   document.chasmApi = {};
 }
 !(async function () {
+  const { io } = await import(
+    "https://cdn.socket.io/4.8.1/socket.io.esm.min.js"
+  );
   // =====================================================
   //                      설정
   // =====================================================
@@ -69,7 +72,8 @@ if (!document.chasmApi) {
      * @param {boolean} isUser
      * @param {string} message
      */
-    constructor(isUser, message) {
+    constructor(origin, isUser, message) {
+      this.origin = origin;
       this.isUser = isUser;
       this.message = message;
     }
@@ -189,8 +193,9 @@ if (!document.chasmApi) {
       if (result.ok) {
         const json = await result.json();
         for (let message of json.data.list) {
+          if ((message.content?.length ?? 0) === 0) continue;
           chats.unshift(
-            new ChattingLog(message.role === "user", message.content)
+            new ChattingLog(message, message.role === "user", message.content)
           );
           if (maxGathering !== 0 && chats.length >= maxGathering) {
             break;
@@ -229,6 +234,7 @@ if (!document.chasmApi) {
       );
       if (result.ok) {
         const json = await result.json();
+
         const chat = json.data.list[userMessage ? 1 : 0];
         return chat._id;
       }
@@ -245,7 +251,7 @@ if (!document.chasmApi) {
    * @param {string} chatting
    * @returns {Promise<string|undefined>} 방 ID 혹은 undefined
    */
-  async function emitUserMessage(roomId, chatting) {
+  async function emitUserMessageLegacy(roomId, chatting) {
     const result = await fetch(
       `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message?platform=web&user=&model=SONNET`,
       {
@@ -268,6 +274,109 @@ if (!document.chasmApi) {
       return json.data;
     }
     return undefined;
+  }
+
+  async function fetchLastMessageId(chatRoomId) {
+    const url = `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatRoomId}/messages?limit=1`;
+    const result = await authFetch("GET", url);
+    if (result instanceof Error) {
+      return result;
+    }
+    const rawMessage = result.data?.list ?? result.data.messages;
+    if (!rawMessage || rawMessage.length <= 0) {
+      return new Error("메시지를 가져오는데에 실패하였습니다.");
+    }
+    return rawMessage[0]._id;
+  }
+
+  async function send(chatRoomId, message) {
+    const connection = await openConnection();
+    try {
+      await emitRoomEnter(connection, chatRoomId);
+      const id = await fetchLastMessageId(chatRoomId);
+      if (id instanceof Error) {
+        throw id;
+      }
+      return await emitUserMessage(connection, chatRoomId, message, id);
+    } catch (e) {
+      return e;
+    } finally {
+      connection.close();
+    }
+  }
+
+  async function emitUserMessage(socket, chatRoomId, message, id) {
+    return await new Promise(async (resolve, reject) => {
+      socket.emit(
+        "send",
+        {
+          chatId: chatRoomId,
+          message: message,
+          prevMessageId: id,
+        },
+        async (sendResponse) => {
+          if (sendResponse.result === "success") {
+            socket.on("characterMessageGenerated", async (response) => {
+              await handleMessage(chatRoomId, response, resolve, reject);
+            });
+          } else {
+            reject("socket.io 메시지 전송에 실패하였습니다.");
+          }
+        }
+      );
+    });
+  }
+
+  async function handleMessage(chatRoomId, response, resolve, reject) {
+    if (response.result === "success") {
+      resolve(async (message) => {
+        const resultId = await fetchLastMessageId(chatRoomId);
+        if (resultId instanceof Error) {
+          reject(new Error("최종 메시지 가져오기에 실패하였습니다."));
+          return;
+        }
+        const url = `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatRoomId}/messages/${resultId}`;
+        const result = await authFetch("PATCH", url, {
+          message: message,
+        });
+        if (result.result === "SUCCESS") {
+          return true;
+        } else {
+          return new Error(JSON.stringify(result));
+        }
+      });
+    } else {
+      reject(
+        new Error(
+          "socket.io 통신에 실패하였습니다. (" + JSON.stringify(resolve) + ")"
+        )
+      );
+    }
+  }
+
+  async function emitRoomEnter(socket, chatRoomId) {
+    await new Promise(async (resolve, reject) => {
+      socket.emit("enter", { chatId: chatRoomId }, async (response) => {
+        if (response.result !== "success") {
+          reject(new Error("socket.io 방 입장 감지에 실패하였습니다."));
+          return;
+        }
+        resolve();
+      });
+    });
+  }
+
+  async function openConnection() {
+    return io("https://contents-api.wrtn.ai/v3/chats", {
+      reconnectionDelayMax: 1000,
+      transports: ["websocket"],
+      path: "/character-chat/socket.io",
+      auth: {
+        token: extractCookie("access_token"),
+        refreshToken: extractCookie("refresh_token"),
+        platform: "web",
+      },
+    });
   }
 
   /**
@@ -295,7 +404,7 @@ if (!document.chasmApi) {
   async function injectChat(roomId, chattings) {
     log("채팅방에 메시지 " + chattings.length + "개 설정 시작");
     let errorCount = 0;
-    let messageId = undefined;
+    let modifyAction = undefined;
     let skipped = false;
     let targetTempMessage = undefined;
     let finalizeAction = undefined;
@@ -305,7 +414,7 @@ if (!document.chasmApi) {
       document.getElementsByClassName(
         "chasm-altr-description"
       )[0].textContent = `프롬프트 설정 (${++count} / ${chattings.length})`;
-      if (!skipped && !message.isUser && messageId === undefined) {
+      if (!skipped && !message.isUser && modifyAction === undefined) {
         log("첫 메시지 무시됨 (초기에 어시스턴트 메시지 설정 불가)");
         // Skip, first message must be user message
         skipped = true;
@@ -322,15 +431,15 @@ if (!document.chasmApi) {
         // If message id is undefined, maybe assistant generated more content
         // But we don't have stable way to generate assistant message, so go through detour with user message
         // User message and assistant generated message will share same logic but with empty message
-        if (message.isUser || messageId === undefined) {
-          if (messageId) {
+        if (message.isUser || modifyAction === undefined) {
+          if (modifyAction) {
             // TODO: Add failsafe to delete user message
             const messageToDelete = await fetchLastChatID(roomId, false);
             if (messageToDelete) {
               await deleteMessage(roomId, messageToDelete);
             }
           }
-          const result = await emitUserMessage(
+          const result = await send(
             roomId,
             message.isUser
               ? settings.useTemporaryUserPrompt
@@ -340,33 +449,34 @@ if (!document.chasmApi) {
               ? settings.userTemporaryPrompt
               : "<PLACEHOLDER>"
           );
-          // If result is OK,
-          if (result) {
-            messageId = result;
+          if (result instanceof Error) {
+            throw result;
+          } else if (result) {
+            // If result is OK,
+            modifyAction = result;
             targetTempMessage = undefined;
             phase = 1;
-            if (finalizeAction) {
-              // If finalizeAction exists, previous message is user message - so we have to re-patch it.
-              // TODO: Required fixing due to poor optimization (double request when continuous user message)
-              await finalizeAction();
-              finalizeAction = undefined;
-            }
+            // if (finalizeAction) {
+            //   // If finalizeAction exists, previous message is user message - so we have to re-patch it.
+            //   // TODO: Required fixing due to poor optimization (double request when continuous user message)
+            //   await finalizeAction();
+            //   finalizeAction = undefined;
+            // }
             if (settings.useTemporaryUserPrompt) {
               const lastUserMessageId = await fetchLastChatID(roomId, true);
-              finalizeAction = async () => {
-                // If user setting using temporary message, we have to overwrite it.
-                // emitUserMessage always returns "next chat id"
-                // so we have to get previous message
-                // Let's change to origin message
-                await fetchWithToken(
-                  `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${lastUserMessageId}`,
-                  "PATCH",
-                  {
-                    message: message.message,
-                  },
-                  "application/json"
-                );
-              };
+              // If user setting using temporary message, we have to overwrite it.
+              // emitUserMessage always returns "next chat id"
+              // so we have to get previous message
+              // Let's change to origin message
+
+              await new Promise((resolve) => setTimeout(resolve, 2000));
+              const result = await authFetch(
+                "PATCH",
+                `https://contents-api.wrtn.ai/character-chat/v3/chats/${roomId}/messages/${lastUserMessageId}`,
+                {
+                  message: message.message,
+                }
+              );
             }
           } else {
             continue;
@@ -386,57 +496,60 @@ if (!document.chasmApi) {
         }
 
         if (!message.isUser) {
-          if (phase < 2) {
+          // if (phase < 2) {
+          //   updateDescription(
+          //     `패치 (${count} / ${chattings.length} | 페이즈 1)`
+          //   );
+          //   // Phase 1 - Append message text
+          //   const result = await fetchWithToken(
+          //     `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}/result`,
+          //     "GET"
+          //   );
+          //   if (result.ok) {
+          //     phase = 2;
+          //   }
+          // }
+          // if (phase === 2) {
+          //   updateDescription(
+          //     `패치 (${count} / ${chattings.length} | 페이즈 2)`
+          //   );
+          //   // Phase 2 - Consume event stream
+          //   const result = await fetchWithToken(
+          //     `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}?model=SONNET&platform=web&user=`,
+          //     "GET"
+          //   );
+          //   const reader = result.body.getReader();
+          //   while (true) {
+          //     const { value, done } = await reader.read();
+          //     if (done) break;
+          //   }
+          //   if (finalizeAction) {
+          //     await finalizeAction();
+          //     finalizeAction = undefined;
+          //   }
+          //   phase = 3;
+          // }
+          if (phase === 1) {
             updateDescription(
               `패치 (${count} / ${chattings.length} | 페이즈 1)`
             );
-            // Phase 1 - Append message text
-            const result = await fetchWithToken(
-              `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}/result`,
-              "GET"
-            );
-            if (result.ok) {
-              phase = 2;
-            }
-          }
-          if (phase === 2) {
-            updateDescription(
-              `패치 (${count} / ${chattings.length} | 페이즈 2)`
-            );
-            // Phase 2 - Consume event stream
-            const result = await fetchWithToken(
-              `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}?model=SONNET&platform=web&user=`,
-              "GET"
-            );
-            const reader = result.body.getReader();
-            while (true) {
-              const { value, done } = await reader.read();
-              if (done) break;
-            }
-            if (finalizeAction) {
-              await finalizeAction();
-              finalizeAction = undefined;
-            }
-            phase = 3;
-          }
-          if (phase === 3) {
-            updateDescription(
-              `패치 (${count} / ${chattings.length} | 페이즈 3)`
-            );
             // Phase 3 - Patch stream text
-            const result = await fetchWithToken(
-              `https://contents-api.wrtn.ai/character-chat/characters/chat/${roomId}/message/${messageId}`,
-              "PATCH",
-              {
-                message: message.message,
-              },
-              "application/json"
-            );
-            if (result.ok) {
+            // const result = await fetchWithToken(
+            //   `https://contents-api.wrtn.ai/character-chat/v3/chats/${roomId}/message/${modifyAction}`,
+            //   "PATCH",
+            //   {
+            //     message: message.message,
+            //   },
+            //   "application/json"
+            // );
+            const result = await modifyAction(message.message);
+            if (result instanceof Error) {
+              console.log(result);
+            } else {
               if (targetTempMessage) {
-                phase = 4;
+                phase = 2;
               } else {
-                messageId = undefined;
+                modifyAction = undefined;
                 await new Promise((resolve) =>
                   setTimeout(resolve, 10 * errorCount)
                 );
@@ -444,13 +557,13 @@ if (!document.chasmApi) {
               }
             }
           }
-          if (phase === 4) {
+          if (phase === 2) {
             updateDescription(
-              `패치 (${count} / ${chattings.length} | 페이즈 4)`
+              `패치 (${count} / ${chattings.length} | 페이즈 2)`
             );
             // Phase 4 - Delete origin if required
             if (await deleteMessage(roomId, targetTempMessage)) {
-              messageId = undefined;
+              modifyAction = undefined;
               targetTempMessage = undefined;
               await new Promise((resolve) =>
                 setTimeout(resolve, 10 * errorCount)
@@ -468,7 +581,7 @@ if (!document.chasmApi) {
       }
     }
     // Final check - If messageId is set, last message is empty
-    if (messageId) {
+    if (modifyAction) {
       const messageToDelete = await fetchLastChatID(roomId, false);
       if (messageToDelete) {
         await deleteMessage(roomId, messageToDelete);
@@ -662,6 +775,15 @@ if (!document.chasmApi) {
       contentsType
     );
   }
+
+  function extractCookie(key) {
+    const e = document.cookie.match(
+      new RegExp(
+        `(?:^|; )${key.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1")}=([^;]*)`
+      )
+    );
+    return e ? decodeURIComponent(e[1]) : null;
+  }
   // =================================================
   //                     유틸리티
   // =================================================
@@ -700,6 +822,38 @@ if (!document.chasmApi) {
         subtree: true,
         attributes: true,
       });
+    }
+  }
+
+  /**
+   * 크랙의 토큰을 인증 수단으로 사용하여 요청을 보냅니다.
+   * @param {string} method 요청 메서드
+   * @param {string} url 요청 URL
+   * @param {any | undefined} body 요청 바디 파라미터
+   * @returns {any | Error} 파싱된 값 혹은 오류
+   */
+  async function authFetch(method, url, body) {
+    try {
+      const param = {
+        method: method,
+        headers: {
+          Authorization: `Bearer ${extractAccessToken()}`,
+          "Content-Type": "application/json",
+          "accept": "application/json",
+
+        },
+      };
+      if (body) {
+        param.body = JSON.stringify(body);
+      }
+      const result = await fetch(url, param);
+      if (!result.ok)
+        return new Error(
+          `HTTP 요청 실패 (${result.status}) [${await result.json()}]`
+        );
+      return await result.json();
+    } catch (t) {
+      return new Error(`알 수 없는 오류 (${t.message ?? JSON.stringify(t)})`);
     }
   }
 
