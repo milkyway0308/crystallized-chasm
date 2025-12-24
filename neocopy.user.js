@@ -10,7 +10,7 @@
 // @grant       GM_addStyle
 // ==/UserScript==
 
-const VERSION = "CRCK-NCPY-v2.2.2";
+const VERSION = "CRCK-NCPY-v2.2.4";
 GM_addStyle(`
   #chasm-copy-dropdown-container {
     display: flex;

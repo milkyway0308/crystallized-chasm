@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        BabeChat Chasm Crystallized Whiteout (결정화 캐즘 백시현상)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     BABE-WHOU-v1.0.3
+// @version     BABE-WHOU-v1.0.4
 // @description 화이트 모드 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://babechat.ai/*
@@ -63,6 +63,17 @@ GM_addStyle(`
         --chasm-whiteout-text-highlight: #e46dc0;
         --chasm-whiteout-button-hover: #c9c9c9;
         --chasm-whiteout-text-subject: #3a3a3a;
+    }
+
+    .bg-brand-secondary {
+      background-color: var(--chasm-whiteout-rose-color);
+    }
+    .text-content-primary {
+      color: var(--chasm-whiteout-text-color);
+    }
+    
+    .bg-level0-normal {
+      background-color: var(--chasm-whiteout-background);
     }
 
     .text-\\[\\#FFF\\] {
@@ -358,14 +369,6 @@ GM_addStyle(`
       image.setAttribute("fill", "var(--chasm-whiteout-color)");
       image.classList.add("chasm-whiteout-svg");
     }
-  }
-
-  function applyBodyChange() {
-    console.log(document.body.style.background);
-    if (document.body.style.background != "#1c1c1c") return;
-    console.log("Updated");
-    document.body.style.background = "var(--chasm-whiteout-background);";
-    document.body.style.color = "var(--chasm-whiteout-color);";
   }
 
   function prepare() {
