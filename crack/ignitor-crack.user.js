@@ -2723,7 +2723,7 @@ GM_addStyle(`
     async getRepresentivePersona() {
       const userIdFetch = await authFetch(
         "GET",
-        "https://contents-api.wrtn.ai/character/character-profiles"
+        "https://crack-api.wrtn.ai/crack-api/profiles"
       );
       if (userIdFetch instanceof Error) {
         return userIdFetch;
@@ -2732,25 +2732,18 @@ GM_addStyle(`
       if (!wrtnId) {
         return new Error("Wrtn UID not found");
       }
-      const idFetch = await authFetch(
-        "GET",
-        `https://contents-api.wrtn.ai/character/character-profiles/` + wrtnId
-      );
-      if (idFetch instanceof Error) {
-        return idFetch;
-      }
-      const userId = idFetch.data?._id;
+      const userId = userIdFetch.data?._id;
       if (!userId) {
         return new Error("User ID not found");
       }
       const personaFetch = await authFetch(
         "GET",
-        `https://contents-api.wrtn.ai/character/character-profiles/${userId}/character-chat-profiles`
+        `https://crack-api.wrtn.ai/crack-api/profiles/${userId}/chat-profiles`
       );
       if (personaFetch instanceof Error) {
         return personaFetch;
       }
-      const personaResult = personaFetch.data?.characterChatProfiles;
+      const personaResult = personaFetch.data?.chatProfiles;
       if (!personaResult) {
         return new Error("Persona list not found");
       }
