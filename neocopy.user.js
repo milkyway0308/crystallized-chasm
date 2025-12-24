@@ -5,15 +5,15 @@
 // @description 크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
-// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/neocopy.user.js
-// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/neocopy.user.js
+// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/copy.user.js
+// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/copy.user.js
 // @grant       GM_addStyle
 // ==/UserScript==
 
 const VERSION = "CRCK-NCPY-v2.2.4";
 GM_addStyle(`
-  #chasm-copy-dropdown-container { 
-    display: flex; 
+  #chasm-copy-dropdown-container {
+    display: flex;
     flex-direction: row;
     min-width: 98px;
     background-color: var(--bg_screen);
@@ -22,29 +22,29 @@ GM_addStyle(`
     border-bottom: 1px solid var(--surface_chat_primary);
     padding: 0px 0px; border-radius: 1px;
     box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px;
-    z-index: 1001 !important; 
-    position: fixed !important; 
+    z-index: 1001 !important;
+    position: fixed !important;
     pointer-events: all !important;
   }
-  #chasm-copy-dropdowns { 
-    display: flex; 
-    flex-direction: column; 
-    width: calc(100% - 2px); 
-    height: 100%; 
+  #chasm-copy-dropdowns {
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - 2px);
+    height: 100%;
     z-index: 11 !important;
   }
-  
-  #chasm-copy-partial-border { 
-    width: 1px; 
-    margin-top: 30px; 
-    height: calc(100% - 30px); 
-    background-color: var(--surface_chat_primary); 
+
+  #chasm-copy-partial-border {
+    width: 1px;
+    margin-top: 30px;
+    height: calc(100% - 30px);
+    background-color: var(--surface_chat_primary);
   }
 
-  [chasm-dropdown-enabled] { 
-    border-top: 1px solid var(--surface_chat_primary) !important; 
-    border-bottom: 1px solid var(--surface_chat_primary) !important; 
-    border-right: 1px solid var(--surface_chat_primary) !important; 
+  [chasm-dropdown-enabled] {
+    border-top: 1px solid var(--surface_chat_primary) !important;
+    border-bottom: 1px solid var(--surface_chat_primary) !important;
+    border-right: 1px solid var(--surface_chat_primary) !important;
   }
 
   .chasm-neocopy-button {
@@ -54,6 +54,7 @@ GM_addStyle(`
     color: var(--text_secondary);
     padding: 8px 14px;
     transition: all 0.3s;
+    user-select: none;
   }
 
   .chasm-neocopy-button:hover {
@@ -248,10 +249,13 @@ GM_addStyle(`
    * @returns {HTMLElement | undefined}
    */
   function acquireMenu() {
-    for (let node of document.querySelectorAll("div[data-radix-popper-content-wrapper]")) {
+    for (let node of document.querySelectorAll(
+      "div[data-radix-popper-content-wrapper]"
+    )) {
       if (node.getAttribute("data-radix-popper-content-wrapper") !== null) {
         return node;
       }
+      node = menu.iterateNext();
     }
     return undefined;
   }
@@ -317,6 +321,7 @@ GM_addStyle(`
                   alert(
                     "크랙의 UI 업데이트로 인해 ID 추출이 비활성화된 것으로 추측됩니다.\n결정화 캐즘 지원 채널에 해당 오류를 알려주세요."
                   );
+                  console.log(menu);
                   return;
                 }
                 document.currentArticleId = currentArticleId;
@@ -429,6 +434,7 @@ GM_addStyle(`
         ? reactProperty.children
         : [reactProperty.children];
       for (const child of propertyChilds) {
+        console.log(child?.props?.content);
         if (child?.props?.content?.sourceId) {
           return new ExtractedCharacterInfo(
             child.props.content.type,
@@ -663,9 +669,12 @@ GM_addStyle(`
     return {
       name: remote.name,
       // description: remote.description,
-      simpleDescription: remote.simpleDescription ?? "",
-      detailDescription: remote.detailDescription ?? remote.description,
-      profileImageUrl: remote.profileImage.origin,
+      description: remote.description ?? "Placeholder description",
+      simpleDescription:
+        remote.simpleDescription ?? "Placeholder simple description",
+      detailDescription:
+        remote.detailDescription ?? "Placeholder detail description",
+      profileImageUrl: remote.profileImage.origin ?? remote.profileImage,
       model: remote.model,
       initialMessages: remote.initialMessages,
       characterDetails: remote.characterDetails,
@@ -693,6 +702,10 @@ GM_addStyle(`
       isMovingImage: remote.isMovingImage ? remote.isMovingImage : false,
       chatType: remote.chatType ? remote.chatType : "simulation",
       genreId: remote.genreId ?? defaultGenReId,
+      chatModelId: remote.chatModelId,
+      promptTemplate:
+        remote.promptTemplate?.template ?? remote.promptTemplate ?? "default",
+      storyDetails: remote.storyDetails ?? "Placeholder story details",
     };
   }
 
@@ -780,7 +793,7 @@ GM_addStyle(`
       "GET",
       idData.isCharacter()
         ? `https://contents-api.wrtn.ai/character/single-characters/me/${idData.id}`
-        : `https://contents-api.wrtn.ai/character/characters/me/${idData.id}`
+        : `https://crack-api.wrtn.ai/crack-api/stories/me/${idData.id}`
     );
     if (result instanceof Error) {
       return result;
@@ -836,7 +849,7 @@ GM_addStyle(`
         __emptifyStory(defaultBaseId, remote, constructed);
         await authFetch(
           "PATCH",
-          `https://contents-api.wrtn.ai/character/characters/${id.id}`,
+          `https://crack-api.wrtn.ai/crack-api/stories/${id.id}`,
           constructed
         );
         return await this.setCharacter(id, remote, clipboard, false);
@@ -844,13 +857,13 @@ GM_addStyle(`
       __overwriteStorySetId(remote, constructed);
       return await authFetch(
         "PATCH",
-        `https://contents-api.wrtn.ai/character/characters/${id.id}`,
+        `https://crack-api.wrtn.ai/crack-api/stories/${id.id}`,
         constructed
       );
     } else {
       return await authFetch(
         "PUT",
-        `https://contents-api.wrtn.ai/character/single-characters/${id.id}`,
+        `https://crack-api.wrtn.ai/crack-api/stories/characters/${id.id}`,
         __constructCharacterFrom(id.id, clipboard, remote.visibility)
       );
     }
@@ -895,7 +908,7 @@ GM_addStyle(`
       __convertStoryPublishcation(origin, cloned);
       let result = await authFetch(
         "POST",
-        "https://contents-api.wrtn.ai/character/characters",
+        "https://crack-api.wrtn.ai/crack-api/stories/",
         cloned
       );
       if (result instanceof Error) {

@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Crack Chasm Crystallized Ignitor (크랙 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRAK-IGNT-v1.4.2
+// @version     CRAK-IGNT-v1.4.3
 // @description 캐즘 버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다. **기존 캐즘 버너 및 결정화 캐즘 버너+와 호환되지 않습니다. 버너 모듈을 제거하고 사용하세요.**
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -65,7 +65,7 @@ GM_addStyle(`
 
 !(async function () {
   const PLATFORM_SAVE_KEY = "chasm-ignt-settings";
-  const VERSION = "v1.4.2";
+  const VERSION = "v1.4.3";
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
   );
@@ -2441,22 +2441,44 @@ GM_addStyle(`
       return rawMessage[0]._id;
     }
 
+    async findCrackerModel(name) {
+      const request = await authFetch(
+        "GET",
+        "https://crack-api.wrtn.ai/crack-gen/v3/chat-models"
+      );
+      if (!request.data?.models)
+        return new Error("크래커 모델 목록 가져오기에 실패하였습니다.");
+      for (let item of request.data.models) {
+        if (item.name === name) {
+          return item._id;
+        }
+      }
+      return new Error(
+        "크래커 모델 목록에서 크래커 모델 '" + name + "'을 찾을 수 없습니다."
+      );
+    }
+
     async send(message) {
+      const normalChatModelId = await this.findCrackerModel("일반챗");
+      if (normalChatModelId instanceof Error) {
+        return normalChatModelId;
+      }
       const originModelRequest = await authFetch(
         "GET",
-        `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatRoomId}`
+        `https://crack-api.wrtn.ai/crack-gen/v3/chats/${this.chatRoomId}`
       );
       if (originModelRequest instanceof Error) {
         return new Error("크래커 모델 가져오기에 실패하였습니다.");
       }
-      const originModel = originModelRequest.data?.crackerModel;
+
+      const originModel = originModelRequest.data?.chatModelId;
       if (!originModel) {
         return new Error("크래커 모델 가져오기에 실패하였습니다.");
       }
       const modelChangeResult = await authFetch(
         "PATCH",
-        `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatRoomId}`,
-        { crackerModel: "normalchat" }
+        `https://crack-api.wrtn.ai/crack-gen/v3/chats/${this.chatRoomId}`,
+        { chatModelId: normalChatModelId }
       );
       if (modelChangeResult instanceof Error) {
         return new Error("크래커 모델 변경에 실패하였습니다.");
@@ -2475,8 +2497,8 @@ GM_addStyle(`
         connection.close();
         await authFetch(
           "PATCH",
-          `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatRoomId}`,
-          { crackerModel: originModel }
+          `https://crack-api.wrtn.ai/crack-gen/v3/chats/${this.chatRoomId}`,
+          { chatModelId: originModel }
         );
       }
     }
@@ -2723,7 +2745,7 @@ GM_addStyle(`
     async getRepresentivePersona() {
       const userIdFetch = await authFetch(
         "GET",
-        "https://contents-api.wrtn.ai/character/character-profiles"
+        "https://crack-api.wrtn.ai/crack-api/profiles"
       );
       if (userIdFetch instanceof Error) {
         return userIdFetch;
@@ -2732,25 +2754,18 @@ GM_addStyle(`
       if (!wrtnId) {
         return new Error("Wrtn UID not found");
       }
-      const idFetch = await authFetch(
-        "GET",
-        `https://contents-api.wrtn.ai/character/character-profiles/` + wrtnId
-      );
-      if (idFetch instanceof Error) {
-        return idFetch;
-      }
-      const userId = idFetch.data?._id;
+      const userId = userIdFetch.data?._id;
       if (!userId) {
         return new Error("User ID not found");
       }
       const personaFetch = await authFetch(
         "GET",
-        `https://contents-api.wrtn.ai/character/character-profiles/${userId}/character-chat-profiles`
+        `https://crack-api.wrtn.ai/crack-api/profiles/${userId}/chat-profiles`
       );
       if (personaFetch instanceof Error) {
         return personaFetch;
       }
-      const personaResult = personaFetch.data?.characterChatProfiles;
+      const personaResult = personaFetch.data?.chatProfiles;
       if (!personaResult) {
         return new Error("Persona list not found");
       }
