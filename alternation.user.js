@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Alternation (결정화 캐즘 차원이동)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-ALTR-v1.4.4
+// @version     CRYS-ALTR-v1.4.5p
 // @description 채팅 로그 복사 및 새 채팅방으로 포크. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -139,27 +139,23 @@ if (!document.chasmApi) {
    * @param {boolean} userNoteExtended 유저노트 확장 여부
    * @returns {Promise<string|undefined>} 캐릭터 ID 혹은 undefined
    */
-  async function createChat(unitId, baseSetId, userNote, userNoteExtended) {
+  async function createChat(
+    unitId,
+    baseSetId,
+    profileId,
+    userNote,
+    userNoteExtended
+  ) {
     const result = await fetch(
-      "https://contents-api.wrtn.ai/character-chat/chat",
+      `https://crack-api.wrtn.ai/crack-gen/v3/chats`,
       {
         method: "POST",
         body: JSON.stringify({
-          baseSetId: baseSetId,
+          isAutoRecommendUserNextMessage: false,
+          storyId: unitId,
           crackerModel: "normalchat",
-          maxOutputSetting: {
-            hyperchat: "default",
-            powerchat: "default",
-            powerchatPlus: "default",
-            superchat: "default",
-            superchatPlus: "default",
-          },
-          type: "character",
-          unitId: unitId,
-          userNote: {
-            content: userNote,
-            isExtend: userNoteExtended,
-          },
+          chatProfileId: profileId,
+          baseSetId: baseSetId,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -187,12 +183,12 @@ if (!document.chasmApi) {
     while (maxGathering === 0 || chats.length < maxGathering) {
       const nextUrl =
         cursor === undefined
-          ? `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${chatRoomId}/messages?limit=20`
-          : `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${chatRoomId}/messages?limit=20&cursorId=${cursor}`;
+          ? `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatRoomId}/messages?limit=20`
+          : `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatRoomId}/messages?limit=20&cursor=${cursor}`;
       const result = await fetchWithToken(nextUrl, "GET");
       if (result.ok) {
         const json = await result.json();
-        for (let message of json.data.list) {
+        for (let message of json.data.messages) {
           if ((message.content?.length ?? 0) === 0) continue;
           chats.unshift(
             new ChattingLog(message, message.role === "user", message.content)
@@ -229,13 +225,13 @@ if (!document.chasmApi) {
     let errorCount = 0;
     while (errorCount < 5) {
       const result = await fetchWithToken(
-        `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${chatRoomId}/messages?limit=20`,
+        `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatRoomId}/messages?limit=20`,
         "GET"
       );
       if (result.ok) {
         const json = await result.json();
 
-        const chat = json.data.list[userMessage ? 1 : 0];
+        const chat = json.data.messages[userMessage ? 1 : 0];
         return chat._id;
       }
       errorCount++;
@@ -602,7 +598,7 @@ if (!document.chasmApi) {
    */
   async function fetchRoomData(chatRoomId) {
     const result = await fetch(
-      `https://contents-api.wrtn.ai/character-chat/api/v2/chat-room/${chatRoomId}`,
+      `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatRoomId}`,
       {
         headers: {
           Authorization: `Bearer ${extractAccessToken()}`,
@@ -614,20 +610,16 @@ if (!document.chasmApi) {
       return undefined;
     }
     const jsonResult = (await result.json()).data;
-    if (jsonResult.character.userNote) {
+    const root = jsonResult.character ?? jsonResult.story;
+    if (root.userNote ?? root.userNote) {
       return new SimplifiedChatRoomData(
         chatRoomId,
-        jsonResult.character.baseSetId,
-        jsonResult.character.userNote.content,
-        jsonResult.character.userNote.isExtend
+        root.baseSetId,
+        root.userNote.content,
+        root.userNote.isExtend
       );
     }
-    return new SimplifiedChatRoomData(
-      chatRoomId,
-      jsonResult.character.baseSetId,
-      "",
-      false
-    );
+    return new SimplifiedChatRoomData(chatRoomId, root.baseSetId, "", false);
   }
   /**
    * 차원 이동을 수행합니다.
@@ -659,10 +651,12 @@ if (!document.chasmApi) {
         return;
       }
     }
+
     updateDescription("채팅 데이터 가져오는 중");
     const createdChatRoomId = await createChat(
       characterId,
       result.baseSetId,
+      await getRepresentivePersona(chatRoomId),
       settings.includeUserNotes ? result.userNote : "",
       settings.includeUserNotes ? result.userNote.length >= 1000 : false
     );
@@ -713,6 +707,53 @@ if (!document.chasmApi) {
   // =================================================
   //                  크랙 종속성 유틸리티
   // =================================================
+
+  async function getRepresentivePersona(chatId) {
+    const userIdFetch = await authFetch(
+      "GET",
+      "https://crack-api.wrtn.ai/crack-api/profiles"
+    );
+    if (userIdFetch instanceof Error) {
+      return userIdFetch;
+    }
+    const wrtnId = userIdFetch.data?.wrtnUid;
+    if (!wrtnId) {
+      return new Error("Wrtn UID not found");
+    }
+    const userId = userIdFetch.data?._id;
+    if (!userId) {
+      return new Error("User ID not found");
+    }
+    const personaFetch = await authFetch(
+      "GET",
+      `https://crack-api.wrtn.ai/crack-api/profiles/${userId}/chat-profiles`
+    );
+    if (personaFetch instanceof Error) {
+      return personaFetch;
+    }
+    const personaResult = personaFetch.data?.chatProfiles;
+    if (!personaResult) {
+      return new Error("Persona list not found");
+    }
+    const roomData = await authFetch(
+      "GET",
+      `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}`
+    );
+    if (!roomData) {
+      return new Error("Chatting room not found");
+    }
+    if (roomData.data?.chatProfile?._id) {
+      return roomData.data?.chatProfile?._id;
+    } else {
+      for (let data of personaResult) {
+        if (data.isRepresentative === true) {
+          return data._id;
+        }
+      }
+
+      return new Error("No active representive persona");
+    }
+  }
   /**
    * 현재 URL이 채팅방의 URL인지 반환합니다.
    * @returns 채팅 URL 일치 여부
@@ -839,8 +880,7 @@ if (!document.chasmApi) {
         headers: {
           Authorization: `Bearer ${extractAccessToken()}`,
           "Content-Type": "application/json",
-          "accept": "application/json",
-
+          accept: "application/json",
         },
       };
       if (body) {
