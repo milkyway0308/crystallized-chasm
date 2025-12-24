@@ -1,23 +1,69 @@
 // ==UserScript==
 // @name        Chasm Crystallized Neo-Copy (결정화 캐즘 네오-카피)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRCK-NCPY-v2.2.2
+// @version     CRCK-NCPY-v2.2.4p
 // @description 크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
-// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/neocopy.user.js
-// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/neocopy.user.js
+// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/copy.user.js
+// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/copy.user.js
 // @grant       GM_addStyle
 // ==/UserScript==
 
 const VERSION = "CRCK-NCPY-v2.2.2";
-GM_addStyle(
-  // Basic: 172px
-  "#chasm-copy-dropdown-container { display: flex; flex-direction: row; min-width: 98px; background-color: var(--bg_screen); border-left: 1px solid var(--surface_chat_primary); border-top: 1px solid var(--surface_chat_primary); border-bottom: 1px solid var(--surface_chat_primary); padding: 0px 0px; border-radius: 1px; box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px; z-index: 11 !important; position: fixed !important; }" +
-    "#chasm-copy-dropdowns { display: flex; flex-direction: column; width: calc(100% - 2px); height: 100%; z-index: 11 !important;}" +
-    "#chasm-copy-partial-border { width: 1px; margin-top: 30px; height: calc(100% - 30px); background-color: var(--surface_chat_primary); }" +
-    "[chasm-dropdown-enabled] { border-top: 1px solid var(--surface_chat_primary) !important; border-bottom: 1px solid var(--surface_chat_primary) !important; border-right: 1px solid var(--surface_chat_primary) !important; }"
-);
+GM_addStyle(`
+  #chasm-copy-dropdown-container {
+    display: flex;
+    flex-direction: row;
+    min-width: 98px;
+    background-color: var(--bg_screen);
+    border-left: 1px solid var(--surface_chat_primary);
+    border-top: 1px solid var(--surface_chat_primary);
+    border-bottom: 1px solid var(--surface_chat_primary);
+    padding: 0px 0px; border-radius: 1px;
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px;
+    z-index: 1001 !important;
+    position: fixed !important;
+    pointer-events: all !important;
+  }
+  #chasm-copy-dropdowns {
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - 2px);
+    height: 100%;
+    z-index: 11 !important;
+  }
+
+  #chasm-copy-partial-border {
+    width: 1px;
+    margin-top: 30px;
+    height: calc(100% - 30px);
+    background-color: var(--surface_chat_primary);
+  }
+
+  [chasm-dropdown-enabled] {
+    border-top: 1px solid var(--surface_chat_primary) !important;
+    border-bottom: 1px solid var(--surface_chat_primary) !important;
+    border-right: 1px solid var(--surface_chat_primary) !important;
+  }
+
+  .chasm-neocopy-button {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text_secondary);
+    padding: 8px 14px;
+    transition: all 0.3s;
+    user-select: none;
+  }
+
+  .chasm-neocopy-button:hover {
+    color: var(--text_primary);
+    background-color: var(--state_hober);
+    pointer: cursor;
+    transition: all 0.3s;
+  }
+  `);
 !(function () {
   const menuElementClass = "chasm-copy-menu";
   class ExtractedCharacterInfo {
@@ -203,11 +249,13 @@ GM_addStyle(
    * @returns {HTMLElement | undefined}
    */
   function acquireMenu() {
-    const menu = document.querySelectorAll(
-      isDarkMode() ? ".css-bf6s57" : ".css-10lwp0d"
-    );
-    if (menu && menu.length > 0) {
-      return menu[0];
+    for (let node of document.querySelectorAll(
+      "div[data-radix-popper-content-wrapper]"
+    )) {
+      if (node.getAttribute("data-radix-popper-content-wrapper") !== null) {
+        return node;
+      }
+      node = menu.iterateNext();
     }
     return undefined;
   }
@@ -231,7 +279,7 @@ GM_addStyle(
     const node = cloneButton(
       text,
       () => {
-        const currentArticleId = extractCurrentArticle(node);
+        const currentArticleId = extractArticle();
         if (!currentArticleId) {
           alert(
             "크랙의 UI 업데이트로 인해 ID 추출이 비활성화된 것으로 추측됩니다.\n결정화 캐즘 지원 채널에 해당 오류를 알려주세요."
@@ -241,10 +289,11 @@ GM_addStyle(
         document.currentArticleId = currentArticleId;
         onClick(currentArticleId);
       },
-      menu.childNodes[0].cloneNode(true)
+      menu.childNodes[0].childNodes[0].cloneNode(true)
     );
+    node.classList.add("chasm-neocopy-button");
     node.classList.add(menuElementClass);
-    menu.appendChild(node);
+    menu.childNodes[0].appendChild(node);
   }
 
   /**
@@ -267,11 +316,12 @@ GM_addStyle(
             const button = cloneButton(
               text,
               (event) => {
-                const currentArticleId = extractCurrentArticle(node);
+                const currentArticleId = extractArticle();
                 if (!currentArticleId) {
                   alert(
                     "크랙의 UI 업데이트로 인해 ID 추출이 비활성화된 것으로 추측됩니다.\n결정화 캐즘 지원 채널에 해당 오류를 알려주세요."
                   );
+                  console.log(menu);
                   return;
                 }
                 document.currentArticleId = currentArticleId;
@@ -284,17 +334,20 @@ GM_addStyle(
               event.preventDefault();
               event.stopPropagation();
             };
+
+            button.className = "chasm-neocopy-button";
             button.style.cssText = "z-index: 18 !important;";
             dropdown.append(button);
           });
           repositionDropdown(node);
         }
       },
-      menu.childNodes[0].cloneNode(true)
+      menu.childNodes[0].childNodes[0].cloneNode(true)
     );
 
+    node.classList.add("chasm-neocopy-button");
     node.classList.add(menuElementClass);
-    menu.appendChild(node);
+    menu.childNodes[0].appendChild(node);
   }
 
   /**
@@ -306,6 +359,10 @@ GM_addStyle(
     if (!element) {
       element = document.createElement("div");
       element.id = "chasm-copy-dropdown-container";
+      element.onclick = (event) => {
+        event.stopPropagation();
+        event.preventDefault();
+      };
       const dropdownElement = document.createElement("div");
       dropdownElement.id = "chasm-copy-dropdowns";
       element.append(dropdownElement);
@@ -367,18 +424,17 @@ GM_addStyle(
    */
   function extractCurrentArticle(element) {
     try {
-      const parentSector = element.parentElement?.parentElement;
-      if (!parentSector) return null;
-      const reactPropertyName = Object.keys(parentSector).find((t) =>
+      const reactPropertyName = Object.keys(element).find((t) =>
         t.startsWith("__reactProps")
       );
       if (!reactPropertyName) return null;
-      const reactProperty = parentSector[reactPropertyName];
+      const reactProperty = element[reactPropertyName];
       if (!reactProperty?.children) return null;
       const propertyChilds = Array.isArray(reactProperty.children)
         ? reactProperty.children
         : [reactProperty.children];
       for (const child of propertyChilds) {
+        console.log(child?.props?.content);
         if (child?.props?.content?.sourceId) {
           return new ExtractedCharacterInfo(
             child.props.content.type,
@@ -401,11 +457,10 @@ GM_addStyle(
    */
   function cloneButton(textContent, clickListener, origin) {
     const cloned = origin.cloneNode(true);
-    const buttonNode = document.createElement("button");
+    const buttonNode = document.createElement("div");
     buttonNode.innerHTML = cloned.innerHTML;
     buttonNode.className = origin.className;
-    const textNode = buttonNode.querySelector("p");
-    textNode.textContent = textContent;
+    buttonNode.textContent = textContent;
     buttonNode.removeAttribute("onClick");
     buttonNode.addEventListener("click", (event) => {
       event.preventDefault();
@@ -441,7 +496,7 @@ GM_addStyle(
     for (let element of document.querySelectorAll("*")) {
       const extracted = extractCurrentArticle(element);
       if (extracted) {
-        console.log("ARTICLE EXTRACTED!");
+        console.log("ARTICLE EXTRACTED! (" + JSON.stringify(extracted) + ")");
         console.log(element);
       }
     }
@@ -614,9 +669,12 @@ GM_addStyle(
     return {
       name: remote.name,
       // description: remote.description,
-      simpleDescription: remote.simpleDescription ?? "",
-      detailDescription: remote.detailDescription ?? remote.description,
-      profileImageUrl: remote.profileImage.origin,
+      description: remote.description ?? "Placeholder description",
+      simpleDescription:
+        remote.simpleDescription ?? "Placeholder simple description",
+      detailDescription:
+        remote.detailDescription ?? "Placeholder detail description",
+      profileImageUrl: remote.profileImage.origin ?? remote.profileImage,
       model: remote.model,
       initialMessages: remote.initialMessages,
       characterDetails: remote.characterDetails,
@@ -644,6 +702,10 @@ GM_addStyle(
       isMovingImage: remote.isMovingImage ? remote.isMovingImage : false,
       chatType: remote.chatType ? remote.chatType : "simulation",
       genreId: remote.genreId ?? defaultGenReId,
+      chatModelId: remote.chatModelId,
+      promptTemplate:
+        remote.promptTemplate?.template ?? remote.promptTemplate ?? "default",
+      storyDetails: remote.storyDetails ?? "Placeholder story details",
     };
   }
 
@@ -731,7 +793,7 @@ GM_addStyle(
       "GET",
       idData.isCharacter()
         ? `https://contents-api.wrtn.ai/character/single-characters/me/${idData.id}`
-        : `https://contents-api.wrtn.ai/character/characters/me/${idData.id}`
+        : `https://crack-api.wrtn.ai/crack-api/stories/me/${idData.id}`
     );
     if (result instanceof Error) {
       return result;
@@ -787,7 +849,7 @@ GM_addStyle(
         __emptifyStory(defaultBaseId, remote, constructed);
         await authFetch(
           "PATCH",
-          `https://contents-api.wrtn.ai/character/characters/${id.id}`,
+          `https://crack-api.wrtn.ai/crack-api/stories/${id.id}`,
           constructed
         );
         return await this.setCharacter(id, remote, clipboard, false);
@@ -795,13 +857,13 @@ GM_addStyle(
       __overwriteStorySetId(remote, constructed);
       return await authFetch(
         "PATCH",
-        `https://contents-api.wrtn.ai/character/characters/${id.id}`,
+        `https://crack-api.wrtn.ai/crack-api/stories/${id.id}`,
         constructed
       );
     } else {
       return await authFetch(
         "PUT",
-        `https://contents-api.wrtn.ai/character/single-characters/${id.id}`,
+        `https://crack-api.wrtn.ai/crack-api/stories/characters/${id.id}`,
         __constructCharacterFrom(id.id, clipboard, remote.visibility)
       );
     }
@@ -846,7 +908,7 @@ GM_addStyle(
       __convertStoryPublishcation(origin, cloned);
       let result = await authFetch(
         "POST",
-        "https://contents-api.wrtn.ai/character/characters",
+        "https://crack-api.wrtn.ai/crack-api/stories/",
         cloned
       );
       if (result instanceof Error) {
@@ -1201,7 +1263,9 @@ GM_addStyle(
   //                      초기화
   // =====================================================
   async function setup() {
-    if (!/^\/my(\/.*)?$/.test(location.pathname)) return;
+    if (!/^\/my(\/.*)?$/.test(location.pathname)) {
+      return;
+    }
     const menu = acquireMenu();
     if (!menu) {
       removeAdditionalDropdown();
@@ -1211,7 +1275,6 @@ GM_addStyle(
       return;
     }
     const id = extractArticle();
-    console.log(id);
     if (!id) {
       return;
     }
@@ -1235,10 +1298,10 @@ GM_addStyle(
       });
     });
     appendDropdownMenu(menu, "✦ 파일 관리", (appender) => {
-      appender("✦ 파일로 내보내기", async (id) => {
+      appender("✦ 내보내기", async (id) => {
         await exportToFile(id);
       });
-      appender("✦ 파일에서 가져오기", async (id) => {
+      appender("✦ 가져오기", async (id) => {
         await importFromFile(id);
       });
     });
