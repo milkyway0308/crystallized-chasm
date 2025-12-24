@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Alternation (결정화 캐즘 차원이동)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-ALTR-v1.4.5p
+// @version     CRYS-ALTR-v1.4.5
 // @description 채팅 로그 복사 및 새 채팅방으로 포크. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -14,7 +14,7 @@
 
 GM_addStyle(
   "@keyframes chasm-rotate { from { transform: rotate(0deg); } to {  transform: rotate(360deg); }}" +
-    "@keyframes chasm-blinker { 70% { opacity: 0;} }" +
+    "@keyframes chasm-blinker { 70% { opacity: 0;} }" + 
     ".chasm-altr-button { font-size: 16px; line-height: 110%; font-weight: 500; }" +
     'body[data-theme="light"] .chasm-altr-button { color: #1A1918; transition: color 0.1s ease;}' +
     'body[data-theme="dark"] .chasm-altr-button { color: #F0EFEB; transition: color 0.1s ease;}' +

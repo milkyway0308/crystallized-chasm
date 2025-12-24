@@ -76,7 +76,7 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 **결정화 캐즘 프로젝트는 스크립트별로 기능이 분리됩니다.**<br>
 **반드시 모든 스크립트를 설치할 필요는 없습니다. 필요한 기능만 골라 설치하세요.**
 
-## 결정화 캐즘 - 네오-카피(v2.2.2) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/neocopy.user.js) ]<br>
+## 결정화 캐즘 - 네오-카피(v2.2.4) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/neocopy.user.js) ]<br>
 
 결정화 캐즘 네오-카피는 크랙 캐릭터 제작자를 위한 보조 도구입니다.<br>
 캐릭터의 원본 데이터를 JSON 형태로 추출하거나 개정된 원본 데이터를 붙여넣고,<br>
@@ -95,7 +95,7 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 > ⚠ 세션 아래 표시되는 소모량은 세션 소모량이 아닌 캐릭터 소모량입니다.<br>
 > ⚠ 6월 크래커 업데이트 이전 소모된 슈퍼챗은 크래커 35개로 환산되어 계산됩니다.
 
-## 결정화 캐즘 - 이그나이터 / 점화기 (v1.4.2) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/ignitor-crack.user.js) ]<br>
+## 결정화 캐즘 - 이그나이터 / 점화기 (v1.4.3) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/ignitor-crack.user.js) ]<br>
 
 결정화 캐즘 이그나이터는 재작성된 개선된 버너 모듈입니다.
 
@@ -149,7 +149,7 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 > ⚠ 삭제 기능은 대단히 위험한 기능입니다. 결정화 캐즘의 개발자는 네뷸라이저의 대량 자동 삭제 기능을 사용함으로써 발생하는 문제에 대해 책임지지 않습니다.<br>
 > 로컬 환경에서는 문제 없이 정상 작동하는 것이 확인되었습니다.
 
-## 결정화 캐즘 - 차원이동 (v1.4.4) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/alternation.user.js) ]<br>
+## 결정화 캐즘 - 차원이동 (v1.4.5) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/alternation.user.js) ]<br>
 
 지금 그대로의 이야기의 또 다른 이야기를 듣고 싶지 않으신가요?<br>
 아니면, 내 실수로 인해 망가질 이 이야기를 위해 선택지를 보류하고 싶으신 경험, 있지 않으신가요?<br><br>
