@@ -14,7 +14,7 @@
 
 GM_addStyle(
   "@keyframes chasm-rotate { from { transform: rotate(0deg); } to {  transform: rotate(360deg); }}" +
-    "@keyframes chasm-blinker { 70% { opacity: 0;} }" + 
+    "@keyframes chasm-blinker { 70% { opacity: 0;} }" +
     ".chasm-altr-button { font-size: 16px; line-height: 110%; font-weight: 500; }" +
     'body[data-theme="light"] .chasm-altr-button { color: #1A1918; transition: color 0.1s ease;}' +
     'body[data-theme="dark"] .chasm-altr-button { color: #F0EFEB; transition: color 0.1s ease;}' +
@@ -146,23 +146,20 @@ if (!document.chasmApi) {
     userNote,
     userNoteExtended
   ) {
-    const result = await fetch(
-      `https://crack-api.wrtn.ai/crack-gen/v3/chats`,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          isAutoRecommendUserNextMessage: false,
-          storyId: unitId,
-          crackerModel: "normalchat",
-          chatProfileId: profileId,
-          baseSetId: baseSetId,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${extractAccessToken()}`,
-        },
-      }
-    );
+    const result = await fetch(`https://crack-api.wrtn.ai/crack-gen/v3/chats`, {
+      method: "POST",
+      body: JSON.stringify({
+        isAutoRecommendUserNextMessage: false,
+        storyId: unitId,
+        crackerModel: "normalchat",
+        chatProfileId: profileId,
+        baseSetId: baseSetId,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${extractAccessToken()}`,
+      },
+    });
     if (!result.ok) {
       logError("채팅 데이터 가져오기 실패");
       return undefined;
@@ -684,6 +681,20 @@ if (!document.chasmApi) {
     document
       .getElementsByClassName("chasm-altr-button")[0]
       .setAttribute("loading", "true");
+    const normalChat = await findCrackerModel("일반챗");
+    if (normalChat instanceof Error) {
+      alert("일반챗 모델 ID 가져오기에 실패하였습니다.");
+      return;
+    }
+    const modelChangeResult = await authFetch(
+      "PATCH",
+      `https://crack-api.wrtn.ai/crack-gen/v3/chats/${createdChatRoomId}`,
+      { chatModelId: normalChat }
+    );
+    if (modelChangeResult instanceof Error) {
+      alert("일반챗 변경에 실패하였습니다.");
+      return;
+    }
     const injectResult = await injectChat(createdChatRoomId, extractedChats);
     if (injectResult) {
       if (confirm("새 평행 우주가 준비되었습니다.\n새로 고치시겠습니까?")) {
@@ -708,6 +719,22 @@ if (!document.chasmApi) {
   //                  크랙 종속성 유틸리티
   // =================================================
 
+  async function findCrackerModel(name) {
+    const request = await authFetch(
+      "GET",
+      "https://crack-api.wrtn.ai/crack-gen/v3/chat-models"
+    );
+    if (!request.data?.models)
+      return new Error("크래커 모델 목록 가져오기에 실패하였습니다.");
+    for (let item of request.data.models) {
+      if (item.name === name) {
+        return item._id;
+      }
+    }
+    return new Error(
+      "크래커 모델 목록에서 크래커 모델 '" + name + "'을 찾을 수 없습니다."
+    );
+  }
   async function getRepresentivePersona(chatId) {
     const userIdFetch = await authFetch(
       "GET",
