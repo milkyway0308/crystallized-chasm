@@ -2441,22 +2441,44 @@ GM_addStyle(`
       return rawMessage[0]._id;
     }
 
+    async findCrackerModel(name) {
+      const request = await authFetch(
+        "GET",
+        "https://crack-api.wrtn.ai/crack-gen/v3/chat-models"
+      );
+      if (!request.data?.models)
+        return new Error("크래커 모델 목록 가져오기에 실패하였습니다.");
+      for (let item of request.data.models) {
+        if (item.name === name) {
+          return item._id;
+        }
+      }
+      return new Error(
+        "크래커 모델 목록에서 크래커 모델 '" + name + "'을 찾을 수 없습니다."
+      );
+    }
+
     async send(message) {
+      const normalChatModelId = await this.findCrackerModel("일반챗");
+      if (normalChatModelId instanceof Error) {
+        return normalChatModelId;
+      }
       const originModelRequest = await authFetch(
         "GET",
-        `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatRoomId}`
+        `https://crack-api.wrtn.ai/crack-gen/v3/chats/${this.chatRoomId}`
       );
       if (originModelRequest instanceof Error) {
         return new Error("크래커 모델 가져오기에 실패하였습니다.");
       }
-      const originModel = originModelRequest.data?.crackerModel;
+
+      const originModel = originModelRequest.data?.chatModelId;
       if (!originModel) {
         return new Error("크래커 모델 가져오기에 실패하였습니다.");
       }
       const modelChangeResult = await authFetch(
         "PATCH",
-        `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatRoomId}`,
-        { crackerModel: "normalchat" }
+        `https://crack-api.wrtn.ai/crack-gen/v3/chats/${this.chatRoomId}`,
+        { chatModelId: normalChatModelId }
       );
       if (modelChangeResult instanceof Error) {
         return new Error("크래커 모델 변경에 실패하였습니다.");
@@ -2475,8 +2497,8 @@ GM_addStyle(`
         connection.close();
         await authFetch(
           "PATCH",
-          `https://contents-api.wrtn.ai/character-chat/v3/chats/${this.chatRoomId}`,
-          { crackerModel: originModel }
+          `https://crack-api.wrtn.ai/crack-gen/v3/chats/${this.chatRoomId}`,
+          { chatModelId: originModel }
         );
       }
     }
