@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized RedPill (결정화 캐즘 붉은약)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-PILL-v1.4.0
+// @version     CRYS-PILL-v1.4.1
 // @description 크랙의 통계 수정 및 데이터 표시 개선. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -16,7 +16,7 @@ GM_addStyle(
     ".red-pill-refresh-button { padding: 0px 12px; border: 1px solid var(--text_disabled); height: 28px; color: var(--text_primary); font-size: 14px; margin-right: 5px; border-radius: 4px; font-weight: 600; }"
 );
 (function () {
-  const VERSION = "v1.4.0";
+  const VERSION = "v1.4.1";
   let isIntegrationMode = false;
   /**
    * 쿠키에서 액세스 토큰을 추출해 반환합니다.
@@ -77,24 +77,24 @@ GM_addStyle(
     ).padStart(2, "0")}\ucd08`;
   }
   function H(c, d, h, f, a, u = 0, p = [], y = {}) {
-    var k = f.filter((b) => {
-        b = b.date.slice(0, 7);
-        return y[b] !== !1;
-      }),
-      r = p.filter((b) => {
-        b = b.paymentDate.slice(0, 7);
-        return y[b] !== !1;
-      }).length;
-    const v = k
+    let k = f.filter((b) => {
+      b = b.date.slice(0, 7);
+      return y[b] !== !1;
+    });
+    let purchaseCount = p.filter((b) => {
+      b = b.paymentDate.slice(0, 7);
+      return y[b] !== !1;
+    }).length;
+    const totalConsumed = k
         .filter((b) => b.isConsumed)
         .reduce((b, n) => b + extractUsageQuantity(n), 0),
-      z = k
+      totalCollected = k
         .filter((b) => !b.isConsumed)
         .reduce((b, n) => b + extractUsageQuantity(n), 0),
-      D = k
+      unlimitedUsage = k
         .filter((b) => b.isConsumed && b.consumedType === "unlimited")
         .reduce((b, n) => b + extractUsageQuantity(n), 0),
-      e =
+      lastTime =
         k.length > 0
           ? k
               .sort((b, n) => new Date(n.date) - new Date(b.date))[0]
@@ -103,15 +103,17 @@ GM_addStyle(
     c.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <div><strong>\ucd1d \uc0ac\uc6a9\ub7c9:</strong> <span style="font-family: monospace;">${v}</span></div>
-                    <div><strong>\ucd1d \ud68d\ub4dd\ub7c9:</strong> <span style="font-family: monospace;">${z}</span></div>
-                    <div><strong>\ub9c8\uc9c0\ub9c9 \ub0b4\uc5ed \ub0a0\uc9dc:</strong> <span style="font-family: monospace;">${e}</span></div>
+                    <div><strong>총 사용량:</strong> <span style="font-family: monospace;">${totalConsumed}</span></div>
+                    <div><strong>총 획득량:</strong> <span style="font-family: monospace;">${totalCollected}</span></div>
+                    <div><strong>마지막 내역 날짜:</strong> <span style="font-family: monospace;">${lastTime}</span></div>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <div><strong>\ubb34\uc81c\ud55c \uc0ac\uc6a9 \ucd1d\ub7c9:</strong> <span style="font-family: monospace;">${D}</span></div>
-                    <div><strong>\uacb0\uc81c \ud69f\uc218:</strong> <span style="font-family: monospace;">${r}</span></div>
-                    <div><strong>\ud3c9\uade0 \uc0ac\uc6a9\ub7c9:</strong> <span style="font-family: monospace;">${
-                      r > 0 ? Math.round(D / r) : 0
+                    <div><strong>무제한 사용 총량:</strong> <span style="font-family: monospace;">${unlimitedUsage}</span></div>
+                    <div><strong>결제 횟수:</strong> <span style="font-family: monospace;">${purchaseCount}</span></div>
+                    <div><strong>평균 사용량:</strong> <span style="font-family: monospace;">${
+                      purchaseCount > 0
+                        ? Math.round(unlimitedUsage / purchaseCount)
+                        : 0
                     }</span></div>
                 </div>
             </div>
@@ -140,7 +142,7 @@ GM_addStyle(
       g[t][q][n] = (g[t][q][n] || 0) + quantity;
       g[t][b.isConsumed ? "totalConsumption" : "totalAcquisition"] += quantity;
     });
-    r = `
+    purchaseCount = `
             <style>
                 details > summary .toggle-text::after {
                     content: '(\ub354\ubcf4\uae30)';
@@ -158,7 +160,7 @@ GM_addStyle(
             };">
         `;
     for (const [b, n] of Object.entries(g).sort().reverse())
-      r += `
+      purchaseCount += `
                 <details style="border-bottom: 1px solid ${
                   a ? "#444" : "#ccc"
                 };">
@@ -235,7 +237,7 @@ GM_addStyle(
                 </details>
             `;
     d.innerHTML =
-      r +
+      purchaseCount +
       `
             </div>
             <div style="margin-top: 10px; opacity: 0.5; font-size: 0.7rem; color: ${
@@ -417,11 +419,11 @@ GM_addStyle(
       }
     return u && u.result === "SUCCESS" && u.data ? u.data.quantity : 0;
   }
-  async function V(c, d, h) {
+  async function getUnlimitedUsageLogs(c, d, h) {
     let f = 1,
       a = [];
     for (;;) {
-      const u = `${"https://crack-api.wrtn.ai/crack-cash/crackers/payment-history?limit=10&type=unlimited"}&page=${f}`;
+      const u = `${"https://crack-api.wrtn.ai/crack-cash/crackers/payment-history?page=1&limit=10&type=unlimited"}&page=${f}`;
       appendLog(d, `무제한 결제 내역 ${f} 페이지 로드 중...`);
       let p = 5,
         y = !1,
@@ -525,7 +527,7 @@ GM_addStyle(
           : null;
       // Crawling entrypoint (History / Payment)
       for (H(d, h, f, m, document.body.dataset.theme === "dark", r, v, z); ; ) {
-        w = `${"https://crack-api.wrtn.ai/crack-cash/crackers/history?limit=10&type=consumed"}&page=${g}`;
+        w = `${"https://crack-api.wrtn.ai/crack-cash/crackers/history?limit=10&type=all"}&page=${g}`;
         appendPageLog(logElement, g);
         b = 5;
         let t = !1,
@@ -592,7 +594,7 @@ GM_addStyle(
         ) {
           appendLog(
             logElement,
-            `\uce90\uc2dc\ub41c \ub9c8\uc9c0\ub9c9 \uae30\ub85d\uc5d0 \ub3c4\ub2ec. \ud638\ucd9c \uc911\ub2e8. (\uc18c\uc694 \uc2dc\uac04: ${Q(
+            `캐시된 마지막 기록에 도달. 호출 중단. (소요 시간: ${Q(
               e,
               new Date()
             )})`
@@ -769,7 +771,7 @@ GM_addStyle(
               useCacheBox.checked,
               w,
               J,
-              L,
+              unlimitedLogs,
               F
             ).finally(() => {
               f = !1;
@@ -871,7 +873,7 @@ GM_addStyle(
                       localStorageResult,
                       darkTheme,
                       J,
-                      L,
+                      unlimitedLogs,
                       F
                     ),
                     (downloadRaw.style.display = "inline-block"),
@@ -898,7 +900,7 @@ GM_addStyle(
                 display: none;
             `;
       statDownload.addEventListener("click", () => {
-        var A = T(localStorageResult, J, L, F);
+        var A = T(localStorageResult, J, unlimitedLogs, F);
         A = new Blob([A], { type: "text/csv;charset=utf-8;" });
         const G = document.createElement("a");
         G.href = URL.createObjectURL(A);
@@ -935,14 +937,14 @@ GM_addStyle(
             `;
       let localStorageResult = [],
         J = 0,
-        L = [],
+        unlimitedLogs = [],
         F = {};
       const extractedToken = extractAccessToken();
       if (extractedToken)
         try {
           (J = await U(extractedToken, logArea, aborter)),
             appendLog(logArea, `\ud604\uc7ac \ubcf4\uc720\ub7c9: ${J}`),
-            (L = await V(extractedToken, logArea, aborter));
+            (unlimitedLogs = await getUnlimitedUsageLogs(extractedToken, logArea, aborter));
         } catch (A) {
           appendLog(
             logArea,
@@ -957,14 +959,14 @@ GM_addStyle(
             A = A.date.slice(0, 7);
             F[A] = !0;
           }),
-          H(l, calendar, ranking, localStorageResult, darkTheme, J, L, F),
+          H(l, calendar, ranking, localStorageResult, darkTheme, J, unlimitedLogs, F),
           appendLog(
             logArea,
             "\uce90\uc2dc\ub41c \ub370\uc774\ud130 \ub85c\ub4dc \uc644\ub8cc."
           ),
           (downloadRaw.style.display = "inline-block"),
           (statDownload.style.display = "inline-block"))
-        : H(l, calendar, ranking, localStorageResult, darkTheme, J, L, F);
+        : H(l, calendar, ranking, localStorageResult, darkTheme, J, unlimitedLogs, F);
       p.appendChild(header);
       p.appendChild(logArea);
       p.appendChild(bodyBox);
