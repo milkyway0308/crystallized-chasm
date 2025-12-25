@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized TMI (캐즘 과포화)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-TMI-v1.6.1
+// @version      CRYS-TMI-v1.6.2
 // @description  크랙 UI에 추가 정보 제공. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
@@ -451,7 +451,7 @@ GM_addStyle(`
   }
 
   async function extractCharacterCracker() {
-    const root = document.getElementsByClassName("css-c82bbp");
+    const root = document.getElementsByClassName("css-1v8my8o");
     if (!root || root.length <= 0) {
       return undefined;
     }
