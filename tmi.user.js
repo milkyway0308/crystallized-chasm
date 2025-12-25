@@ -368,7 +368,12 @@ GM_addStyle(`
     targets = targets[0].childNodes;
     const currentTarget = targets[targets.length - 1];
     const textTag = currentTarget.getElementsByTagName("p")[0];
+
     if (!textTag.hasAttribute("chasm-tmi-model-type")) {
+      if (textTag.textContent.trim().length <= 0) {
+        // To prevent pre-load replacement
+        return;
+      }
       textTag.setAttribute("chasm-tmi-model-type", textTag.textContent);
     }
     let nextText = formatChatLeft(
