@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized TMI (캐즘 과포화)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-TMI-v1.5.6
+// @version      CRYS-TMI-v1.6.1
 // @description  크랙 UI에 추가 정보 제공. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
@@ -11,13 +11,52 @@
 // @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.11/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
+GM_addStyle(`
+  body[data-theme="light"] {
+    --chasm-tmi-font-color: #242424;
+  }
+  body[data-theme="dark"] {
+    --chasm-tmi-font-color: #CDCDCD;
+  }
+  .chasm-tmi-indicator {
+    font-size: 12px;
+    color: var(--chasm-tmi-font-color);
+    font-weight: 600;
+  }
+
+`);
 (async function () {
+  // =====================================================
+  //                      클래스 선언
+  // =====================================================
+  class CrackerModels {
+    /**
+     *
+     * @param {string} id
+     * @param {string} name
+     * @param {number} quantity
+     * @param {string} serviceType
+     */
+    constructor(id, name, quantity, serviceType) {
+      this.id = id;
+      this.name = name;
+      this.quantity = quantity;
+      this.serviceType = serviceType;
+    }
+  }
+
+  // =====================================================
+  //                        상수
+  // =====================================================
+
   let initialCracker = undefined;
   let doesInitialized = false;
   let updating = false;
   let updateStoppedAt = new Date();
   let fetched = false;
   let requireReupdate = false;
+  /** @type {Map<string, CrackerModels> | Error} */
+  let cachedModels = await getCrackerModels();
 
   // =====================================================
   //                      유틸리티
@@ -104,22 +143,49 @@
   //                  크랙 데이터 통신 펑션
   // =====================================================
   async function getCrackerFromServer() {
-    let result = await fetch(
-      "https://contents-api.wrtn.ai/superchat/crackers",
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${extractAccessToken()}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    let result = await fetch("https://crack-api.wrtn.ai/crack-cash/crackers", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${extractAccessToken()}`,
+        "Content-Type": "application/json",
+      },
+    });
     if (!result.ok) {
       logWarning("서버에서 크래커 개수를 가져오는데에 실패하였습니다.");
       return -1;
     }
     let json = await result.json();
     return json.data.quantity;
+  }
+
+  /**
+   * 크랙의 토큰을 인증 수단으로 사용하여 요청을 보냅니다.
+   * @param {string} method 요청 메서드
+   * @param {string} url 요청 URL
+   * @param {any | undefined} body 요청 바디 파라미터
+   * @returns {any | Error} 파싱된 값 혹은 오류
+   */
+  async function authFetch(method, url, body) {
+    try {
+      const param = {
+        method: method,
+        headers: {
+          Authorization: `Bearer ${extractAccessToken()}`,
+          "Content-Type": "application/json",
+        },
+      };
+      if (body) {
+        param.body = JSON.stringify(body);
+      }
+      const result = await fetch(url, param);
+      if (!result.ok)
+        return new Error(
+          `HTTP 요청 실패 (${result.status}) [${await result.json()}]`
+        );
+      return await result.json();
+    } catch (t) {
+      return new Error(`알 수 없는 오류 (${t.message ?? JSON.stringify(t)})`);
+    }
   }
 
   // =====================================================
@@ -182,15 +248,26 @@
     updateModalText(cracker);
   }
 
-  function updateCrackerText(cracker) {
-    if (!settings.enableLeftCracker) return;
+  function findCrackerButton() {
     const buttonElements = document.getElementsByClassName("css-5q07im");
     if (!buttonElements || buttonElements.length <= 0) {
       return;
     }
+    for (let button of buttonElements) {
+      if (button.parentElement.getAttribute("href") === "/cracker") {
+        return button;
+      }
+    }
+    return undefined;
+  }
+
+  function updateCrackerText(cracker) {
+    if (!settings.enableLeftCracker) return;
     if (cracker === undefined) {
       return;
     }
+    const buttonElement = findCrackerButton();
+
     let elementsText = document.getElementsByClassName("chasm-cracker-text");
     if (!elementsText || elementsText.length <= 0) {
       const tag = document.createElement("p");
@@ -220,7 +297,7 @@
           maximumFractionDigits: 0,
         });
       }
-      buttonElements[0].append(tag);
+      buttonElement.append(tag);
       elementsText = document.getElementsByClassName("chasm-cracker-text");
     }
     const tag = elementsText[0];
@@ -243,7 +320,7 @@
   function updateARPGRemainingText(cracker) {
     if (doArpgChatCalc()) {
       const leftButton = document.getElementsByClassName(
-        isDarkMode() ? "css-7xxnit" : "css-1w6u7sl"
+        isDarkMode() ? "css-td6bk9" : "css-1rrnf8q"
       );
       if (leftButton && leftButton.length > 0) {
         if (leftButton[0].getAttribute("last-cracker") !== cracker.toString()) {
@@ -263,7 +340,7 @@
     }
     if (doArpgRerollCalc()) {
       const confirmButton = document.getElementsByClassName(
-        isDarkMode() ? "css-7xxnit" : "css-1w6u7sl"
+        isDarkMode() ? "css-td6bk9" : "css-1rrnf8q"
       );
       if (confirmButton && confirmButton.length > 0) {
         if (
@@ -291,27 +368,19 @@
     targets = targets[0].childNodes;
     const currentTarget = targets[targets.length - 1];
     const textTag = currentTarget.getElementsByTagName("p")[0];
-    let expectedChatType = "";
-    const currentColor = textTag.parentElement.getAttribute("color");
-    if (currentColor === null) {
-      return;
+
+    if (!textTag.hasAttribute("chasm-tmi-model-type")) {
+      if (textTag.textContent.trim().length <= 0) {
+        // To prevent pre-load replacement
+        return;
+      }
+      textTag.setAttribute("chasm-tmi-model-type", textTag.textContent);
     }
-    if (currentColor === "sub_creator_red") {
-      expectedChatType = "하이퍼챗";
-    } else if (currentColor === "sub_violet") {
-      expectedChatType = "슈퍼챗 2.0";
-    } else if (currentColor === "action_blue_primary") {
-      expectedChatType = "슈퍼챗 1.5";
-    } else if (currentColor === "sub_green") {
-      expectedChatType = "파워챗";
-    } else if (currentColor === "text_tertiary") {
-      expectedChatType = "일반챗";
-    } else if (currentColor === "text_cracker_secondary") {
-      expectedChatType = "프로챗 1.0";
-    } else if (currentColor === "text_mint_primary") {
-      expectedChatType = "프로챗 2.0";
-    }
-    let nextText = formatChatLeft(expectedChatType, cracker);
+    let nextText = formatChatLeft(
+      textTag.getAttribute("chasm-tmi-model-type"),
+      cracker,
+      true
+    );
     if (nextText === textTag.textContent) {
       return;
     }
@@ -320,20 +389,34 @@
 
   function updateModalText(cracker) {
     if (!doStoryModelCalc()) return;
-    const elements = document.getElementsByClassName(
-      isDarkMode() ? "css-ef8yqo" : "css-1a5wekv"
+    let indicatorEntity = document.getElementsByClassName(
+      "chasm-tmi-indicator"
     );
-    if (!elements || elements.length <= 0) return;
-    for (let textNode of elements) {
-      if (textNode.nodeName.toLowerCase() !== "p") {
-        continue;
+    if (indicatorEntity.length <= 0) {
+      // Inject small indicator
+      const elements = document.getElementsByClassName(
+        isDarkMode() ? "css-m78xu9" : "css-12698ad"
+      );
+      for (let element of elements) {
+        if (element.nodeName.toLowerCase() !== "p") {
+          continue;
+        }
+        const indicator = document.createElement("p");
+        indicator.className = "chasm-tmi-indicator";
+        indicator.setAttribute("target-model", element.textContent);
+        element.parentElement.parentElement.parentElement.appendChild(
+          indicator
+        );
       }
-      if (!textNode.hasAttribute("chasm-tmi-modal-origin")) {
-        textNode.setAttribute("chasm-tmi-modal-origin", textNode.textContent);
-      }
+      indicatorEntity = document.getElementsByClassName("chasm-tmi-indicator");
+    }
+    if (!indicatorEntity || indicatorEntity.length <= 0) return;
+
+    for (let textNode of indicatorEntity) {
       const nextText = formatChatLeft(
-        textNode.getAttribute("chasm-tmi-modal-origin"),
-        cracker
+        textNode.getAttribute("target-model"),
+        cracker,
+        false
       );
       if (nextText !== textNode.textContent) {
         textNode.textContent = nextText;
@@ -341,45 +424,32 @@
     }
   }
 
-  function formatChatLeft(chatType, cracker) {
-    let nextText = chatType + " | ???";
-    if (chatType === "일반챗") {
-      nextText = chatType + " | ∞";
-    } else if (chatType === "파워챗") {
-      nextText = chatType + " | 잔여 " + Math.floor(cracker / 15) + "회";
-    } else if (chatType === "프로챗 1.0") {
-      let expectedCracker = 45;
-      const time = new Date();
-      // 이벤트는 2025-11-06부터 11월 끝까지 지속됨.
-      if (time.getFullYear() === 2025 && time.getMonth() === 10) {
-        // 오전 4시부터 오전 10시까지
-        if (time.getHours() > 3 && time.getHours() < 10) {
-          expectedCracker = 40;
+  function formatChatLeft(chatType, cracker, includeModelName) {
+    if (cachedModels.has(chatType)) {
+      /** @type {CrackerModels} */
+      const model = cachedModels.get(chatType);
+      if (model.quantity <= 0) {
+        if (includeModelName) {
+          return chatType + " | 잔여 ∞회";
+        } else {
+          return "잔여 ∞회";
         }
       }
-      nextText =
-        chatType + " | 잔여 " + Math.floor(cracker / expectedCracker) + "회";
-    } else if (chatType === "슈퍼챗 1.5") {
-      nextText = chatType + " | 잔여 " + Math.floor(cracker / 35) + "회";
-    } else if (chatType === "슈퍼챗 2.0") {
-      let expectedCracker = 45;
-      const time = new Date();
-      // 이벤트는 2025-11-06부터 11월 끝까지 지속됨.
-      if (time.getFullYear() === 2025 && time.getMonth() === 10) {
-        // 오전 4시부터 오전 10시까지
-        if (time.getHours() > 3 && time.getHours() < 10) {
-          expectedCracker = 40;
-        }
+      if (includeModelName) {
+        return (
+          chatType + " | 잔여 " + Math.floor(cracker / model.quantity) + "회"
+        );
+      } else {
+        return "잔여 " + Math.floor(cracker / model.quantity) + "회";
       }
-      nextText =
-        chatType + " | 잔여 " + Math.floor(cracker / expectedCracker) + "회";
-    } else if (chatType === "하이퍼챗") {
-      nextText = chatType + " | 잔여 " + Math.floor(cracker / 175) + "회";
-    } else if (chatType === "프로챗 2.0") {
-      nextText = chatType + " | 잔여 " + Math.floor(cracker / 60) + "회";
     }
-    return nextText;
+    if (includeModelName) {
+      return chatType + " | ???";
+    } else {
+      return "잔여 횟수 알 수 없음";
+    }
   }
+
   async function extractCharacterCracker() {
     const root = document.getElementsByClassName("css-c82bbp");
     if (!root || root.length <= 0) {
@@ -408,6 +478,36 @@
     return undefined;
   }
 
+  /**
+   * @returns {Promise<Map<string, CrackerModels>|Error>}
+   */
+  async function getCrackerModels() {
+    const result = await authFetch(
+      "GET",
+      "https://crack-api.wrtn.ai/crack-gen/v3/chat-models"
+    );
+    if (result instanceof Error) {
+      console.error(result);
+      return result;
+    }
+    if (!result.data.models) {
+      return new Map();
+    }
+    /** @type {Map<string, CrackerModels>} */
+    const map = new Map();
+    for (let model of result.data.models) {
+      map.set(
+        model.name,
+        new CrackerModels(
+          model._id,
+          model.name,
+          model.crackerQuantity,
+          model.serviceType
+        )
+      );
+    }
+    return map;
+  }
   async function extractCracker() {
     cracker = extractCharacterCracker();
     if (cracker && cracker !== NaN) {
@@ -596,6 +696,10 @@
 
   loadSettings();
   addMenu();
+  if (cachedModels instanceof Error) {
+    logError("모델 데이터를 불러오는데에 실패하였습니다.");
+    return;
+  }
   "loading" === document.readyState
     ? (document.addEventListener("DOMContentLoaded", doInitialize),
       window.addEventListener("load", doInitialize))
