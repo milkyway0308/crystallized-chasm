@@ -1,20 +1,22 @@
 // ==UserScript==
 // @name        Chasm Crystallized RedPill (결정화 캐즘 붉은약)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-PILL-v1.3.4
+// @version     CRYS-PILL-v1.4.0
 // @description 크랙의 통계 수정 및 데이터 표시 개선. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
-// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js
-// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js
+// @downloadURL https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js
+// @updateURL   https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js
+// @require     https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js#sha256-lfTRy/CZ9XFhtmS8BIQm7D35JjeAGkx5EW6DMVqnh+c=
 // @grant       GM_addStyle
 // ==/UserScript==
 GM_addStyle(
   'body[data-theme="dark"] .red-pill-realtime-usage { color: #F0EFEB; font-weight: bold; font-size: 12px;}' +
-    'body[data-theme="light"] .red-pill-realtime-usage {color: #1A1918; font-weight: bold; font-size: 12px;}' + 
-    '.red-pill-refresh-button { padding: 0px 12px; border: 1px solid var(--text_disabled); height: 28px; color: var(--text_primary); font-size: 14px; margin-right: 5px; border-radius: 4px; font-weight: 600; }'
+    'body[data-theme="light"] .red-pill-realtime-usage {color: #1A1918; font-weight: bold; font-size: 12px;}' +
+    ".red-pill-refresh-button { padding: 0px 12px; border: 1px solid var(--text_disabled); height: 28px; color: var(--text_primary); font-size: 14px; margin-right: 5px; border-radius: 4px; font-weight: 600; }"
 );
 (function () {
+  const VERSION = "v1.4.0";
   let isIntegrationMode = false;
   /**
    * 쿠키에서 액세스 토큰을 추출해 반환합니다.
@@ -376,23 +378,20 @@ GM_addStyle(
     });
     return (a = a.trim());
   }
-  async function U(c, d, h) {
+  async function U(c, logElement, h) {
     let f = 5,
       a = !1,
       u;
     for (; f > 0 && !a; )
       try {
-        const p = await fetch(
-          "https://contents-api.wrtn.ai/superchat/character-super-mode",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${c}`,
-              "Content-Type": "application/json",
-            },
-            signal: h.signal,
-          }
-        );
+        const p = await fetch("https://crack-api.wrtn.ai/crack-cash/crackers", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${c}`,
+            "Content-Type": "application/json",
+          },
+          signal: h.signal,
+        });
         if (!p.ok) throw Error(`HTTP error! Status: ${p.status}`);
         u = await p.json();
         a = !0;
@@ -400,8 +399,8 @@ GM_addStyle(
         if (p.name === "AbortError")
           return (
             appendLog(
-              d,
-              "\ubcf4\uc720\ub7c9 API \ud638\ucd9c\uc774 \uc0ac\uc6a9\uc790\uc5d0 \uc758\ud574 \uc911\ub2e8\ub418\uc5c8\uc2b5\ub2c8\ub2e4."
+              logElement,
+              "보유량 API 호출이 사용자에 의해 중단되었습니다."
             ),
             0
           );
@@ -409,15 +408,12 @@ GM_addStyle(
         if (f === 0)
           return (
             appendLog(
-              d,
-              `\ubcf4\uc720\ub7c9 Error: ${p.message} (\uc7ac\uc2dc\ub3c4 \ud69f\uc218 \ucd08\uacfc)`
+              logElement,
+              `보유량 Error: ${p.message} (재시도 횟수 초과)`
             ),
             0
           );
-        appendLog(
-          d,
-          `\ubcf4\uc720\ub7c9 \uc7ac\uc2dc\ub3c4 \uc911... (${5 - f}/5)`
-        );
+        appendLog(logElement, `보유량 재시도 중... (${5 - f}/5)`);
       }
     return u && u.result === "SUCCESS" && u.data ? u.data.quantity : 0;
   }
@@ -425,11 +421,8 @@ GM_addStyle(
     let f = 1,
       a = [];
     for (;;) {
-      const u = `${"https://contents-api.wrtn.ai/superchat/character-super-mode/payment-history?type=unlimited"}&page=${f}`;
-      appendLog(
-        d,
-        `\ubb34\uc81c\ud55c \uacb0\uc81c \ub0b4\uc5ed ${f} \ud398\uc774\uc9c0 \ub85c\ub4dc \uc911...`
-      );
+      const u = `${"https://crack-api.wrtn.ai/crack-cash/crackers/payment-history?limit=10&type=unlimited"}&page=${f}`;
+      appendLog(d, `무제한 결제 내역 ${f} 페이지 로드 중...`);
       let p = 5,
         y = !1,
         k;
@@ -451,17 +444,14 @@ GM_addStyle(
             return (
               appendLog(
                 d,
-                "\uacb0\uc81c \ub0b4\uc5ed API \ud638\ucd9c\uc774 \uc0ac\uc6a9\uc790\uc5d0 \uc758\ud574 \uc911\ub2e8\ub418\uc5c8\uc2b5\ub2c8\ub2e4."
+                "결제 내역 API 호출이 사용자에 의해 중단되었습니다."
               ),
               a
             );
           p--;
           if (p === 0)
             return (
-              appendLog(
-                d,
-                `\uacb0\uc81c \ub0b4\uc5ed Error: ${r.message} (\uc7ac\uc2dc\ub3c4 \ud69f\uc218 \ucd08\uacfc)`
-              ),
+              appendLog(d, `결제 내역 Error: ${r.message} (재시도 횟수 초과)`),
               a
             );
           appendLog(
@@ -489,29 +479,54 @@ GM_addStyle(
     }
     return a;
   }
-  async function W(c, d, h, f, a, u, p, y, k, r, v, z) {
-    const D = extractAccessToken();
-    if (D) {
-      appendLog(c, "\ube68\uac04\uc57d \uacc4\uc0b0 \uc2dc\uc791...");
+
+  async function getRedpillHistory() {
+    if (localStorage.getItem("chasmRedpillCompressionStatus")) {
+      return JSON.parse(
+        LZString.decompress(localStorage.getItem("chasmRedpillHistory"))
+      );
+    } else {
+      return JSON.parse(localStorage.getItem("chasmRedpillHistory"));
+    }
+  }
+
+  function setRedpillHistory(text) {
+    if (text) {
+      localStorage.setItem("chasmRedpillCompressionStatus", "true");
+      localStorage.setItem(
+        "chasmRedpillHistory",
+        LZString.compress(JSON.stringify(text))
+      );
+    } else {
+      localStorage.removeItem("chasmRedpillCompressionStatus");
+      localStorage.removeItem("chasmRedpillHistory");
+    }
+  }
+  async function W(logElement, d, h, f, a, u, p, y, k, r, v, z) {
+    const accessToken = extractAccessToken();
+    if (accessToken) {
+      appendLog(logElement, "빨간약 계산 시작...");
       var e = new Date(),
         g = 1,
         m = [],
         w = [];
       if (y) {
-        var b = localStorage.getItem("chasmRedpillHistory");
+        var b = await getRedpillHistory();
         b &&
-          ((m = w = JSON.parse(b)),
+          ((m = w = b),
           (a.style.display = "inline-block"),
           (u.style.display = "inline-block"));
       }
       var n =
         w.length > 0
-          ? w.sort((t, q) => new Date(q.date) - new Date(t.date))[0]
+          ? w.sort(
+              (t, q) => new Date(q.paymentDate) - new Date(t.paymentDate)
+            )[0]
           : null;
       // Crawling entrypoint (History / Payment)
       for (H(d, h, f, m, document.body.dataset.theme === "dark", r, v, z); ; ) {
-        w = `${"https://contents-api.wrtn.ai/superchat/crackers/history?limit=20&type=all"}&page=${g}`;
-        appendPageLog(c, g);
+        w = `${"https://crack-api.wrtn.ai/crack-cash/crackers/history?limit=10&type=consumed"}&page=${g}`;
+        appendPageLog(logElement, g);
         b = 5;
         let t = !1,
           jsonData;
@@ -520,7 +535,7 @@ GM_addStyle(
             const l = await fetch(w, {
               method: "GET",
               headers: {
-                Authorization: `Bearer ${D}`,
+                Authorization: `Bearer ${accessToken}`,
                 "Content-Type": "application/json",
               },
               signal: p.signal,
@@ -530,10 +545,7 @@ GM_addStyle(
             t = !0;
           } catch (l) {
             if (l.name === "AbortError") {
-              appendLog(
-                c,
-                "API \ud638\ucd9c\uc774 \uc0ac\uc6a9\uc790\uc5d0 \uc758\ud574 \uc911\ub2e8\ub418\uc5c8\uc2b5\ub2c8\ub2e4."
-              );
+              appendLog(logElement, "API 호출이 사용자에 의해 중단되었습니다.");
               k.disabled = !1;
               k.textContent = "\uacc4\uc0b0";
               a.style.display = m.length > 0 ? "inline-block" : "none";
@@ -542,17 +554,14 @@ GM_addStyle(
             }
             b--;
             if (b === 0) {
-              appendLog(
-                c,
-                `Error: ${l.message} (\uc7ac\uc2dc\ub3c4 \ud69f\uc218 \ucd08\uacfc)`
-              );
+              appendLog(logElement, `Error: ${l.message} (재시도 횟수 초과)`);
               k.disabled = !1;
               k.textContent = "\uacc4\uc0b0";
               a.style.display = m.length > 0 ? "inline-block" : "none";
               u.style.display = m.length > 0 ? "inline-block" : "none";
               return;
             }
-            appendLog(c, `\uc7ac\uc2dc\ub3c4 \uc911... (${5 - b}/5)`);
+            appendLog(logElement, `\uc7ac\uc2dc\ub3c4 \uc911... (${5 - b}/5)`);
             await new Promise((B) => setTimeout(B, 500));
           }
         if (
@@ -562,7 +571,7 @@ GM_addStyle(
           jsonData.data.length === 0
         ) {
           appendLog(
-            c,
+            logElement,
             `\uc804\uccb4 \uae30\ub85d \ud638\ucd9c \uc644\ub8cc! (\uc18c\uc694 \uc2dc\uac04: ${Q(
               e,
               new Date()
@@ -577,10 +586,12 @@ GM_addStyle(
         }
         if (
           n &&
-          jsonData.data.some((l) => l.date === n.date && l.title === n.title)
+          jsonData.data.some(
+            (l) => l.paymentDate === n.paymentDate && l.title === n.title
+          )
         ) {
           appendLog(
-            c,
+            logElement,
             `\uce90\uc2dc\ub41c \ub9c8\uc9c0\ub9c9 \uae30\ub85d\uc5d0 \ub3c4\ub2ec. \ud638\ucd9c \uc911\ub2e8. (\uc18c\uc694 \uc2dc\uac04: ${Q(
               e,
               new Date()
@@ -594,13 +605,13 @@ GM_addStyle(
           break;
         }
         m = m.concat(jsonData.data);
-        y && localStorage.setItem("chasmRedpillHistory", JSON.stringify(m));
+        y && setRedpillHistory(m);
         H(d, h, f, m, document.body.dataset.theme === "dark", r, v, z);
         g++;
         await new Promise((l) => setTimeout(l, 500));
       }
     } else
-      appendLog(c, "Error: access_token not found in cookies."),
+      appendLog(logElement, "Error: access_token not found in cookies."),
         (k.disabled = !1),
         (k.textContent = "\uacc4\uc0b0"),
         (a.style.display = "none"),
@@ -609,8 +620,8 @@ GM_addStyle(
   async function performRedPillClick(c) {
     const prevModal = document.querySelector(".red-pill-modal");
     prevModal && prevModal.remove();
-    let h = new AbortController(),
-      f = !1;
+    let aborter = new AbortController();
+    let f = false;
     try {
       const darkTheme = document.body.dataset.theme === "dark",
         modal = document.createElement("div");
@@ -631,24 +642,24 @@ GM_addStyle(
                 flex-direction: column;
                 gap: 10px;
             `;
-      const y = document.createElement("div");
-      y.style.cssText =
+      const header = document.createElement("div");
+      header.style.cssText =
         "\n                display: flex;\n                justify-content: space-between;\n                align-items: center;\n            ";
-      const k = document.createElement("h2");
-      k.id = "cr-title";
-      k.style.cssText =
+      const title = document.createElement("h2");
+      title.id = "cr-title";
+      title.style.cssText =
         "\n                margin: 0;\n                font-family: Pretendard;\n                display: flex;\n                align-items: baseline;\n                flex-shrink: 0;\n                letter-spacing: -1px;\n            ";
-      k.innerHTML = `
+      title.innerHTML = `
                 <span style="font-weight:800; letter-spacing: -1px;">\u2318 Chasm Crystallized</span>
                 <span style="font-weight:600; margin-left: 5px; color: #ff0000;">redpill</span>
                 <span style="font-weight:500; font-size: 0.7em; color: ${
                   darkTheme ? "#777" : "#999"
-                }; margin-left: 8px;">${"v1.3.3"}</span>
+                }; margin-left: 8px;">${VERSION}</span>
             `;
-      const r = document.createElement("button");
-      r.id = "cr-close";
-      r.innerHTML = "\u2715";
-      r.style.cssText = `
+      const closeIcon = document.createElement("button");
+      closeIcon.id = "cr-close";
+      closeIcon.innerHTML = "\u2715";
+      closeIcon.style.cssText = `
                 background: none;
                 border: none;
                 color: ${darkTheme ? "#777" : "#e0e0e0"};
@@ -656,17 +667,17 @@ GM_addStyle(
                 cursor: pointer;
                 padding: 0;
             `;
-      r.addEventListener("click", () => {
-        h.abort();
+      closeIcon.addEventListener("click", () => {
+        aborter.abort();
         modal.remove();
       });
-      y.appendChild(k);
-      y.appendChild(r);
-      const v = document.createElement("textarea");
-      v.id = "cr-log";
-      v.readOnly = !0;
-      v.setAttribute("readonly", "readonly");
-      v.style.cssText = `
+      header.appendChild(title);
+      header.appendChild(closeIcon);
+      const logArea = document.createElement("textarea");
+      logArea.id = "cr-log";
+      logArea.readOnly = !0;
+      logArea.setAttribute("readonly", "readonly");
+      logArea.style.cssText = `
                 width: 100%;
                 height: 100px;
                 min-height: 100px;
@@ -678,21 +689,21 @@ GM_addStyle(
                 background: ${darkTheme ? "#2a2a2a" : "#fff"};
                 color: ${darkTheme ? "#ddd" : "#333"};
             `;
-      const z = document.createElement("div");
-      z.id = "cr-cache";
-      z.style.cssText = "display: flex; align-items: center; gap: 10px;";
-      const D = document.createElement("input");
-      D.type = "checkbox";
-      D.id = "cache-checkbox";
-      D.checked = !0;
-      const e = document.createElement("label");
-      e.htmlFor = "cache-checkbox";
-      e.textContent =
+      const bodyBox = document.createElement("div");
+      bodyBox.id = "cr-cache";
+      bodyBox.style.cssText = "display: flex; align-items: center; gap: 10px;";
+      const useCacheBox = document.createElement("input");
+      useCacheBox.type = "checkbox";
+      useCacheBox.id = "cache-checkbox";
+      useCacheBox.checked = !0;
+      const cacheLabel = document.createElement("label");
+      cacheLabel.htmlFor = "cache-checkbox";
+      cacheLabel.textContent =
         "\ube68\uac04\uc57d \ub0b4\uc5ed \ube0c\ub77c\uc6b0\uc800 \uce90\uc2dc\uc5d0 \uc800\uc7a5 (\uc784\uc2dc \uc800\uc7a5)";
-      e.style.cssText = `color: ${darkTheme ? "#ddd" : "#333"};`;
-      const g = document.createElement("button");
-      g.textContent = "\uc800\uc7a5 \ub0b4\uc5ed \uc0ad\uc81c";
-      g.style.cssText = `
+      cacheLabel.style.cssText = `color: ${darkTheme ? "#ddd" : "#333"};`;
+      const startCollectButton = document.createElement("button");
+      startCollectButton.textContent = "\uc800\uc7a5 \ub0b4\uc5ed \uc0ad\uc81c";
+      startCollectButton.style.cssText = `
                 padding: 5px 10px;
                 background: ${darkTheme ? "#ff6666" : "#ff4444"};
                 color: white;
@@ -700,20 +711,21 @@ GM_addStyle(
                 border-radius: 3px;
                 cursor: pointer;
             `;
-      g.addEventListener("click", () => {
-        localStorage.removeItem("chasmRedpillHistory");
+      startCollectButton.addEventListener("click", () => {
+        setRedpillHistory(undefined);
+
         eraseCache();
         appendLog(
-          v,
+          logArea,
           "\uce90\uc2dc\ub41c \ub0b4\uc5ed\uc774 \uc0ad\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4."
         );
-        H(l, B, I, [], darkTheme, J, [], F);
-        b.style.display = "none";
-        q.style.display = "none";
+        H(l, calendar, ranking, [], darkTheme, J, [], F);
+        downloadRaw.style.display = "none";
+        statDownload.style.display = "none";
       });
-      z.appendChild(D);
-      z.appendChild(e);
-      z.appendChild(g);
+      bodyBox.appendChild(useCacheBox);
+      bodyBox.appendChild(cacheLabel);
+      bodyBox.appendChild(startCollectButton);
       const m = document.createElement("div");
       m.style.cssText =
         "\n                display: flex;\n                gap: 10px;\n                align-items: center;\n            ";
@@ -729,34 +741,51 @@ GM_addStyle(
             `;
       w.addEventListener("click", () => {
         f
-          ? (h.abort(),
+          ? (aborter.abort(),
             (f = !1),
             (w.textContent = "\uacc4\uc0b0"),
             (w.disabled = !1),
-            (b.style.display = E.length > 0 ? "inline-block" : "none"),
-            (q.style.display = E.length > 0 ? "inline-block" : "none"))
+            (downloadRaw.style.display =
+              localStorageResult.length > 0 ? "inline-block" : "none"),
+            (statDownload.style.display =
+              localStorageResult.length > 0 ? "inline-block" : "none"))
           : confirm(
               "\ube68\uac04\uc57d \uacc4\uc0b0\uc740 \ubaa8\ub4e0 \uc0ac\uc6a9 \ub0b4\uc5ed\uc744 \ubd88\ub7ec\uc640 \ubd84\uc11d\ud569\ub2c8\ub2e4. \uacfc\ub2e4\ud55c API \ud638\ucd9c\uc740 \ubd80\uc815 \uc774\uc6a9\uc73c\ub85c \uac04\uc8fc\ub420 \uc218 \uc788\uc73c\uba70, \ub370\uc774\ud130 \uc591\uc5d0 \ub530\ub77c \uc2dc\uac04\uc774 \uc18c\uc694\ub420 \uc218 \uc788\uc2b5\ub2c8\ub2e4. \uacc4\uc18d\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?"
             )
           ? ((f = !0),
             (w.textContent = "\uacc4\uc0b0 \uc911\uc9c0 \u23f3"),
             (w.disabled = !1),
-            (b.style.display = "none"),
-            (q.style.display = "none"),
-            (h = new AbortController()),
-            W(v, l, B, I, b, q, h, D.checked, w, J, L, F).finally(() => {
+            (downloadRaw.style.display = "none"),
+            (statDownload.style.display = "none"),
+            (aborter = new AbortController()),
+            W(
+              logArea,
+              l,
+              calendar,
+              ranking,
+              downloadRaw,
+              statDownload,
+              aborter,
+              useCacheBox.checked,
+              w,
+              J,
+              L,
+              F
+            ).finally(() => {
               f = !1;
               w.textContent = "\uacc4\uc0b0";
               w.disabled = !1;
-              b.style.display = E.length > 0 ? "inline-block" : "none";
-              q.style.display = E.length > 0 ? "inline-block" : "none";
+              downloadRaw.style.display =
+                localStorageResult.length > 0 ? "inline-block" : "none";
+              statDownload.style.display =
+                localStorageResult.length > 0 ? "inline-block" : "none";
             }))
           : ((f = !1), (w.textContent = "\uacc4\uc0b0"));
       });
-      const b = document.createElement("button");
-      b.id = "cr-raw-download";
-      b.textContent = "\ub0b4\uc5ed \ub2e4\uc6b4";
-      b.style.cssText = `
+      const downloadRaw = document.createElement("button");
+      downloadRaw.id = "cr-raw-download";
+      downloadRaw.textContent = "\ub0b4\uc5ed \ub2e4\uc6b4";
+      downloadRaw.style.cssText = `
                 padding: 10px 20px;
                 background: ${darkTheme ? "#005588" : "#007bff"};
                 color: white;
@@ -765,15 +794,15 @@ GM_addStyle(
                 cursor: pointer;
                 display: none;
             `;
-      b.addEventListener("click", () => {
-        var A = S(E, F);
+      downloadRaw.addEventListener("click", () => {
+        var A = S(localStorageResult, F);
         A = new Blob([A], { type: "text/csv;charset=utf-8;" });
-        const G = document.createElement("a");
-        G.href = URL.createObjectURL(A);
-        G.download = `redpill_raw_data_${new Date()
+        const tempElement = document.createElement("a");
+        tempElement.href = URL.createObjectURL(A);
+        tempElement.download = `redpill_raw_data_${new Date()
           .toISOString()
           .slice(0, 10)}.csv`;
-        G.click();
+        tempElement.click();
       });
       const n = document.createElement("button");
       n.textContent = "\ubd88\ub7ec\uc624\uae30";
@@ -785,14 +814,14 @@ GM_addStyle(
                 border-radius: 3px;
                 cursor: pointer;
             `;
-      const t = document.createElement("input");
-      t.type = "file";
-      t.accept = ".csv";
-      t.style.display = "none";
+      const loadButton = document.createElement("input");
+      loadButton.type = "file";
+      loadButton.accept = ".csv";
+      loadButton.style.display = "none";
       n.addEventListener("click", () => {
-        t.click();
+        loadButton.click();
       });
-      t.addEventListener("change", (A) => {
+      loadButton.addEventListener("change", (A) => {
         if ((A = A.target.files[0])) {
           var G = new FileReader();
           G.onload = (K) => {
@@ -828,32 +857,38 @@ GM_addStyle(
                   ? alert(
                       "\uc624\ub958: \uc720\ud6a8\ud55c \ub370\uc774\ud130\uac00 \uc5c6\uc2b5\ub2c8\ub2e4."
                     )
-                  : ((E = K),
-                    localStorage.setItem(
-                      "chasmRedpillHistory",
-                      JSON.stringify(E)
-                    ),
+                  : ((localStorageResult = K),
+                    setRedpillHistory(localStorageResult),
                     (F = {}),
-                    E.forEach((C) => {
+                    localStorageResult.forEach((C) => {
                       C = C.date.slice(0, 7);
                       F[C] = !0;
                     }),
-                    H(l, B, I, E, darkTheme, J, L, F),
-                    (b.style.display = "inline-block"),
-                    (q.style.display = "inline-block"),
+                    H(
+                      l,
+                      calendar,
+                      ranking,
+                      localStorageResult,
+                      darkTheme,
+                      J,
+                      L,
+                      F
+                    ),
+                    (downloadRaw.style.display = "inline-block"),
+                    (statDownload.style.display = "inline-block"),
                     appendLog(
-                      v,
+                      logArea,
                       "\ub0b4\uc5ed \uc6d0\ubcf8 CSV \ud30c\uc77c\uc774 \uc131\uacf5\uc801\uc73c\ub85c \ubd88\ub7ec\uc640\uc84c\uc2b5\ub2c8\ub2e4."
                     )));
           };
           G.readAsText(A);
-          t.value = "";
+          loadButton.value = "";
         }
       });
-      const q = document.createElement("button");
-      q.id = "cr-stats-download";
-      q.textContent = "\ud1b5\uacc4 \ub2e4\uc6b4";
-      q.style.cssText = `
+      const statDownload = document.createElement("button");
+      statDownload.id = "cr-stats-download";
+      statDownload.textContent = "\ud1b5\uacc4 \ub2e4\uc6b4";
+      statDownload.style.cssText = `
                 padding: 10px 20px;
                 background: ${darkTheme ? "#005588" : "#007bff"};
                 color: white;
@@ -862,8 +897,8 @@ GM_addStyle(
                 cursor: pointer;
                 display: none;
             `;
-      q.addEventListener("click", () => {
-        var A = T(E, J, L, F);
+      statDownload.addEventListener("click", () => {
+        var A = T(localStorageResult, J, L, F);
         A = new Blob([A], { type: "text/csv;charset=utf-8;" });
         const G = document.createElement("a");
         G.href = URL.createObjectURL(A);
@@ -873,10 +908,10 @@ GM_addStyle(
         G.click();
       });
       m.appendChild(w);
-      m.appendChild(b);
+      m.appendChild(downloadRaw);
       m.appendChild(n);
-      m.appendChild(q);
-      p.appendChild(t);
+      m.appendChild(statDownload);
+      p.appendChild(loadButton);
       const l = document.createElement("div");
       l.id = "cr-stat";
       l.style.cssText = `
@@ -886,56 +921,57 @@ GM_addStyle(
                 border-radius: 3px;
                 background: ${darkTheme ? "#2a2a2a" : "#fff"};
             `;
-      const B = document.createElement("div");
-      B.id = "cr-calendar";
-      B.style.cssText = `
+      const calendar = document.createElement("div");
+      calendar.id = "cr-calendar";
+      calendar.style.cssText = `
                 margin: 10px 0;
                 color: ${darkTheme ? "#ddd" : "#333"};
             `;
-      const I = document.createElement("div");
-      I.id = "cr-ranking";
-      I.style.cssText = `
+      const ranking = document.createElement("div");
+      ranking.id = "cr-ranking";
+      ranking.style.cssText = `
                 margin: 10px 0;
                 color: ${darkTheme ? "#ddd" : "#333"};
             `;
-      let E = [],
+      let localStorageResult = [],
         J = 0,
         L = [],
         F = {};
-      const M = extractAccessToken();
-      if (M)
+      const extractedToken = extractAccessToken();
+      if (extractedToken)
         try {
-          (J = await U(M, v, h)),
-            appendLog(v, `\ud604\uc7ac \ubcf4\uc720\ub7c9: ${J}`),
-            (L = await V(M, v, h));
+          (J = await U(extractedToken, logArea, aborter)),
+            appendLog(logArea, `\ud604\uc7ac \ubcf4\uc720\ub7c9: ${J}`),
+            (L = await V(extractedToken, logArea, aborter));
         } catch (A) {
           appendLog(
-            v,
+            logArea,
             `\ucd08\uae30 \ub370\uc774\ud130 \ub85c\ub4dc \uc624\ub958: ${A.message}`
           );
+          console.error(A);
         }
-      else appendLog(v, "Error: access_token not found in cookies.");
+      else appendLog(logArea, "Error: access_token not found in cookies.");
       localStorage.getItem("chasmRedpillHistory")
-        ? ((E = JSON.parse(localStorage.getItem("chasmRedpillHistory"))),
-          E.forEach((A) => {
+        ? ((localStorageResult = await getRedpillHistory()),
+          localStorageResult.forEach((A) => {
             A = A.date.slice(0, 7);
             F[A] = !0;
           }),
-          H(l, B, I, E, darkTheme, J, L, F),
+          H(l, calendar, ranking, localStorageResult, darkTheme, J, L, F),
           appendLog(
-            v,
+            logArea,
             "\uce90\uc2dc\ub41c \ub370\uc774\ud130 \ub85c\ub4dc \uc644\ub8cc."
           ),
-          (b.style.display = "inline-block"),
-          (q.style.display = "inline-block"))
-        : H(l, B, I, E, darkTheme, J, L, F);
-      p.appendChild(y);
-      p.appendChild(v);
-      p.appendChild(z);
+          (downloadRaw.style.display = "inline-block"),
+          (statDownload.style.display = "inline-block"))
+        : H(l, calendar, ranking, localStorageResult, darkTheme, J, L, F);
+      p.appendChild(header);
+      p.appendChild(logArea);
+      p.appendChild(bodyBox);
       p.appendChild(m);
       p.appendChild(l);
-      p.appendChild(B);
-      p.appendChild(I);
+      p.appendChild(calendar);
+      p.appendChild(ranking);
       modal.appendChild(p);
       modal.style.display = "flex";
       document.body.appendChild(modal);
@@ -947,6 +983,7 @@ GM_addStyle(
           document.createElement("textarea"),
           `\ubaa8\ub2ec \uc0dd\uc131 \uc624\ub958: ${a.message}`
         );
+      console.error(a);
     }
   }
   function onClickRedPill(c) {
@@ -1331,7 +1368,6 @@ GM_addStyle(
       if (error.message && error.message.startsWith("CRYS: ")) {
         alert(error.message.substring(6));
       }
-      console.log(error);
       //   cachedResult = oldCache;
       injectAllCrackerUsage(cachedResult);
     }
