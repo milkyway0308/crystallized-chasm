@@ -451,7 +451,7 @@ GM_addStyle(`
   }
 
   async function extractCharacterCracker() {
-    const root = document.getElementsByClassName("css-c82bbp");
+    const root = document.getElementsByClassName("css-1v8my8o");
     if (!root || root.length <= 0) {
       return undefined;
     }
