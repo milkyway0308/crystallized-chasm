@@ -3,7 +3,7 @@
 // decentrallized-modal.js는 서드 파티 스크립트들을 위한 임베드 가능한 모달 프레임워크입니다.
 // 거의 대부분의 커스터마이징을 제공하며, 임베딩된 펑션을 통한 간편한 모달 표시 및 통합이 가능합니다.
 // CSS 삽입을 위해 GM_addStyle이 필요합니다.
-const DECENTRAL_VERSION = "Decentrallized Modal v1.0.11";
+const DECENTRAL_VERSION = "Decentrallized Modal v1.0.12";
 
 const DECENTRAL_CSS_VALUES = `
     /*
@@ -835,6 +835,10 @@ class ModalManager {
   static doesInit = false;
   /** @type {Map<string, ModalManager>} */
   static __modalMap = new Map();
+  /** @type {Map<string, () -> any>} */
+  __opener = new Map();
+  /** @type {Map<string, () -> any>} */
+  __closer = new Map();
 
   /**
    * 모달 관리자를 초기화합니다.
@@ -871,7 +875,28 @@ class ModalManager {
    */
   constructor(name) {
     this.name = name;
-    this.__modal = new DecentrallizedModal(name);
+    this.__modal = new DecentrallizedModal(name, this.__closer);
+  }
+
+  /**
+   * 모달이 열릴 때 발동될 작업을 등록합니다.
+   * 이 작업은 모달이 다시 초기화되어도 작동합니다.
+   * @param {string} namespace 작업의 고유 키
+   * @param {() -> any} action 작업 내역
+   */
+  addOpenListener(namespace, action) {
+    this.__opener.set(namespace, action);
+    return this;
+  }
+
+  /**
+   * 모달이 닫힐때 발동될 작업을 등록합니다.
+   * @param {string} namespace 작업의 고유 키
+   * @param {() -> any} action 작업 내역
+   */
+  addCloseListener(namespace, action) {
+    this.__closer.set(namespace, action);
+    return this;
   }
 
   /**
@@ -880,6 +905,9 @@ class ModalManager {
    * @param {string[]} preSelected 미리 선택할 메뉴
    */
   display(isDarktheme, preSelected = undefined) {
+    for (let element of this.__opener.values()) {
+      element();
+    }
     this.__modal.display(isDarktheme, preSelected);
   }
 
@@ -1030,12 +1058,16 @@ class DecentrallizedModal {
   /** @type {ContentPanel} */
   __contentPanel;
 
+  /** @type {Map<string, () -> any>} */
+  __closer;
   /**
    *
    * @param {string} baseId
+   * @param {Map<string, () -> any>} closer
    */
-  constructor(baseId) {
+  constructor(baseId, closer) {
     this.baseId = baseId;
+    this.__closer = closer;
   }
 
   getVersion() {
@@ -1107,6 +1139,9 @@ class DecentrallizedModal {
    */
   close() {
     if (this.__container) {
+      for (let element of this.__closer) {
+        element();
+      }
       this.__container.remove();
       this.__container = undefined;
       this.selectedMenu = [];
@@ -2903,7 +2938,10 @@ class ComponentAppender extends HTMLComponentConvertable {
         for (const element of topNode.getElementsByClassName(
           "decentral-option"
         )) {
-          if (element.getAttribute("decentral-option-id") === topNode.getAttribute("decentral-selected")) {
+          if (
+            element.getAttribute("decentral-option-id") ===
+            topNode.getAttribute("decentral-selected")
+          ) {
             return element;
           }
         }
