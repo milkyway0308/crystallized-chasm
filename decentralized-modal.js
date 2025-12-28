@@ -883,6 +883,7 @@ class ModalManager {
    * 이 작업은 모달이 다시 초기화되어도 작동합니다.
    * @param {string} namespace 작업의 고유 키
    * @param {() -> any} action 작업 내역
+   * @returns {ModalManager} 현재 모달 관리자
    */
   addOpenListener(namespace, action) {
     this.__opener.set(namespace, action);
@@ -893,6 +894,7 @@ class ModalManager {
    * 모달이 닫힐때 발동될 작업을 등록합니다.
    * @param {string} namespace 작업의 고유 키
    * @param {() -> any} action 작업 내역
+   * @returns {ModalManager} 현재 모달 관리자
    */
   addCloseListener(namespace, action) {
     this.__closer.set(namespace, action);
