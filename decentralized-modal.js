@@ -1170,7 +1170,7 @@ class DecentrallizedModal {
    */
   close() {
     if (this.__container) {
-      for (let element of this.__closer) {
+      for (let element of this.__closer.values()) {
         element();
       }
       this.__container.remove();
