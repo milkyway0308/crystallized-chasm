@@ -76,7 +76,7 @@ Chasm Snack을 기반으로 수정되었으며, 원본 캐즘 버전은 [6월 11
 **반드시 모든 스크립트를 설치할 필요는 없습니다. 필요한 기능만 골라 설치하세요.**
 
 
-## 결정화 캐즘 - 이그나이터 (BABE-IGNT-v1.3.3) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/ignitor-babe.user.js) ]<br>
+## 결정화 캐즘 - 이그나이터 (BABE-IGNT-v1.3.4) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/ignitor-babe.user.js) ]<br>
 
 결정화 캐즘 이그나이터는 재작성된 개선된 버너 모듈입니다.
 

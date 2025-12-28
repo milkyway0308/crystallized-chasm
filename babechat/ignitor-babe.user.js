@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        BabeChat / Chasm Crystallized Ignitor (베이비챗 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     BABE-IGNT-v1.3.3
+// @version     BABE-IGNT-v1.3.4
 // @description 캐즘 버너 및 애프터버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://babechat.ai/*
@@ -10,7 +10,7 @@
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/ignitor-babe.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/ignitor-babe.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.11/decentralized-modal.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.13/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 
@@ -61,7 +61,7 @@ GM_addStyle(`
 
 !(async function () {
   const PLATFORM_SAVE_KEY = "chasm-babe-ignt-settings";
-  const VERSION = "v1.3.2.1p";
+  const VERSION = "v1.3.4";
 
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
@@ -2667,6 +2667,7 @@ GM_addStyle(`
       buttonCloned?.addEventListener("click", () => {
         ModalManager.getOrCreateManager("c2")
           .withLicenseCredential()
+          .withScrollRestorer("babechat-scroll-restorer", document.body)
           .display(document.body.getAttribute("data-theme") !== "light", [
             "결정화 캐즘 이그나이터",
           ]);
@@ -2703,6 +2704,7 @@ GM_addStyle(`
 
               ModalManager.getOrCreateManager("c2")
                 .withLicenseCredential()
+                .withScrollRestorer("babechat-scroll-restorer", document.body)
                 .display(document.body.getAttribute("data-theme") !== "light", [
                   "결정화 캐즘 이그나이터",
                 ]);
@@ -2827,6 +2829,7 @@ GM_addStyle(`
       newItem.addEventListener("click", (event) => {
         ModalManager.getOrCreateManager("c2")
           .withLicenseCredential()
+          .withScrollRestorer("babechat-scroll-restorer", document.body)
           .display(true);
       });
       const expectedTextNode =
