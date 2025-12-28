@@ -87,6 +87,6 @@ Chasm Snack을 기반으로 수정되었으며, 원본 캐즘 버전은 [6월 11
 결정화 캐즘 백시현상은 베이비챗에 화이트 모드를 추가해줍니다.<br>
 > ⚠ 백시현상 모듈은 서드 파티 구현 특성상 높은 배터리 사용률과 CPU 사용을 야기할 수 있습니다.<br>
 
-## 결정화 캐즘 - 절대 영도 (BABE-AZRO-v1.0.3-FINALE) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/absolutezero.user.js) ]<br>
+## 결정화 캐즘 - 절대 영도 (BABE-AZRO-v1.0.4-FINALE) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/absolutezero.user.js) ]<br>
 
 결정화 캐즘 절대영도는 랭킹 화면에서의 GIF / WEBP 재생을 중지하고, 호버하는 대상에만 적용시킵니다.<br>
