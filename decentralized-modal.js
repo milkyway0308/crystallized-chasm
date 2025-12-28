@@ -3,7 +3,7 @@
 // decentrallized-modal.js는 서드 파티 스크립트들을 위한 임베드 가능한 모달 프레임워크입니다.
 // 거의 대부분의 커스터마이징을 제공하며, 임베딩된 펑션을 통한 간편한 모달 표시 및 통합이 가능합니다.
 // CSS 삽입을 위해 GM_addStyle이 필요합니다.
-const DECENTRAL_VERSION = "Decentrallized Modal v1.0.12";
+const DECENTRAL_VERSION = "Decentrallized Modal v1.0.13";
 
 const DECENTRAL_CSS_VALUES = `
     /*
@@ -59,13 +59,13 @@ const DECENTRAL_CSS_VALUES = `
         flex-direction: column;
         z-index: 999;
         margin: auto;
-        pointer-event: auto;
+        pointer-events: auto;
         background-color: #99999970;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        position: absolute;
+        position: fixed;
         font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
     }
         
@@ -816,7 +816,7 @@ const DECENTRAL_CSS_VALUES = `
      */
     /* 스크롤 제거 */
     .decentral-disable-scroll-flag {
-      overflow-x: hidden !important;
+      overflow: hidden !important;
     }
 `;
 
@@ -1165,7 +1165,7 @@ class DecentrallizedModal {
    */
   close() {
     if (this.__container) {
-      for (let element of this.__closer) {
+      for (let element of this.__closer.values()) {
         element();
       }
       this.__container.remove();
