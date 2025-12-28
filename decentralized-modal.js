@@ -894,7 +894,11 @@ class ModalManager {
    * @returns {ModalManager} 현재 모달 관리자
    */
   addOpenListener(namespace, action) {
+    console.log("before");
+    console.log(this.__opener);
     this.__opener.set(namespace, action);
+    console.log("after");
+    console.log(this.__opener);
     return this;
   }
 
