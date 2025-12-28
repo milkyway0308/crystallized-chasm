@@ -59,7 +59,7 @@ const DECENTRAL_CSS_VALUES = `
         flex-direction: column;
         z-index: 999;
         margin: auto;
-        pointer-event: auto;
+        pointer-events: auto;
         background-color: #99999970;
         top: 0;
         left: 0;
