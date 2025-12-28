@@ -2,14 +2,14 @@
 // ==UserScript==
 // @name        BabeChat Chasm Crystallized Whiteout (결정화 캐즘 백시현상)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     BABE-WHOU-v1.0.4
+// @version     BABE-WHOU-v1.0.5
 // @description 화이트 모드 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://babechat.ai/*
 // @match       https://www.babechat.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/whiteout.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/babechat/whiteout.user.js
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.11/decentralized-modal.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.12/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 GM_addStyle(`
@@ -461,6 +461,7 @@ GM_addStyle(`
       newItem.onclick = undefined;
       newItem.addEventListener("click", (event) => {
         ModalManager.getOrCreateManager("c2")
+          .withScrollRestorer("babechat-scroll-restorer", document.body)
           .withLicenseCredential()
           .display(true);
       });
