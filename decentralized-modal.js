@@ -3,7 +3,7 @@
 // decentrallized-modal.js는 서드 파티 스크립트들을 위한 임베드 가능한 모달 프레임워크입니다.
 // 거의 대부분의 커스터마이징을 제공하며, 임베딩된 펑션을 통한 간편한 모달 표시 및 통합이 가능합니다.
 // CSS 삽입을 위해 GM_addStyle이 필요합니다.
-const DECENTRAL_VERSION = "Decentrallized Modal v1.0.11";
+const DECENTRAL_VERSION = "Decentrallized Modal v1.0.12";
 
 const DECENTRAL_CSS_VALUES = `
     /*
@@ -59,6 +59,7 @@ const DECENTRAL_CSS_VALUES = `
         flex-direction: column;
         z-index: 999;
         margin: auto;
+        pointer-event: auto;
         background-color: #99999970;
         top: 0;
         left: 0;
@@ -810,6 +811,13 @@ const DECENTRAL_CSS_VALUES = `
             grid-column: 1 / 1;
         }
     }
+    /**
+     *  연동 전용
+     */
+    /* 스크롤 제거 */
+    .decentral-disable-scroll-flag {
+      overflow-x: hidden !important;
+    }
 `;
 
 // https://www.svgrepo.com/svg/458353/setting-line
@@ -835,6 +843,10 @@ class ModalManager {
   static doesInit = false;
   /** @type {Map<string, ModalManager>} */
   static __modalMap = new Map();
+  /** @type {Map<string, () -> any>} */
+  __opener = new Map();
+  /** @type {Map<string, () -> any>} */
+  __closer = new Map();
 
   /**
    * 모달 관리자를 초기화합니다.
@@ -871,15 +883,57 @@ class ModalManager {
    */
   constructor(name) {
     this.name = name;
-    this.__modal = new DecentrallizedModal(name);
+    this.__modal = new DecentrallizedModal(name, this.__closer);
   }
 
+  /**
+   * 모달이 열릴 때 발동될 작업을 등록합니다.
+   * 이 작업은 모달이 다시 초기화되어도 작동합니다.
+   * @param {string} namespace 작업의 고유 키
+   * @param {() -> any} action 작업 내역
+   * @returns {ModalManager} 현재 모달 관리자
+   */
+  addOpenListener(namespace, action) {
+    this.__opener.set(namespace, action);
+    return this;
+  }
+
+  /**
+   * 모달이 닫힐때 발동될 작업을 등록합니다.
+   * @param {string} namespace 작업의 고유 키
+   * @param {() -> any} action 작업 내역
+   * @returns {ModalManager} 현재 모달 관리자
+   */
+  addCloseListener(namespace, action) {
+    this.__closer.set(namespace, action);
+    return this;
+  }
+
+  /**
+   * 모달이 열릴 때, 지정한 요소의 스크롤이 제거되도록 리스너를 추가합니다.
+   * 모달이 닫히면 복구됩니다.
+   * @param {string} namespace 작업의 고유 키 (열림 / 닫힘)
+   * @param {HTMLElement} element 대상 요소
+   * @returns {ModalManager} 현재 모달 관리자
+   */
+  withScrollRestorer(namespace, element) {
+    this.addOpenListener(namespace, () => {
+      element.classList.add("decentral-disable-scroll-flag");
+    });
+    this.addCloseListener(namespace, () => {
+      element.classList.remove("decentral-disable-scroll-flag");
+    });
+    return this;
+  }
   /**
    * 모달을 화면에 표시합니다.
    * @param {boolean} isDarktheme 다크 테마 색상 적용 여부
    * @param {string[]} preSelected 미리 선택할 메뉴
    */
   display(isDarktheme, preSelected = undefined) {
+    for (let element of this.__opener.values()) {
+      element();
+    }
     this.__modal.display(isDarktheme, preSelected);
   }
 
@@ -1030,12 +1084,16 @@ class DecentrallizedModal {
   /** @type {ContentPanel} */
   __contentPanel;
 
+  /** @type {Map<string, () -> any>} */
+  __closer;
   /**
    *
    * @param {string} baseId
+   * @param {Map<string, () -> any>} closer
    */
-  constructor(baseId) {
+  constructor(baseId, closer) {
     this.baseId = baseId;
+    this.__closer = closer;
   }
 
   getVersion() {
@@ -1107,6 +1165,9 @@ class DecentrallizedModal {
    */
   close() {
     if (this.__container) {
+      for (let element of this.__closer) {
+        element();
+      }
       this.__container.remove();
       this.__container = undefined;
       this.selectedMenu = [];
@@ -1128,6 +1189,9 @@ class DecentrallizedModal {
         node.id = `decentral-container-${this.baseId}`;
       }
     );
+    this.__container.onclick = (e) => {
+      e.stopPropagation();
+    };
     this.__modal = setupClassNode("div", "decentral-modal", (node) => {
       node.id = `decentral-container-${this.baseId}`;
     });
@@ -2903,7 +2967,10 @@ class ComponentAppender extends HTMLComponentConvertable {
         for (const element of topNode.getElementsByClassName(
           "decentral-option"
         )) {
-          if (element.getAttribute("decentral-option-id") === topNode.getAttribute("decentral-selected")) {
+          if (
+            element.getAttribute("decentral-option-id") ===
+            topNode.getAttribute("decentral-selected")
+          ) {
             return element;
           }
         }
