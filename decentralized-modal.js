@@ -931,6 +931,7 @@ class ModalManager {
    * @param {string[]} preSelected 미리 선택할 메뉴
    */
   display(isDarktheme, preSelected = undefined) {
+    console.log(this.__opener);
     for (let element of this.__opener.values()) {
       element();
     }
