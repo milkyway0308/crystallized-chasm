@@ -816,7 +816,7 @@ const DECENTRAL_CSS_VALUES = `
      */
     /* 스크롤 제거 */
     .decentral-disable-scroll-flag {
-      overflow-x: hidden !important;
+      overflow: hidden !important;
     }
 `;
 
