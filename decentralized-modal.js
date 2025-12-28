@@ -59,6 +59,7 @@ const DECENTRAL_CSS_VALUES = `
         flex-direction: column;
         z-index: 999;
         margin: auto;
+        pointer-event: auto;
         background-color: #99999970;
         top: 0;
         left: 0;
@@ -810,6 +811,13 @@ const DECENTRAL_CSS_VALUES = `
             grid-column: 1 / 1;
         }
     }
+    /**
+     *  연동 전용
+     */
+    /* 스크롤 제거 */
+    .decentral-disable-scroll-flag {
+      overflow-x: hidden !important;
+    }
 `;
 
 // https://www.svgrepo.com/svg/458353/setting-line
@@ -901,6 +909,22 @@ class ModalManager {
     return this;
   }
 
+  /**
+   * 모달이 열릴 때, 지정한 요소의 스크롤이 제거되도록 리스너를 추가합니다.
+   * 모달이 닫히면 복구됩니다.
+   * @param {string} namespace 작업의 고유 키 (열림 / 닫힘)
+   * @param {HTMLElement} element 대상 요소
+   * @returns {ModalManager} 현재 모달 관리자
+   */
+  withScrollRestorer(namespace, element) {
+    this.addOpenListener(namespace, () => {
+      element.classList.add("decentral-disable-scroll-flag");
+    });
+    this.addCloseListener(namespace, () => {
+      element.classList.remove("decentral-disable-scroll-flag");
+    });
+    return this;
+  }
   /**
    * 모달을 화면에 표시합니다.
    * @param {boolean} isDarktheme 다크 테마 색상 적용 여부
@@ -1165,6 +1189,9 @@ class DecentrallizedModal {
         node.id = `decentral-container-${this.baseId}`;
       }
     );
+    this.__container.onclick = (e) => {
+      e.stopPropagation();
+    };
     this.__modal = setupClassNode("div", "decentral-modal", (node) => {
       node.id = `decentral-container-${this.baseId}`;
     });
