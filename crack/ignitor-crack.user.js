@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Crack Chasm Crystallized Ignitor (크랙 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRAK-IGNT-v1.4.3
+// @version     CRAK-IGNT-v1.5.0
 // @description 캐즘 버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다. **기존 캐즘 버너 및 결정화 캐즘 버너+와 호환되지 않습니다. 버너 모듈을 제거하고 사용하세요.**
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -2041,6 +2041,11 @@ GM_addStyle(`
         warning:
           "Gemini 3은 2025년 11월 26일 기준으로 무료 티어가 존재하지 않습니다.\n 또한 Gemini 3 Pro Search는 구글 검색을 사용하며, 검색 엔진의 입력 토큰도 과금에 포함됩니다.",
       },
+      "gemini-3-flash-preview": {
+        name: "gemini-3-flash-preview",
+        display: "Gemini 3 Flash (Preview)",
+        requester: GeminiRequester.GENERIC_REQUESTER,
+      },
       "gemini-2.5-pro": {
         name: "gemini-2.5-pro",
         display: "Gemini 2.5 Pro",
@@ -2075,6 +2080,11 @@ GM_addStyle(`
         requester: FirebaseRequester.GENERIC_REQUESTER,
         warning:
           "Gemini 3은 2025년 11월 26일 기준으로 무료 티어가 존재하지 않습니다.",
+      },
+      "gemini-3-flash-preview": {
+        name: "gemini-3-flash-preview",
+        display: "Gemini 3 Flash (Preview)",
+        requester: FirebaseRequester.GENERIC_REQUESTER,
       },
       "gemini-2.5-pro": {
         name: "gemini-2.5-pro",

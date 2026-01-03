@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        BabeChat / Chasm Crystallized Ignitor (베이비챗 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     BABE-IGNT-v1.3.4
+// @version     BABE-IGNT-v1.4.0
 // @description 캐즘 버너 및 애프터버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://babechat.ai/*
@@ -2043,6 +2043,11 @@ GM_addStyle(`
         warning:
           "Gemini 3은 2025년 11월 26일 기준으로 무료 티어가 존재하지 않습니다.\n 또한 Gemini 3 Pro Search는 구글 검색을 사용하며, 검색 엔진의 입력 토큰도 과금에 포함됩니다.",
       },
+      "gemini-3-flash-preview": {
+        name: "gemini-3-flash-preview",
+        display: "Gemini 3 Flash (Preview)",
+        requester: GeminiRequester.GENERIC_REQUESTER,
+      },
       "gemini-2.5-pro": {
         name: "gemini-2.5-pro",
         display: "Gemini 2.5 Pro",
@@ -2077,6 +2082,11 @@ GM_addStyle(`
         requester: FirebaseRequester.GENERIC_REQUESTER,
         warning:
           "Gemini 3은 2025년 11월 26일 기준으로 무료 티어가 존재하지 않습니다.",
+      },
+      "gemini-3-flash-preview": {
+        name: "gemini-3-flash-preview",
+        display: "Gemini 3 Flash (Preview)",
+        requester: FirebaseRequester.GENERIC_REQUESTER,
       },
       "gemini-2.5-pro": {
         name: "gemini-2.5-pro",
