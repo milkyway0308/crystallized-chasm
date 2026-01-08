@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized AbsoluteZero (결정화 캐즘 절대영도)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-AZRO-v1.1.11
+// @version     CRYS-AZRO-v1.1.12p
 // @description 선택하거나 호버하지 않은 작품의 GIF 차단. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -284,7 +284,7 @@ GM_addStyle(
         if (item.getAttribute("href") === "/setting") {
           const clonedElement = item.cloneNode(true);
           clonedElement.id = "chasm-decentral-menu";
-          const textElement = clonedElement.getElementsByTagName("p")[0];
+          const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
           clonedElement.setAttribute("href", "javascript: void(0)");
           clonedElement.onclick = (event) => {
@@ -308,7 +308,7 @@ GM_addStyle(
         if (element.getAttribute("href") === "/my-page") {
           const clonedElement = element.cloneNode(true);
           clonedElement.id = "chasm-decentral-menu";
-          const textElement = clonedElement.getElementsByTagName("p")[0];
+          const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
           clonedElement.setAttribute("href", "javascript: void(0)");
           clonedElement.onclick = (event) => {
