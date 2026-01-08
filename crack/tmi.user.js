@@ -439,7 +439,6 @@ GM_addStyle(`
       const elements = document.querySelectorAll(
         "div.css-160ssko div[data-radix-popper-content-wrapper] [data-radix-collection-item]"
       );
-      console.log("Try to updating " + elements.length);
       for (let element of elements) {
         const modelTextNode = element.getElementsByTagName("span");
         if (modelTextNode.length <= 0) return;
@@ -597,8 +596,6 @@ GM_addStyle(`
         !rootElement[0].hasAttribute("chasm-cmi-monitoring")
       ) {
         rootElement[0].setAttribute("chasm-cmi-monitoring", "true");
-        console.log("Attatched monitor");
-        console.log(rootElement[0]);
         attachObserver(rootElement[0], () => {
           updateModalText(initialCracker);
         });
