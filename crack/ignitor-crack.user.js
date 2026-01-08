@@ -2923,7 +2923,7 @@ GM_addStyle(`
       return;
     }
     // Top element
-    const data = document.getElementsByClassName("css-lf0snb");
+    const data = document.getElementsByClassName(document.body.getAttribute("data-theme") === "dark" ? "css-12dxzjd" : "css-lf0snb");
     if (data && data.length > 0) {
       const top = data[0].childNodes[0].childNodes[1].childNodes[0].childNodes[0];
       const buttonCloned = top.childNodes[0].cloneNode(true);
