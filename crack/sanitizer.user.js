@@ -49,7 +49,7 @@
     if (!window.matchMedia("(min-width: 768px)").matches) {
       let scannerIndex = 0;
       for (let element of document.querySelectorAll('div[height="64"]')) {
-        if (++scannerIndex >= 30) return;
+        if (++scannerIndex >= 5) return;
         for (let button of element.getElementsByTagName("button")) {
           if (button.textContent === "다운로드") {
             button.parentElement.nextSibling.click();
