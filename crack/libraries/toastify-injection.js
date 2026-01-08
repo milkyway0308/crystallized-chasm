@@ -23,7 +23,6 @@ class ToastifyInjector {
    * ToastifyInjector을 초기화합니다.
    */
   constructor() {
-    super();
     this.#init();
   }
 
