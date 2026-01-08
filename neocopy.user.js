@@ -59,7 +59,7 @@ GM_addStyle(`
 
   .chasm-neocopy-button:hover {
     color: var(--text_primary);
-    background-color: var(--state_hober);
+    background-color: hsl(var(--accent));
     pointer: cursor;
     transition: all 0.3s;
   }
@@ -404,7 +404,7 @@ GM_addStyle(`
     const element = accessAdditionalDropdown();
     const nextX =
       targetElement.getBoundingClientRect().x -
-      element.parentNode.getBoundingClientRect().width;
+      element.parentNode.getBoundingClientRect().width - 4;
     const nextY = targetElement.getBoundingClientRect().y;
     element.parentNode.style = `top: ${nextY}px; left: ${nextX}px;`;
     const rightBorder = document.getElementById("chasm-copy-partial-border");
