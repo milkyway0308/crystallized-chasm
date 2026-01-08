@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized AlarmClock (결정화 캐즘 자명종)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-ALRM-v1.0.0
+// @version     CRYS-ALRM-v1.0.1p
 // @description 일일 출석 알림 및 즉시 출석 버튼 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -24,7 +24,8 @@ GM_addStyle(`
     }
     
     .chasm-alarm-clock-modal {
-        position: absolute;
+        position: fixed;
+        top: 55px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -33,7 +34,7 @@ GM_addStyle(`
         color: var(--chasm-alarm-clock-text);
         padding: 15px 20px;
         border-radius: 8px;
-        transform: translateX(-69%);
+        transform: translateX(-46%);
         margin-top: 5px;
         width: fit-contents;
         white-space: nowrap;
@@ -46,22 +47,21 @@ GM_addStyle(`
         opacity: 1;
         transition: max-height 0.15s ease-out, max-width 0.15s ease-out, transform 0.15s ease-out, opacity 0.5s linear;
     }
-
     
     .chasm-alarm-clock-modal[mobile] {
-        transform: translateX(-40%) translateY(80%);
+        transform: translateX(-0%) translateY(0%);
     }
 
     .chasm-alarm-clock-modal[loader] {
         max-width: 60px;
         max-height: 57px;
-        transform: translateX(-49%);
+        transform: translateX(-80%);
         transition: max-height 0.15s ease-out, max-width 0.15s ease-out, transform 0.22s linear;
     }
 
     
     .chasm-alarm-clock-modal[mobile][loader] {
-        transform: translateX(-33%) translateY(80%);
+        transform: translateX(-15%) translateY(0%);
     }
     
     .chasm-alarm-clock-active {
@@ -236,6 +236,10 @@ GM_addStyle(`
   //                   크랙 종속 유틸리티
   // =====================================================
 
+  function isDarkMode() {
+    return document.body.getAttribute("data-theme") === "dark";
+  }
+
   /**
    * 쿠키에서 액세스 토큰을 추출해 반환합니다.
    * @returns 액세스 토큰
@@ -299,17 +303,19 @@ GM_addStyle(`
    * @returns {Promise<void>}
    */
   async function checkAttend() {
-    if (!isAttendableTime()) return;
-    if (new Date().getDate() !== lastChecked) {
-      const isAttendable = await canAttend();
-      if (isAttendable instanceof Error) return;
-      if (isAttendable) {
-        findAndInjectElement();
-        log("출석이 가능합니다. 모달을 추가합니다.");
-      }
-      lastChecked = new Date().getDate();
-      log("출석이 확인되었습니다. 오늘은 더 이상 모달을 발생시키지 않습니다.");
-    }
+    findAndInjectElement();
+    log("출석이 가능합니다. 모달을 추가합니다.");
+    //   if (!isAttendableTime()) return;
+    //   if (new Date().getDate() !== lastChecked) {
+    //     const isAttendable = await canAttend();
+    //     if (isAttendable instanceof Error) return;
+    //     if (isAttendable) {
+    //       findAndInjectElement();
+    //       log("출석이 가능합니다. 모달을 추가합니다.");
+    //     }
+    //     lastChecked = new Date().getDate();
+    //     log("출석이 확인되었습니다. 오늘은 더 이상 모달을 발생시키지 않습니다.");
+    //   }
   }
 
   /**
@@ -399,6 +405,19 @@ GM_addStyle(`
   //                    UI 인젝션
   // =====================================================
 
+  function findCrackerButton() {
+    const topContainerElement = document.getElementsByClassName(
+      isDarkMode() ? "css-7238to" : "css-9gj46x"
+    );
+    if (topContainerElement.length <= 0) return;
+    const hyperLinkElement = topContainerElement[0].getElementsByTagName("a");
+    for (let button of hyperLinkElement) {
+      if (button.getAttribute("href") === "/cracker") {
+        return button;
+      }
+    }
+    return undefined;
+  }
   /**
    * 조건이 맞다면 출석 모달 요소를 강제 삽입합니다.
    */
@@ -407,21 +426,16 @@ GM_addStyle(`
       return;
     }
     if (!window.matchMedia("(min-width: 768px)").matches) {
-      const buttons = document.getElementsByClassName("css-5q07im");
-      if (buttons.length <= 0) return;
-      injectElement(buttons[buttons.length - 1]);
+      const button = document.getElementsByClassName(isDarkMode() ? "css-7238to" : "css-9gj46x");
+      if (button.length <= 0) return;
+      injectElement(button[0].lastChild.lastChild);
       document
         .getElementsByClassName("chasm-alarm-clock-modal")[0]
         .setAttribute("mobile", "true");
     } else {
-      const buttons = document.getElementsByClassName("css-5q07im");
-      if (buttons.length <= 0) return;
-      for (let element of buttons) {
-        if (element.parentElement.getAttribute("href") === "/cracker") {
-          injectElement(element.parentElement);
-          return;
-        }
-      }
+      const button = findCrackerButton();
+      if (!button) return;
+      injectElement(button);
     }
   }
 
