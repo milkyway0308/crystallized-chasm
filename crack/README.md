@@ -95,6 +95,12 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 > ⚠ 삭제 기능은 대단히 위험한 기능입니다. 결정화 캐즘의 개발자는 네뷸라이저의 대량 자동 삭제 기능을 사용함으로써 발생하는 문제에 대해 책임지지 않습니다.<br>
 > 로컬 환경에서는 문제 없이 정상 작동하는 것이 확인되었습니다.
 
+## 결정화 캐즘 - 손소독제 (v1.0.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/sanitizer.user.js) ]<br>
+
+결정화 캐즘 손소독제는 모바일에서 앱 유도 배너 및 최상단 배너를 자동으로 닫아줍니다.<br>
+
+덤으로 손도 더 깔끔해집니다. 과학이죠!
+
 ## 결정화 캐즘 - 차원이동 (v1.4.10) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alternation.user.js) ]<br>
 
 지금 그대로의 이야기의 또 다른 이야기를 듣고 싶지 않으신가요?<br>
