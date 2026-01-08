@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Alternation (결정화 캐즘 차원이동)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-ALTR-v1.4.8
+// @version     CRYS-ALTR-v1.4.9
 // @description 채팅 로그 복사 및 새 채팅방으로 포크. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -745,9 +745,10 @@ if (!document.chasmApi) {
     }
     const injectResult = await injectChat(createdChatRoomId, extractedChats);
     if (injectResult) {
-      if (confirm("새 평행 우주가 준비되었습니다.\n새로 고치시겠습니까?")) {
-        window.location.reload();
-      }
+      ToastifyInjector.findInjector().doToastifyAlert(
+        "이 세계선이 복제되었어요.\n페이지를 새로고침해 새로운 세션을 확인해보세요.",
+        6000
+      );
     } else {
       alert("채팅 삽입에 실패하였습니다.");
     }
@@ -1302,4 +1303,129 @@ if (!document.chasmApi) {
     });
   }
   __doModalMenuInit();
+
+  // =====================================================
+  //                 Toastify Injection
+  // =====================================================
+  /**
+   * 크랙 플랫폼의 Toastify 인젝션을 쉽게 해주는 유틸리티 클래스입니다.
+   */
+  class ToastifyInjector {
+    /**
+     * 마지막으로 등록된 인젝터를 가져오거나, 등록합니다.
+     * @returns {ToastifyInjector} 등록된 인스턴스
+     */
+    static findInjector() {
+      if (document.__toastifyInjector) {
+        return document.__toastifyInjector;
+      }
+      document.__toastifyInjector = new ToastifyInjector();
+      return document.__toastifyInjector;
+    }
+
+    /**
+     * ToastifyInjector을 초기화합니다.
+     */
+    constructor() {
+      super();
+      this.#init();
+    }
+
+    /**
+     * 삽입된 알림 요소의 트래킹을 진행합니다.
+     */
+    #trackNotification() {
+      const current = new Date().getTime();
+      const toastifies = document.getElementsByClassName("Toastify");
+      if (toastifies.length <= 0) {
+        return;
+      }
+      const rootNode = toastifies[0];
+      if (rootNode.childNodes.length > 0) {
+        if (
+          rootNode.getElementsByClassName("chasm-toastify-track").length !=
+          rootNode.childNodes.length
+        ) {
+          for (const element of Array.from(
+            rootNode.getElementsByClassName("chasm-toastify-track")
+          )) {
+            if (element.hasAttribute("completed")) {
+              element.removeAttribute("completed");
+              element.removeAt = current + 1000;
+            }
+          }
+        }
+      }
+      for (const element of rootNode.getElementsByClassName(
+        "chasm-toastify-track"
+      )) {
+        if (element.expireAt < current && element.hasAttribute("completed")) {
+          element.removeAttribute("completed");
+          element.removeAt = current + 1000;
+        } else if (element.removeAt < current) {
+          element.remove();
+        }
+      }
+    }
+    #init() {
+      GM_addStyle(`
+        .chasm-toastify-track {
+            transform: translateY(-200%);
+            transition: transform 0.4s;
+        }
+
+        .chasm-toastify-track[completed="true"] {
+            transform: translateY(0);
+            transition: transform 0.4s;
+        }
+    `);
+
+      setInterval(this.#trackNotification, 50);
+    }
+
+    /**
+     * 알림 요소를 삽입합니다.
+     * 해당 펑션으로 삽입된 알림은 기존 알림을 강제로 제거합니다.
+     *
+     * 해당 펑션은 크랙 스타일 알림을 생성합니다.
+     * @param {string} message 표시할 메시지
+     * @param {number} expires 유지 시간 (ms)
+     */
+    doToastifyAlert(message, expires = 3000) {
+      const textNode = document.createElement("p");
+      textNode.textContent = message;
+      textNode.style =
+        "color: #FFFFFF; text-align: center; font-size: 16px; line-height: 140%; font-weight: 600; white-space: pre-line;";
+
+      const containerNode = document.createElement("div");
+      containerNode.style =
+        "background-color: rgb(46, 45, 43); padding: 16px; border-radius: 10px; width: 100%; max-width: 95vw; height: 100%;";
+
+      containerNode.append(textNode);
+
+      const wrapperNode = document.createElement("div");
+      wrapperNode.className =
+        "Toastify__toast-container Toastify__toast-container--top-center chasm-toastify-track";
+      wrapperNode.style.cssText =
+        "background: transparent; min-width: 461px; min-height: 0px; height: fit-content; border-radius: 10px; justify-content: center; left: auto; justify-self: center;";
+      wrapperNode.append(containerNode);
+
+      wrapperNode.expireAt = new Date().getTime() + expires;
+
+      const toastifies = document.getElementsByClassName("Toastify");
+      if (toastifies.length <= 0) {
+        return;
+      }
+      if (toastifies.length > 0) {
+        for (const element of Array.from(toastifies[0].childNodes)) {
+          element.remove();
+        }
+      }
+      const rootNode = toastifies[0];
+      rootNode.append(wrapperNode);
+      setTimeout(() => {
+        wrapperNode.setAttribute("completed", "true");
+      });
+    }
+  }
 })();
