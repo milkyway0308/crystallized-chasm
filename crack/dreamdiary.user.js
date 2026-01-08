@@ -4,7 +4,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized DreamDiary (크랙 / 캐즘 꿈일기)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-DDIA-v1.1.3
+// @version      CRYS-DDIA-v1.1.4p
 // @description  유저노트 저장 / 불러오기 기능 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
@@ -899,7 +899,7 @@ GM_addStyle(`
         if (item.getAttribute("href") === "/setting") {
           const clonedElement = item.cloneNode(true);
           clonedElement.id = "chasm-decentral-menu";
-          const textElement = clonedElement.getElementsByTagName("p")[0];
+          const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
           clonedElement.setAttribute("href", "javascript: void(0)");
           clonedElement.onclick = (event) => {
@@ -923,7 +923,7 @@ GM_addStyle(`
         if (element.getAttribute("href") === "/my-page") {
           const clonedElement = element.cloneNode(true);
           clonedElement.id = "chasm-decentral-menu";
-          const textElement = clonedElement.getElementsByTagName("p")[0];
+          const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
           clonedElement.setAttribute("href", "javascript: void(0)");
           clonedElement.onclick = (event) => {
