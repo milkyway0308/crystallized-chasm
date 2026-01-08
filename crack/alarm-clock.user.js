@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized AlarmClock (결정화 캐즘 자명종)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-ALRM-v1.0.1
+// @version     CRYS-ALRM-v1.0.2
 // @description 일일 출석 알림 및 즉시 출석 버튼 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -303,19 +303,17 @@ GM_addStyle(`
    * @returns {Promise<void>}
    */
   async function checkAttend() {
-    findAndInjectElement();
-    log("출석이 가능합니다. 모달을 추가합니다.");
-    //   if (!isAttendableTime()) return;
-    //   if (new Date().getDate() !== lastChecked) {
-    //     const isAttendable = await canAttend();
-    //     if (isAttendable instanceof Error) return;
-    //     if (isAttendable) {
-    //       findAndInjectElement();
-    //       log("출석이 가능합니다. 모달을 추가합니다.");
-    //     }
-    //     lastChecked = new Date().getDate();
-    //     log("출석이 확인되었습니다. 오늘은 더 이상 모달을 발생시키지 않습니다.");
-    //   }
+    if (!isAttendableTime()) return;
+    if (new Date().getDate() !== lastChecked) {
+      const isAttendable = await canAttend();
+      if (isAttendable instanceof Error) return;
+      if (isAttendable) {
+        findAndInjectElement();
+        log("출석이 가능합니다. 모달을 추가합니다.");
+      }
+      lastChecked = new Date().getDate();
+      log("출석이 확인되었습니다. 오늘은 더 이상 모달을 발생시키지 않습니다.");
+    }
   }
 
   /**
@@ -426,7 +424,9 @@ GM_addStyle(`
       return;
     }
     if (!window.matchMedia("(min-width: 768px)").matches) {
-      const button = document.getElementsByClassName(isDarkMode() ? "css-7238to" : "css-9gj46x");
+      const button = document.getElementsByClassName(
+        isDarkMode() ? "css-7238to" : "css-9gj46x"
+      );
       if (button.length <= 0) return;
       injectElement(button[0].lastChild.lastChild);
       document
