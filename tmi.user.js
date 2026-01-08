@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized TMI (캐즘 과포화)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-TMI-v1.6.2
+// @version      CRYS-TMI-v1.6.3p
 // @description  크랙 UI에 추가 정보 제공. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
@@ -14,14 +14,41 @@
 GM_addStyle(`
   body[data-theme="light"] {
     --chasm-tmi-font-color: #242424;
+    --chasm-tmi-cracker-display: #000000;
   }
   body[data-theme="dark"] {
     --chasm-tmi-font-color: #CDCDCD;
+    --chasm-tmi-cracker-display: #FFFFFF;
   }
+
+  .chasm-cracker-display {
+    margin-left: 5px; 
+    font-weight: bolder; 
+    font-size: 16px; 
+    color: var(--chasm-tmi-cracker-display); 
+    transition: color 0.2s;
+  }
+
   .chasm-tmi-indicator {
     font-size: 12px;
     color: var(--chasm-tmi-font-color);
     font-weight: 600;
+  }
+
+  @media screen and (max-width:770px) {
+    .chasm-tmi-text-mobile-container {
+      display: flex;
+      flex-direction: row;
+      width: fit-content;
+      align-items: center;
+    }  
+  }
+  
+  .chasm-tmi-button-expander {
+    display: flex;
+    flex-direction: row;
+    width: fit-content;
+    margin-right: 5px;
   }
 
 `);
@@ -249,16 +276,54 @@ GM_addStyle(`
   }
 
   function findCrackerButton() {
-    const buttonElements = document.getElementsByClassName("css-5q07im");
-    if (!buttonElements || buttonElements.length <= 0) {
-      return;
-    }
-    for (let button of buttonElements) {
-      if (button.parentElement.getAttribute("href") === "/cracker") {
+    const topContainerElement = document.getElementsByClassName(
+      isDarkMode() ? "css-7238to" : "css-9gj46x"
+    );
+    if (topContainerElement.length <= 0) return;
+    const hyperLinkElement = topContainerElement[0].getElementsByTagName("a");
+    for (let button of hyperLinkElement) {
+      if (button.getAttribute("href") === "/cracker") {
         return button;
       }
     }
     return undefined;
+  }
+
+  function findMobileCrackerPosition() {
+    const topElement = document.getElementsByClassName(
+      isDarkMode() ? "css-7238to" : "css-9gj46x"
+    );
+    if (topElement.length > 0) {
+      return topElement[0].childNodes[0].childNodes[0];
+    }
+    return undefined;
+  }
+
+  function createCrackerTag(cracker) {
+    const tag = document.createElement("p");
+    tag.id = "chasm-cracker-text";
+    tag.className = "chasm-cracker-text";
+    if (isDarkMode()) {
+      tag.className = "chasm-cracker-display";
+    } else {
+      tag.className = "chasm-cracker-display";
+    }
+    const nextText = cracker.toLocaleString(undefined, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+    tag.textContent = nextText;
+    if (settings.enableCrackerDelta) {
+      tag.setAttribute("chasm-tmi-current", cracker.toString());
+    } else {
+      tag.setAttribute("chasm-tmi-current", cracker.toString());
+      tag.setAttribute("chasm-tmi-target", cracker.toString());
+      tag.textContent = cracker.toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      });
+    }
+    return tag;
   }
 
   function updateCrackerText(cracker) {
@@ -267,53 +332,29 @@ GM_addStyle(`
       return;
     }
     const buttonElement = findCrackerButton();
-
     let elementsText = document.getElementsByClassName("chasm-cracker-text");
     if (!elementsText || elementsText.length <= 0) {
-      const tag = document.createElement("p");
-      tag.id = "chasm-cracker-text";
-      tag.className = "chasm-cracker-text";
-      if (isDarkMode()) {
-        tag.setAttribute("chasm-tmi-dark-mode", "true");
-        tag.style.cssText =
-          "margin-left: 5px; font-weight: bolder; font-size: 16px; color: #FFFFFF; transition: color 0.2s;";
-      } else {
-        tag.setAttribute("chasm-tmi-dark-mode", "false");
-        tag.style.cssText =
-          "margin-left: 5px; font-weight: bolder; font-size: 16px; color: #000000; transition: color 0.2s;";
+      if (buttonElement) {
+        buttonElement.append(createCrackerTag(cracker));
+        buttonElement.classList.add("chasm-tmi-button-expander");
+        elementsText = document.getElementsByClassName("chasm-cracker-text");
       }
-      const nextText = cracker.toLocaleString(undefined, {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      });
-      tag.textContent = nextText;
-      if (settings.enableCrackerDelta) {
-        tag.setAttribute("chasm-tmi-current", cracker.toString());
-      } else {
-        tag.setAttribute("chasm-tmi-current", cracker.toString());
+    }
+    let mobileText = document.querySelectorAll("chasm-cracker-text[mobile]");
+    if (mobileText.length <= 0) {
+      const parent = findMobileCrackerPosition();
+      if (parent) {
+        const tag = createCrackerTag(cracker);
+        tag.setAttribute("mobile", "true");
+        parent.append(tag);
+        parent.classList.add("chasm-tmi-text-mobile-container");
+        elementsText = document.getElementsByClassName("chasm-cracker-text");
+      }
+    }
+    for (let tag of elementsText) {
+      if (tag.getAttribute("chasm-tmi-target") !== cracker.toString()) {
         tag.setAttribute("chasm-tmi-target", cracker.toString());
-        tag.textContent = cracker.toLocaleString(undefined, {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0,
-        });
       }
-      buttonElement.append(tag);
-      elementsText = document.getElementsByClassName("chasm-cracker-text");
-    }
-    const tag = elementsText[0];
-    if (isDarkMode().toString() != tag.getAttribute("chasm-tmi-dark-mode")) {
-      if (isDarkMode()) {
-        tag.setAttribute("chasm-tmi-dark-mode", "true");
-        tag.style.cssText =
-          "margin-left: 5px; font-weight: bolder; font-size: 16px; color: #FFFFFF; transition: color 0.2s;";
-      } else {
-        tag.setAttribute("chasm-tmi-dark-mode", "false");
-        tag.style.cssText =
-          "margin-left: 5px; font-weight: bolder; font-size: 16px; color: #000000; transition: color 0.2s;";
-      }
-    }
-    if (tag.getAttribute("chasm-tmi-target") !== cracker.toString()) {
-      tag.setAttribute("chasm-tmi-target", cracker.toString());
     }
   }
 
@@ -361,14 +402,15 @@ GM_addStyle(`
 
   function updateRemainingText(cracker) {
     if (!doStoryChatCalc()) return;
-    let targets = document.getElementsByClassName("css-1bhbevm");
+    let targets = document.querySelectorAll(
+      "div.css-160ssko div div[data-state]"
+    );
     if (!targets || targets.length <= 0) {
       return;
     }
     targets = targets[0].childNodes;
     const currentTarget = targets[targets.length - 1];
-    const textTag = currentTarget.getElementsByTagName("p")[0];
-
+    const textTag = currentTarget.getElementsByTagName("span")[0];
     if (!textTag.hasAttribute("chasm-tmi-model-type")) {
       if (textTag.textContent.trim().length <= 0) {
         // To prevent pre-load replacement
@@ -394,19 +436,17 @@ GM_addStyle(`
     );
     if (indicatorEntity.length <= 0) {
       // Inject small indicator
-      const elements = document.getElementsByClassName(
-        isDarkMode() ? "css-m78xu9" : "css-12698ad"
+      const elements = document.querySelectorAll(
+        "div.css-160ssko div[data-radix-popper-content-wrapper] [data-radix-collection-item]"
       );
+      console.log("Try to updating " + elements.length);
       for (let element of elements) {
-        if (element.nodeName.toLowerCase() !== "p") {
-          continue;
-        }
-        const indicator = document.createElement("p");
+        const modelTextNode = element.getElementsByTagName("span");
+        if (modelTextNode.length <= 0) return;
+        const indicator = document.createElement("span");
         indicator.className = "chasm-tmi-indicator";
-        indicator.setAttribute("target-model", element.textContent);
-        element.parentElement.parentElement.parentElement.appendChild(
-          indicator
-        );
+        indicator.setAttribute("target-model", modelTextNode[0].textContent);
+        element.childNodes[0].appendChild(indicator);
       }
       indicatorEntity = document.getElementsByClassName("chasm-tmi-indicator");
     }
@@ -550,6 +590,18 @@ GM_addStyle(`
       let nextCracker = await extractCracker();
       if (nextCracker !== undefined) {
         updateCracker(await extractCracker());
+      }
+      const rootElement = document.getElementsByClassName("css-160ssko");
+      if (
+        rootElement.length > 0 &&
+        !rootElement[0].hasAttribute("chasm-cmi-monitoring")
+      ) {
+        rootElement[0].setAttribute("chasm-cmi-monitoring", "true");
+        console.log("Attatched monitor");
+        console.log(rootElement[0]);
+        attachObserver(rootElement[0], () => {
+          updateModalText(initialCracker);
+        });
       }
     }
   }
