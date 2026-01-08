@@ -2,16 +2,34 @@
 // ==UserScript==
 // @name        Chasm Crystallized Counter (결정화 캐즘 계수기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-CNTR-v1.2.11
+// @version     CRYS-CNTR-v1.2.12p
 // @description 채팅에 캐릭터 채팅 턴 계수기 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js
-// @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
+// @require     https://cdn.jsdelivr.net/npm/dexie@4.2.1/dist/dexie.min.js#sha256-STeEejq7AcFOvsszbzgCDL82AjypbLLjD5O6tUByfuA=
 // @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.11/decentralized-modal.js
 // @grant       GM_addStyle
 // ==/UserScript==
+GM_addStyle(`
+  .chasm-counter-flex-adjuster {
+    display: flex;
+    flex-direction: column;
+  }
+  .chasm-counter-shared-bar-wrapper {
+    display: flex;
+    justify-content: center;
+  }
+  .chasm-counter-shared-bar {
+    display: flex;
+    flex-direction: row;
+    margin-left: 8px;
+    margin-bottom: 0px;
+    width: calc(100% - 80px);
+    max-width: 768px;
+  }
+`);
 !(async function () {
   let lastDetectedMessageCount = {};
   const db = new Dexie("chasm-counter");
@@ -400,7 +418,7 @@
     await setLastAccess(chatId);
     let chatCounts = await getMessageCount(chatId);
     let changed = false;
-    let url = `https://contents-api.wrtn.ai/character-chat/single-character-chats/${chatId}/messages?limit=40`;
+    let url = `https://crack-api.wrtn.ai/crack-gen/character-chats/${chatId}/messages?limit=40`;
     let continueFetch = true;
     while (continueFetch) {
       const result = await retryAuthFetch(3, "GET", url);
@@ -424,7 +442,7 @@
         }
       }
       if (result.data.hasNext && result.data.nextCursor) {
-        url = `https://contents-api.wrtn.ai/character-chat/single-character-chats/${chatId}/messages?limit=40&cursor=${result.data.nextCursor}`;
+        url = `https://crack-api.wrtn.ai/crack-gen/character-chats/${chatId}/messages?limit=40&cursor=${result.data.nextCursor}`;
         // Waiting 50ms to avoid ratelimiting
         await new Promise((resolve) => setTimeout(resolve, 50));
       } else {
@@ -486,7 +504,7 @@
         );
       } else {
         parentElement = document.getElementsByClassName(
-          isDarkMode() ? "css-h60a3h" : "css-h60a3h"
+          isDarkMode() ? "css-nqviro" : "css-nqviro"
         );
       }
       if (!parentElement || parentElement.length <= 0) {
@@ -494,9 +512,17 @@
       }
       upperBar = document.createElement("div");
       upperBar.id = "chasm-shared-chatting-bar";
-      upperBar.style.cssText =
-        "display: flex; flex-direction: row; margin-left: 8px; margin-bottom: 0px;";
-      parentElement[0].insertBefore(upperBar, parentElement[0].childNodes[0]);
+      upperBar.className = "chasm-counter-shared-bar";
+      if (isCharacterPath()) {
+        parentElement[0].classList.add("chasm-counter-flex-adjuster");
+        parentElement[0].insertBefore(upperBar, parentElement[0].childNodes[0]);
+      } else {
+        const wrapper = document.createElement("div");
+        wrapper.className = "chasm-counter-shared-bar-wrapper";
+        wrapper.appendChild(upperBar);
+        parentElement[0].classList.add("chasm-counter-flex-adjuster");
+        parentElement[0].insertBefore(wrapper, parentElement[0].childNodes[0]);
+      }
     }
     return upperBar;
   }
@@ -592,9 +618,7 @@
     manager.addLicenseDisplay((panel) => {
       panel.addTitleText("결정화 캐즘 계수기");
       panel
-        .addText(
-          "결정화 캐즘 계수기의 모든 아이콘은 SVGRepo에서 가져왔습니다."
-        )
+        .addText("결정화 캐즘 계수기의 모든 아이콘은 SVGRepo에서 가져왔습니다.")
         .addText(
           "또한, 일부의 외부 프레임워크를 통해 웹 내부 데이터베이스를 관리하고 있습니다."
         )
@@ -630,7 +654,7 @@
         if (item.getAttribute("href") === "/setting") {
           const clonedElement = item.cloneNode(true);
           clonedElement.id = "chasm-decentral-menu";
-          const textElement = clonedElement.getElementsByTagName("p")[0];
+          const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
           clonedElement.setAttribute("href", "javascript: void(0)");
           clonedElement.onclick = (event) => {
@@ -654,7 +678,7 @@
         if (element.getAttribute("href") === "/my-page") {
           const clonedElement = element.cloneNode(true);
           clonedElement.id = "chasm-decentral-menu";
-          const textElement = clonedElement.getElementsByTagName("p")[0];
+          const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
           clonedElement.setAttribute("href", "javascript: void(0)");
           clonedElement.onclick = (event) => {
