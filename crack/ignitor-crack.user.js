@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Crack Chasm Crystallized Ignitor (크랙 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRAK-IGNT-v1.5.0
+// @version     CRAK-IGNT-v1.5.1p
 // @description 캐즘 버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다. **기존 캐즘 버너 및 결정화 캐즘 버너+와 호환되지 않습니다. 버너 모듈을 제거하고 사용하세요.**
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -52,9 +52,26 @@ GM_addStyle(`
     .chasm-ignt-svg-button:hover,.chasm-ignt-svg-spaced-button:hover {
       cursor: pointer;
     }
-  .burner-button { height: 32px; padding: 12px 12px; border-radius: 4px; cursor: pointer; display: flex; flex-direction: row; align-items: center; justify-items: center; border: 1px solid var(--text_action_blue_secondary); color: var(--text_action_blue_secondary); font-size: 14px; font-weight: 600; } 
-    .burner-button:hover { background-color: var(--bg_dimmed2); }
-    .burner-input-button { display: flex !important; }
+    
+    .burner-button {
+      color: hsl(var(--foreground));
+      background-color: hsl(var(--background));
+      font-weight: 500;
+      font-size: 14px;
+      border: solid 1px hsl(var(--border));
+      border-radius: 8px;
+      justify-content: center;
+      padding-top: .5em;
+      padding-bottom: .5em;
+      padding-right: .625em;
+      padding-left: .75em;
+    }
+    .burner-button:hover {
+      background-color: var(--accent);
+    }
+    .burner-input-button {
+      display: flex !important;
+    }
 
     @media screen and (max-width:600px) { 
       .burner-button { 
@@ -65,7 +82,7 @@ GM_addStyle(`
 
 !(async function () {
   const PLATFORM_SAVE_KEY = "chasm-ignt-settings";
-  const VERSION = "v1.4.3";
+  const VERSION = "v1.5.1p";
   const { initializeApp } = await import(
     "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
   );
@@ -2326,7 +2343,7 @@ GM_addStyle(`
         if (item.getAttribute("href") === "/setting") {
           const clonedElement = item.cloneNode(true);
           clonedElement.id = "chasm-decentral-menu";
-          const textElement = clonedElement.getElementsByTagName("p")[0];
+          const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
           clonedElement.setAttribute("href", "javascript: void(0)");
           clonedElement.onclick = (event) => {
@@ -2350,7 +2367,7 @@ GM_addStyle(`
         if (element.getAttribute("href") === "/my-page") {
           const clonedElement = element.cloneNode(true);
           clonedElement.id = "chasm-decentral-menu";
-          const textElement = clonedElement.getElementsByTagName("p")[0];
+          const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
           clonedElement.setAttribute("href", "javascript: void(0)");
           clonedElement.onclick = (event) => {
@@ -2875,11 +2892,13 @@ GM_addStyle(`
       return;
     }
     // Top element
-    const data = document.getElementsByClassName(
-      isStoryPath() ? "css-1bhbevm" : "css-l8r172"
+    const topPanel = document.getElementsByClassName(
+      isStoryPath() ? "css-160ssko" : "css-l8r172"
     );
-    if (data && data.length > 0) {
-      const top = data[0];
+    if (topPanel && topPanel.length > 0) {
+      const topContainer = topPanel[0].childNodes[topPanel.length - 1]?.getElementsByTagName("div");
+      if (!topContainer || topContainer.length <= 0) return;
+      const top = topContainer[0];
       const buttonCloned = document.createElement("button");
       buttonCloned.innerHTML = "<p></p>";
       buttonCloned.style.cssText = "margin-right: 10px";
@@ -2904,9 +2923,9 @@ GM_addStyle(`
       return;
     }
     // Top element
-    const data = document.getElementsByClassName("css-fhxiwe");
+    const data = document.getElementsByClassName("css-lf0snb");
     if (data && data.length > 0) {
-      const top = data[0];
+      const top = data[0].childNodes[0].childNodes[1].childNodes[0].childNodes[0];
       const buttonCloned = top.childNodes[0].cloneNode(true);
       buttonCloned.className = "burner-input-button " + buttonCloned.className;
       // https://www.svgrepo.com/svg/521664/fire
