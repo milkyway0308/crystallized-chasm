@@ -1,0 +1,131 @@
+# Crack Chasm Crystallized | 결정화 캐즘 | 크랙 플랫폼
+
+> **chasm** [ˈkæzəm]  
+> _noun_ | _명사_
+>
+> (지질) 땅이나 암석, 표면 등에 생긴 깊고 큰 틈  
+> _"A chasm opened in the ground after the earthquake."_  
+> _(지진 후 땅에 커다란 틈이 생겼다.)_
+
+> **crystallized** [ˈkristəˌlīzd]<br> > _adjective_ | _형용사_
+>
+> 1\. 결정으로 화하거나 결정의 형태를 가지다.<br>
+> 2\. 명확하게 하거나, 확실하게 하다.<br>
+> _"Chasm crystallized, illuminating a bright future."_<br/>
+> _(열린 틈은 결정화되어 아름다운 미래를 비추었다.)_
+
+## 소개
+
+Chasm Crystallized(결정화 캐즘)은 유지보수되지 않고 있는 [원본 캐즘](https://github.com/chasm-js/guide)의 사후 지원을 진행하는 프로젝트입니다.
+
+Chasm Snack을 기반으로 수정되었으며, 원본 캐즘 버전은 [6월 11일 업로드본(b7ac7ed)](https://github.com/chasm-js/snack/commit/b7ac7ed1b726a09794582e7e85c828f55808426d)입니다.
+
+설치는 [원본 캐즘 가이드 페이지](https://chasm-js.github.io/guide/) 혹은 [캐즘 깃허브](https://github.com/chasm-js/guide)를 참고하세요.
+
+**결정화 캐즘** 프로젝트는 [IGX](https://igx.kr/)의 하위 프로젝트입니다.
+
+해당 페이지는 크랙 버전 결정화 캐즘 모듈의 카탈로그입니다.
+
+# 활성 모듈 목록
+
+**결정화 캐즘 프로젝트는 스크립트별로 기능이 분리됩니다.**<br>
+**반드시 모든 스크립트를 설치할 필요는 없습니다. 필요한 기능만 골라 설치하세요.**
+
+## 결정화 캐즘 - 네오-카피(v2.2.6) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/neocopy.user.js) ]<br>
+
+결정화 캐즘 네오-카피는 크랙 캐릭터 제작자를 위한 보조 도구입니다.<br>
+캐릭터의 원본 데이터를 JSON 형태로 추출하거나 개정된 원본 데이터를 붙여넣고,<br>
+캐릭터를 복사하여 새로 게시하는 기능을 컨텍스트 메뉴에 추가합니다. <br>
+> ⚠ 결정화 캐즘 네오-카피는 구버전 카피와 호환되지 않습니다.
+> 결정화 캐즘 네오-카피는 완전히 재작성되어 독립된 캐즘 카피입니다.
+
+## 결정화 캐즘 - 붉은 약 (v1.4.2) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/redpill.user.js) ]<br>
+
+혹시 내가 얼마나 돈을 썼는지 보고 내상을 입고 싶지 않으신가요?<br>
+그게 아니라면 내가 어떤 캐릭터를 가장 애정하는지 수치로 알고 싶지 않으신가요?<br>
+그런 당신을 위한, 결정화 캐즘 붉은약입니다.<br>
+붉은약 기능은 지금까지 크랙에 사용한 크래커와 슈퍼챗 개수를 환산하여 계산해줍니다.<br>
+세션 아래에 표기되는 캐릭터 총 소모 개수로 더욱 심한 내상을 입어보세요.<br>
+
+> ⚠ 세션 아래 표시되는 소모량은 세션 소모량이 아닌 캐릭터 소모량입니다.<br>
+> ⚠ 6월 크래커 업데이트 이전 소모된 슈퍼챗은 크래커 35개로 환산되어 계산됩니다.
+
+## 결정화 캐즘 - 이그나이터 / 점화기 (v1.5.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/ignitor.user.js) ]<br>
+
+결정화 캐즘 이그나이터는 재작성된 개선된 버너 모듈입니다.
+
+채팅방의 채팅을 외부 LLM에 의탁하여 요약하며, 프롬프트 공유 및 보관이 가능하도록 개선되었습니다.
+
+
+## 결정화 캐즘 - 과포화 (v1.6.3) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/tmi.user.js) ]<br>
+
+결정화 캐즘 과포화는 채팅의 소모 개수를 과거의 슈퍼챗 개수 표기로 변환하여 소모량 및 잔여량을 더욱 가시적으로 보여줍니다.<br>
+
+## 결정화 캐즘 - 계수기 (v1.2.12) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/counter.user.js) ]<br>
+
+결정화 캐즘 계수기는 채팅 입력 칸 위에 현재 채팅이 진행된 턴 수를 표시해줍니다.<br>
+
+## 결정화 캐즘 - 뮤트 (v1.1.12) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/mute.user.js) ]<br>
+
+결정화 캐즘 뮤트는 채팅창에서 TTS 버튼을 완전히 삭제해줍니다.<br>
+TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
+
+> ⚠ 결정화 캐즘 뮤트는 안정성을 위해 노드를 제거하지 않고 렌더에서 제거합니다.<br>
+> 이 기능으로 인해 많은 양의 반복 호출이 발생할 수 있으며, 이는 크랙 웹 사이트의 성능 저하를 불러올 수 있습니다.
+
+## 결정화 캐즘 - 절대 영도 (v1.1.12) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/absolutezero.user.js) ]<br>
+
+결정화 캐즘 절대영도는 랭킹 화면에서의 GIF / WEBP 재생을 중지하고, 호버하는 대상에만 적용시킵니다.<br>
+
+## 결정화 캐즘 - 국소지진계 (v1.0.2) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/local-seismometer.user.js) ]<br>
+
+결정화 캐즘 국소지진계는 요약 메모리의 변경을 감지하고 알립니다. <br>
+
+## 결정화 캐즘 - 자명종 (v1.0.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alarm-clock.user.js) ]<br>
+더 이상의 출석 이벤트 놓침은 그만, 자명종 모듈과 함께 개근상을 노려보세요. <br>
+
+## 결정화 캐즘 - 꿈일기 (v1.1.4) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/dreamdiary.user.js) ]<br>
+
+결정화 캐즘 꿈일기는 유저노트에 목록을 만들어줍니다. <br>
+
+## 결정화 캐즘 - 네뷸라이저 (v1.3.12) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/nebulizer.user.js) ]<br>
+
+결정화 캐즘 네뷸라이저는 차단된 제작자의 댓글 숨김 및 대량 자동 삭제를 추가해줍니다.<br>
+
+> ⚠ 삭제 기능은 대단히 위험한 기능입니다. 결정화 캐즘의 개발자는 네뷸라이저의 대량 자동 삭제 기능을 사용함으로써 발생하는 문제에 대해 책임지지 않습니다.<br>
+> 로컬 환경에서는 문제 없이 정상 작동하는 것이 확인되었습니다.
+
+## 결정화 캐즘 - 차원이동 (v1.4.7) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alternation.user.js) ]<br>
+
+지금 그대로의 이야기의 또 다른 이야기를 듣고 싶지 않으신가요?<br>
+아니면, 내 실수로 인해 망가질 이 이야기를 위해 선택지를 보류하고 싶으신 경험, 있지 않으신가요?<br><br>
+
+결정화 캐즘 차원이동은 현재 대화 상태를 새 캐릭터로 옮겨 이전 분기점에서 이어할 수 있도록 복제 기능을 추가해줍니다.
+
+> ⚠ 차원이동 기능은 서버에 과부하를 유발할 수 있습니다. 가능하다면 최소한으로 사용하세요.<br>
+> ⚠ 현재 채팅과 헷갈리지 않도록 미리 원본 채팅방의 이름을 바꿔두는 것을 권장힙니다. <br>
+> ⚠ 차원이동 기능은 현재부터 최대 60개의 대화를 새 채팅방으로 옮기는 기능입니다. **만약 거대한 서사가 진행되어 크랙의 자체적인 프롬프트 압축이 불가능하다면, 일정 턴마다 버너 메시지가 포함되는것이 권장됩니다.**
+
+
+# 재작성 모듈 목록
+
+## 결정화 캐즘 - 폴드 (v1.1.2) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/fold.user.js) ]<br>
+
+길고 긴 채팅창 세션 목록은 이제 안녕, 결정화 캐즘 폴드와 함께 더 짧은 세션 목록을 사용해보세요!<br>
+결정화 캐즘 폴드는 세션 목록을 같은 캐릭터 단위로 묶어 세션 목록에 대신 출력해줍니다.<br>
+
+> ⚠ 폴드 모듈은 현재 v2로 재작성되고 있습니다.
+
+# 은퇴 모듈 목록
+
+## 결정화 캐즘 - 버너+ (v1.7.1-FINALE) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/retire/burner.user.js) ]<br>
+결정화 캐즘 버너+는 채팅방의 채팅을 외부 LLM에 의탁하여 요약하는 스크립트입니다.<br>
+채팅 내용을 축약하고 요약해 전소하여 크랙 AI의 기억력을 향상시킬 수 있습니다.<br>
+
+> ⚠ 버너 모듈은 2025년 10월 29일 기준으로 은퇴 처리되었습니다.<br>
+> ⚠ 앞으로의 버너 모듈 기능 개발은 이그나이터 모듈로 대체됩니다. <br>
+## 결정화 캐즘 - 카피(v1.1.4-FINALE) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/retire/copy.user.js) ]<br>
+결정화 캐즘 카피는 크랙 캐릭터 제작자를 위한 보조 도구입니다.<br>
+네오-카피로 재작성되어 해당 모듈은 유지보수 지원이 종료되었습니다. <br>
+코드 참고 용도로만 사용하세요.<br>
+

@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized Local Sesimometer (캐즘 국소지진계)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-LSEM-v1.0.1
+// @version      CRYS-LSEM-v1.0.2
 // @description  요약 메모리가 변경될 때 마다 알림 전송. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*

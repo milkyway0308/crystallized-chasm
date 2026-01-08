@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized AlarmClock (결정화 캐즘 자명종)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-ALRM-v1.0.1p
+// @version     CRYS-ALRM-v1.0.1
 // @description 일일 출석 알림 및 즉시 출석 버튼 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
