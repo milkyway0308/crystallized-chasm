@@ -1,15 +1,15 @@
-/// <reference path="decentralized-modal.js" />
+/// <reference path="../decentralized-modal.js" />
 // ==UserScript==
 // @name         Chasm Crystallized Mute (결정화 캐즘 뮤트)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-MUTE-v1.1.11
+// @version      CRYS-MUTE-v1.1.12
 // @description  TTS 버튼 제거. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
-// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/mute.user.js
-// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/mute.user.js
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.11/decentralized-modal.js
-// @grant       GM_addStyle
+// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/mute.user.js
+// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/mute.user.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.13/decentralized-modal.js#sha256-tt5YRTDFPCoQwcSaw4d4QnjTytPbyVNLzM3g8rkdi8Q=
+// @grant        GM_addStyle
 // ==/UserScript==
 GM_addStyle(`
   .chasm-mute-disabled {
@@ -122,22 +122,16 @@ GM_addStyle(`
     if (__updating) return;
     try {
       __updating = true;
-      const dropdown = document.getElementById("web-dropdown");
+      const dropdown = document.querySelector("div[data-radix-popper-content-wrapper] div[data-radix-menu-content]");
       if (dropdown && dropdown.childNodes.length > 0) {
-        const dropdownContainer = dropdown.childNodes[0];
-        for (let button of dropdownContainer.childNodes) {
-          const buttonText = button.getElementsByTagName("p");
+        for (let button of dropdown.childNodes) {
+          const buttonText = button.childNodes[button.childNodes.length - 1];
+          console.log(buttonText.innerText);
           if (
             buttonText &&
-            buttonText.length > 0 &&
-            buttonText[0].innerText === "목소리 재생"
+            buttonText.textContent === "목소리 재생"
           ) {
-            const expectedHeight = button.getBoundingClientRect().height;
             button.remove();
-            const top = dropdownContainer.getBoundingClientRect().top;
-            dropdownContainer.style.cssText = `position: fixed; width: fit-content; top: ${
-              top + expectedHeight
-            };`;
             break;
           }
         }
@@ -236,7 +230,7 @@ GM_addStyle(`
         if (item.getAttribute("href") === "/setting") {
           const clonedElement = item.cloneNode(true);
           clonedElement.id = "chasm-decentral-menu";
-          const textElement = clonedElement.getElementsByTagName("p")[0];
+          const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
           clonedElement.setAttribute("href", "javascript: void(0)");
           clonedElement.onclick = (event) => {
@@ -260,7 +254,7 @@ GM_addStyle(`
         if (element.getAttribute("href") === "/my-page") {
           const clonedElement = element.cloneNode(true);
           clonedElement.id = "chasm-decentral-menu";
-          const textElement = clonedElement.getElementsByTagName("p")[0];
+          const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
           clonedElement.setAttribute("href", "javascript: void(0)");
           clonedElement.onclick = (event) => {

@@ -1,16 +1,16 @@
 // ==UserScript==
 // @name        Chasm Crystallized Neo-Copy (결정화 캐즘 네오-카피)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRCK-NCPY-v2.2.5
+// @version     CRCK-NCPY-v2.2.6
 // @description 크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
-// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/copy.user.js
-// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/copy.user.js
+// @downloadURL https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/neocopy.user.js
+// @updateURL   https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/neocopy.user.js
 // @grant       GM_addStyle
 // ==/UserScript==
 
-const VERSION = "CRCK-NCPY-v2.2.5";
+const VERSION = "CRCK-NCPY-v2.2.6";
 GM_addStyle(`
   #chasm-copy-dropdown-container {
     display: flex;
@@ -59,7 +59,7 @@ GM_addStyle(`
 
   .chasm-neocopy-button:hover {
     color: var(--text_primary);
-    background-color: var(--state_hober);
+    background-color: hsl(var(--accent));
     pointer: cursor;
     transition: all 0.3s;
   }
@@ -404,7 +404,7 @@ GM_addStyle(`
     const element = accessAdditionalDropdown();
     const nextX =
       targetElement.getBoundingClientRect().x -
-      element.parentNode.getBoundingClientRect().width;
+      element.parentNode.getBoundingClientRect().width - 4;
     const nextY = targetElement.getBoundingClientRect().y;
     element.parentNode.style = `top: ${nextY}px; left: ${nextX}px;`;
     const rightBorder = document.getElementById("chasm-copy-partial-border");

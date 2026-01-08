@@ -1,15 +1,15 @@
 // ==UserScript==
 // @name        Chasm Crystallized Burner+ (결정화 캐즘 버너+)
 // @namespace   https://github.com/chasm-js
-// @version     CRYS-BURN-v1.7.1
+// @version     CRYS-BURN-v1.7.1-FINALE
 // @description 크랙 캐릭터 채팅 요약 및 반영. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
 // @grant       GM.xmlHttpRequest
 // @grant       GM_addStyle
 // @connect     *
-// @downloadURL https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/burner.user.js
-// @updateURL   https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/burner.user.js
+// @downloadURL https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/retire/burner.user.js
+// @updateURL   https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/retire/burner.user.js
 // ==/UserScript==
 
 GM_addStyle(

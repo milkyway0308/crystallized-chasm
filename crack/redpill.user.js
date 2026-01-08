@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name        Chasm Crystallized RedPill (결정화 캐즘 붉은약)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-PILL-v1.4.1
+// @version     CRYS-PILL-v1.4.2
 // @description 크랙의 통계 수정 및 데이터 표시 개선. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
-// @downloadURL https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js
-// @updateURL   https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js
+// @downloadURL https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/redpill.user.js
+// @updateURL   https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/redpill.user.js
 // @require     https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js#sha256-lfTRy/CZ9XFhtmS8BIQm7D35JjeAGkx5EW6DMVqnh+c=
 // @grant       GM_addStyle
 // ==/UserScript==
@@ -16,7 +16,7 @@ GM_addStyle(
     ".red-pill-refresh-button { padding: 0px 12px; border: 1px solid var(--text_disabled); height: 28px; color: var(--text_primary); font-size: 14px; margin-right: 5px; border-radius: 4px; font-weight: 600; }"
 );
 (function () {
-  const VERSION = "v1.4.1";
+  const VERSION = "v1.4.2";
   let isIntegrationMode = false;
   /**
    * 쿠키에서 액세스 토큰을 추출해 반환합니다.
@@ -996,33 +996,11 @@ GM_addStyle(
   }
   function insertButton() {
     if (/^\/cracker(\/.*)?$/.test(location.pathname)) {
-      //   var c = Array.from(
-      //     document.querySelectorAll('a[href="/cracker/history"]')
-      //   ).find((d) => d.textContent.includes("\uc804\uccb4 \ub0b4\uc5ed"));
       var redPillButtons = document.querySelectorAll(".red-pill-button");
       if (redPillButtons && redPillButtons.length > 0) {
-        // Check color state
-        let nodes = redPillButtons[0].parentElement.childNodes;
-        let unselected = undefined;
-        for (let node of nodes) {
-          let textNode = node.childNodes[0].childNodes[0];
-          if (textNode.getAttribute("color") === "text_secondary") {
-            unselected = textNode;
-            break;
-          }
-        }
-        if (!unselected) {
-          console.log(
-            "Chasm Crystallized RedPill: Warning: No alternative text found"
-          );
-        }
-        let redPillText = redPillButtons[0].childNodes[0].childNodes[0];
-        if (redPillText.className != unselected.className) {
-          redPillText.className = unselected.className;
-        }
         return;
       }
-      var menuBar = document.querySelectorAll(".css-w5f5cr");
+      var menuBar = document.querySelectorAll('.css-1t40r88 div[role="tablist"]');
       if (menuBar && menuBar.length > 0) {
         menuBar[0].style.cssText = "max-width: 800px;";
         const newButtonElement = document.createElement("div");
@@ -1030,22 +1008,14 @@ GM_addStyle(
         const origin = menuBar[0].childNodes[0];
         const originButton = origin.childNodes[0];
         const originText = originButton.childNodes[0];
+        console.log(originButton);
         newButtonElement.className = "red-pill-button " + origin.className;
         newButtonElement.setAttribute("display", "flex");
-        newButtonElement.innerHTML =
-          '<button height="100%" display="flex" class="' +
-          originButton.className +
-          '"><p color="text_secondary" class="' +
-          originText.className +
-          '">\ud83d\udc8a \ubd89\uc740\uc57d</p></button>';
-        // d.color = "text_primary";
-        // d.className = "red-pill-button css-noipum edj5hvk1";
-        // d.style.cssText =
-        //   'background: red; border-radius: 5px; border-color: #0f0f0f;color: white; padding: 4px; font-size: 15px; font-weight: bolder; font-family: "Pretendard", "Apple SD Gothic Neo", -apple-system, ' +
-        //   'BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell","Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif,"IBMPlexMono-Regular" !important; ' +
-        //   "-webkit-font-smoothing: antialiased;-moz-osx-font-smoothing: grayscale;} ";
-        // d.innerHTML =
-        //   '<div display="flex">\ud83d\udc8a \ube68\uac04\uc57d</div>';
+        newButtonElement.innerHTML = `
+          <button height="100%" display="flex" class="${originButton.className}">
+            <p color = "text_secondary"> \ud83d\udc8a 붉은약 </p>
+          </button>
+        `;
         newButtonElement.addEventListener("click", onClickRedPill);
         menuBar[0].append(newButtonElement);
         for (let component of menuBar[0].childNodes) {
@@ -1093,7 +1063,6 @@ GM_addStyle(
   function findSidePanel() {
     const element = document.getElementsByClassName("css-3vigoi");
     if (element === undefined || element.length <= 0) {
-      logError("No side panel class found");
       return undefined;
     }
     return element[0];
