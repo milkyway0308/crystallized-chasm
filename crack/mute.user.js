@@ -1,4 +1,4 @@
-/// <reference path="decentralized-modal.js" />
+/// <reference path="../decentralized-modal.js" />
 // ==UserScript==
 // @name         Chasm Crystallized Mute (결정화 캐즘 뮤트)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
@@ -6,8 +6,8 @@
 // @description  TTS 버튼 제거. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
-// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/mute.user.js
-// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/mute.user.js
+// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/mute.user.js
+// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/mute.user.js
 // @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.11/decentralized-modal.js
 // @grant       GM_addStyle
 // ==/UserScript==

@@ -8,8 +8,8 @@
 // @grant       GM.xmlHttpRequest
 // @grant       GM_addStyle
 // @connect     *
-// @downloadURL https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/burner.user.js
-// @updateURL   https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/burner.user.js
+// @downloadURL https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/retire/burner.user.js
+// @updateURL   https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/retire/burner.user.js
 // ==/UserScript==
 
 GM_addStyle(

@@ -9,7 +9,7 @@
 // @require      https://cdn.jsdelivr.net/npm/dexie@latest/dist/dexie.js
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alarm-clock.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alarm-clock.user.js
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.11/decentralized-modal.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.13/decentralized-modal.js
 // @grant       GM_addStyle
 // ==/UserScript==
 GM_addStyle(`

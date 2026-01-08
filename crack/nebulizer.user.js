@@ -1,4 +1,4 @@
-/// <reference path="decentralized-modal.js" />
+/// <reference path="../decentralized-modal.js" />
 // ==UserScript==
 // @name        Chasm Crystallized Nebulizer (결정화 캐즘 네뷸라이저)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
@@ -6,8 +6,8 @@
 // @description 차단 목록의 제작자의 댓글을 블러 처리 및 차단된 댓글 대량 삭제. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
-// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/nebulizer.user.js
-// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/nebulizer.user.js
+// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/nebulizer.user.js
+// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/nebulizer.user.js
 // @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.11/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==

@@ -5,8 +5,8 @@
 // @description 크랙의 통계 수정 및 데이터 표시 개선. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
-// @downloadURL https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js
-// @updateURL   https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/redpill.user.js
+// @downloadURL https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/redpill.user.js
+// @updateURL   https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/redpill.user.js
 // @require     https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js#sha256-lfTRy/CZ9XFhtmS8BIQm7D35JjeAGkx5EW6DMVqnh+c=
 // @grant       GM_addStyle
 // ==/UserScript==
@@ -16,7 +16,7 @@ GM_addStyle(
     ".red-pill-refresh-button { padding: 0px 12px; border: 1px solid var(--text_disabled); height: 28px; color: var(--text_primary); font-size: 14px; margin-right: 5px; border-radius: 4px; font-weight: 600; }"
 );
 (function () {
-  const VERSION = "v1.4.1";
+  const VERSION = "v1.4.2p";
   let isIntegrationMode = false;
   /**
    * 쿠키에서 액세스 토큰을 추출해 반환합니다.

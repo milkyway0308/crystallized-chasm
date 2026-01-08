@@ -1,4 +1,4 @@
-/// <reference path="decentralized-modal.js" />
+/// <reference path="../decentralized-modal.js" />
 // ==UserScript==
 // @name        Chasm Crystallized Counter (결정화 캐즘 계수기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
@@ -6,8 +6,8 @@
 // @description 채팅에 캐릭터 채팅 턴 계수기 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
-// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js
-// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/counter.user.js
+// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/counter.user.js
+// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/counter.user.js
 // @require     https://cdn.jsdelivr.net/npm/dexie@4.2.1/dist/dexie.min.js#sha256-STeEejq7AcFOvsszbzgCDL82AjypbLLjD5O6tUByfuA=
 // @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.11/decentralized-modal.js
 // @grant       GM_addStyle

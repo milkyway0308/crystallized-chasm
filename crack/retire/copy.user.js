@@ -5,8 +5,8 @@
 // @description 크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정. **이 스크립트는 유지보수가 중단되었습니다. 네오-카피 모듈로 재설치하세요.**
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
-// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/copy.user.js
-// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/copy.user.js
+// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/retire/copy.user.js
+// @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/retire/copy.user.js
 // @grant       none
 // ==/UserScript==
 !(function () {
