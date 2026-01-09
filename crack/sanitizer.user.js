@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Sanitizer (결정화 캐즘 손소독제)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-SANI-v1.0.0
+// @version     CRYS-SANI-v1.0.1
 // @description 모바일 앱 권유 팝업 제거. 손도 깔끔!
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
