@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Neo-Copy (결정화 캐즘 네오-카피)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRCK-NCPY-v2.2.6
+// @version     CRCK-NCPY-v2.2.7
 // @description 크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -10,13 +10,13 @@
 // @grant       GM_addStyle
 // ==/UserScript==
 
-const VERSION = "CRCK-NCPY-v2.2.6";
+const VERSION = "CRCK-NCPY-v2.2.7";
 GM_addStyle(`
   #chasm-copy-dropdown-container {
     display: flex;
     flex-direction: row;
     min-width: 98px;
-    background-color: var(--bg_screen);
+    background-color: hsl(var(--popover));
     border-left: 1px solid var(--surface_chat_primary);
     border-top: 1px solid var(--surface_chat_primary);
     border-bottom: 1px solid var(--surface_chat_primary);
@@ -34,10 +34,18 @@ GM_addStyle(`
     z-index: 11 !important;
   }
 
+  #chasm-copy-dropdowns {
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - 2px);
+    height: 100%;
+    z-index: 11 !important;
+  }
+
   #chasm-copy-partial-border {
     width: 1px;
-    margin-top: 30px;
-    height: calc(100% - 30px);
+    margin-top: 33px;
+    height: calc(100% - 28px);
     background-color: var(--surface_chat_primary);
   }
 
@@ -47,14 +55,26 @@ GM_addStyle(`
     border-right: 1px solid var(--surface_chat_primary) !important;
   }
 
-  .chasm-neocopy-button {
+  .chasm-neocopy-sub-button {
     font-size: 14px;
     font-weight: 500;
-    line-height: 1.4;
-    color: var(--text_secondary);
+    color: hsl(var(--popover-foreground));
     padding: 8px 14px;
     transition: all 0.3s;
     user-select: none;
+  }
+  
+  .chasm-neocopy-button {
+    font-size: 14px;
+    font-weight: 500;
+    color: hsl(var(--popover-foreground));
+    transition: all 0.3s;
+    user-select: none;
+  }
+
+  .chasm-neocopy-dropdown-parent {
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
   }
 
   .chasm-neocopy-button:hover {
@@ -335,7 +355,7 @@ GM_addStyle(`
               event.stopPropagation();
             };
 
-            button.className = "chasm-neocopy-button";
+            button.className = "chasm-neocopy-button chasm-neocopy-sub-button";
             button.style.cssText = "z-index: 18 !important;";
             dropdown.append(button);
           });
@@ -346,6 +366,7 @@ GM_addStyle(`
     );
 
     node.classList.add("chasm-neocopy-button");
+    node.classList.add("chasm-neocopy-dropdown-parent");
     node.classList.add(menuElementClass);
     menu.childNodes[0].appendChild(node);
   }
@@ -404,7 +425,7 @@ GM_addStyle(`
     const element = accessAdditionalDropdown();
     const nextX =
       targetElement.getBoundingClientRect().x -
-      element.parentNode.getBoundingClientRect().width - 4;
+      element.parentNode.getBoundingClientRect().width;
     const nextY = targetElement.getBoundingClientRect().y;
     element.parentNode.style = `top: ${nextY}px; left: ${nextX}px;`;
     const rightBorder = document.getElementById("chasm-copy-partial-border");
@@ -502,6 +523,9 @@ GM_addStyle(`
     }
   }
 
+  function replaceIfEmpty(origin, placeholder) {
+    return origin && origin.length > 0 ? origin : placeholder;
+  }
   // =====================================================
   //                  네트워크 상호작용 로직
   // =====================================================
@@ -514,12 +538,21 @@ GM_addStyle(`
   function __constructStory(clipboard) {
     return {
       name: clipboard.name,
-      simpleDescription: clipboard.simpleDescription ?? "",
-      detailDescription: clipboard.detailDescription ?? clipboard.description,
+      simpleDescription: replaceIfEmpty(
+        clipboard.simpleDescription,
+        "Placeholder description"
+      ),
+      detailDescription: replaceIfEmpty(
+        clipboard.detailDescription ?? clipboard.description,
+        "Placeholder details"
+      ),
       profileImageUrl:
         clipboard.profileImage?.origin || clipboard.profileImageUrl,
       model: clipboard.model.toLowerCase(),
-      characterDetails: clipboard.characterDetails,
+      characterDetails: replaceIfEmpty(
+        clipboard.characterDetails,
+        "Placeholder character detail"
+      ),
       chatExamples: clipboard.chatExamples,
       categoryIds: clipboard.categories?.length
         ? [clipboard.categories[0]._id]
@@ -1346,10 +1379,10 @@ GM_addStyle(`
       });
     });
     appendDropdownMenu(menu, "✦ 파일 관리", (appender) => {
-      appender("✦ 파일로 내보내기", async (id) => {
+      appender("✦ 내보내기", async (id) => {
         await exportToFile(id);
       });
-      appender("✦ 파일에서 가져오기", async (id) => {
+      appender("✦ 가져오기", async (id) => {
         await importFromFile(id);
       });
     });
