@@ -84,7 +84,7 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 ## 결정화 캐즘 - 자명종 (v1.0.2) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alarm-clock.user.js) ]<br>
 더 이상의 출석 이벤트 놓침은 그만, 자명종 모듈과 함께 개근상을 노려보세요. <br>
 
-## 결정화 캐즘 - 꿈일기 (v1.1.4) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/dreamdiary.user.js) ]<br>
+## 결정화 캐즘 - 꿈일기 (v1.1.5) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/dreamdiary.user.js) ]<br>
 
 결정화 캐즘 꿈일기는 유저노트에 목록을 만들어줍니다. <br>
 
