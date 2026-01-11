@@ -4,7 +4,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized DreamDiary (크랙 / 캐즘 꿈일기)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-DDIA-v1.1.4
+// @version      CRYS-DDIA-v1.1.5
 // @description  유저노트 저장 / 불러오기 기능 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
@@ -354,6 +354,28 @@ GM_addStyle(`
     return undefined;
   }
 
+  
+  function findUserNoteField() {
+    // 2025-11-23 기준
+    const pool = [
+      // 다크 모드 활성화
+      "css-1ljuz6k eh9908w0",
+      // 다크 모드 일반
+      "css-l1gepk",
+      // 라이트 모드 일반
+      "css-ta1jwd",
+      // 라이트 모드 활성화
+      "css-125x1f1",
+    ];
+    for (const key of pool) {
+      const found = document.getElementsByClassName(key);
+      if (found.length > 0) {
+        return found[0];
+      }
+    }
+    return undefined;
+  }
+
   function injectModal() {
     if (document.getElementById("chasm-ddia-note-listing")) {
       return;
@@ -633,7 +655,7 @@ GM_addStyle(`
       ).parentElement.style.cssText = "display: block;";
       document
         .getElementById("chasm-ddia-save")
-        .removeAttribute("aria-disabled");
+        .removeAttribute("disabled");
       settings.isCustom = true;
       settings.boundCharacter = undefined;
       settings.lastPromptName = undefined;
@@ -662,7 +684,7 @@ GM_addStyle(`
           ).parentElement.style.cssText = "display: none;";
           document
             .getElementById("chasm-ddia-save")
-            .removeAttribute("aria-disabled");
+            .removeAttribute("disabled");
           settings.isCustom = false;
           settings.lastPromptName = item.name;
           settings.boundCharacter = item.bound;
@@ -702,7 +724,7 @@ GM_addStyle(`
           setLastSelected(characterId, item.keyId);
           document
             .getElementById("chasm-ddia-save")
-            .removeAttribute("aria-disabled");
+            .removeAttribute("disabled");
           settings.isCustom = false;
           settings.lastPromptName = item.name;
           settings.boundCharacter = item.bound;
