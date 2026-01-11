@@ -102,6 +102,11 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 덤으로 손도 더 깔끔해집니다. 과학이죠!
 
 
+## 결정화 캐즘 - 동결 건조 (v1.0.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/lyophilization.user.js) ]<br>
+
+결정화 캐즘 동결 건조는 채팅방 히스토리 추출 기능을 제공합니다. <br>
+
+
 ## 결정화 캐즘 - 복사기 (v1.0.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/copycat.user.js) ]<br>
 
 결정화 캐즘 복사기는 메시지 및 프롬프트 창을 길게 누르면 메시지를 복사하는 기능을 추가합니다. <br>
