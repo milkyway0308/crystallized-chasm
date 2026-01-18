@@ -943,9 +943,9 @@ class ModalManager {
   static __doInit() {
     if (!this.doesInit) {
       this.doesInit = true;
-      const globalDoc = $(document);
+      const globalDoc = _refine(document);
       if (!globalDoc.__modalManager) {
-        const gmAddStyle = $(window).GM_addStyle;
+        const gmAddStyle = _refine(window).GM_addStyle;
         if (gmAddStyle) {
           gmAddStyle(DECENTRAL_CSS_VALUES);
         } else {
@@ -1078,7 +1078,7 @@ class ModalManager {
 
   /**
    * 현재 모달에 라이선스 크레딧 메뉴를 추가합니다.
-   * @param {string | undefined} menuName 메뉴 이름. 지정되지 않을 경우, "프레임워크에 대하여"로 기본 설정됩니다.
+   * @param {string} [menuName] 메뉴 이름. 지정되지 않을 경우, "프레임워크에 대하여"로 기본 설정됩니다.
    * @returns {ModalManager} 현재 모달 관리자
    */
   withLicenseCredential(menuName) {
@@ -1576,7 +1576,7 @@ class MenuPanel extends BaseMenuPanel {
         (node) => {
           node.textContent = subItemName;
           const expectedSubmenu = [itemName, subItemName];
-          $(subItem).__activiator = () => {
+          _refine(subItem).__activiator = () => {
             this.hideAllActive();
             menuContainer.setAttribute("active", "true");
             menuText.setAttribute("child-active", "true");
@@ -1640,8 +1640,6 @@ class MenuPanel extends BaseMenuPanel {
 class MobileMenuPanel extends BaseMenuPanel {
   /** @type {HTMLElement | undefined} */
   #menu;
-
-  proxySelf = this;
 
   /**
    *
@@ -1719,7 +1717,7 @@ class MobileMenuPanel extends BaseMenuPanel {
       "decentral-mobile-menu-element",
       (node) => {
         node.textContent = itemName;
-        $(menuItem).__activiatorMobile = () => {
+        _refine(menuItem).__activiatorMobile = () => {
           this.hideAllActive();
           node.setAttribute("active", "true");
           menuContainer.setAttribute("active", "true");
@@ -1776,7 +1774,7 @@ class MobileMenuPanel extends BaseMenuPanel {
         (node) => {
           node.textContent = subItemName;
           const expectedSubmenu = [itemName, subItemName];
-          $(subItem).__activiatorMobile = () => {
+          _refine(subItem).__activiatorMobile = () => {
             this.hideAllActive();
             menuContainer.setAttribute("active", "true");
             menuText.setAttribute("child-active", "true");
@@ -1938,18 +1936,18 @@ class ComponentAppender extends HTMLComponentConvertable {
         inputField.id = id;
         inputField.setAttribute("type", "text");
         if (defaultValue) {
-          $(inputField).value = defaultValue;
+          _refine(inputField).value = defaultValue;
         }
         if (onChange) {
-          let lastValue = $(inputField).value;
+          let lastValue = _refine(inputField).value;
           inputField.onchange = () => {
-            lastValue = $(inputField).value;
-            onChange(inputField, $(inputField).value);
+            lastValue = _refine(inputField).value;
+            onChange(inputField, _refine(inputField).value);
           };
 
-          $(inputField).onVerifyChange = () => {
-            if (lastValue != $(inputField).value) {
-              lastValue = $(inputField).value;
+          _refine(inputField).onVerifyChange = () => {
+            if (lastValue != _refine(inputField).value) {
+              lastValue = _refine(inputField).value;
               onChange(inputField, lastValue);
             }
           };
@@ -2003,15 +2001,15 @@ class ComponentAppender extends HTMLComponentConvertable {
       "decentral-text-area decentral-modifiable-component",
       (area) => {
         area.id = id;
-        defaultValue && ($(area).value = defaultValue);
+        defaultValue && (_refine(area).value = defaultValue);
         if (onChange) {
-          let lastValue = $(area).value;
+          let lastValue = _refine(area).value;
           area.onchange = () => {
-            onChange(area, $(area).value);
+            onChange(area, _refine(area).value);
           };
-          $(area).onVerifyChange = () => {
-            if (lastValue != $(area).value) {
-              lastValue = $(area).value;
+          _refine(area).onVerifyChange = () => {
+            if (lastValue != _refine(area).value) {
+              lastValue = _refine(area).value;
               onChange(area, lastValue);
             }
           };
@@ -2046,15 +2044,15 @@ class ComponentAppender extends HTMLComponentConvertable {
       "decentral-text-area decentral-modifiable-component",
       (area) => {
         area.id = id;
-        defaultValue && ($(area).value = defaultValue);
+        defaultValue && (_refine(area).value = defaultValue);
         if (onChange) {
-          let lastValue = $(area).value;
+          let lastValue = _refine(area).value;
           area.onchange = () => {
-            onChange(area, $(area).value);
+            onChange(area, _refine(area).value);
           };
-          $(area).onVerifyChange = () => {
-            if (lastValue != $(area).value) {
-              lastValue = $(area).value;
+          _refine(area).onVerifyChange = () => {
+            if (lastValue != _refine(area).value) {
+              lastValue = _refine(area).value;
               onChange(area, lastValue);
             }
           };
@@ -2110,7 +2108,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       (area) => {
         area.id = id;
         area.setAttribute("readonly", "true");
-        defaultValue && ($(area).value = defaultValue);
+        defaultValue && (_refine(area).value = defaultValue);
       }
     );
     this.parentElement.append(
@@ -2394,16 +2392,16 @@ class ComponentAppender extends HTMLComponentConvertable {
         switcher.id = id;
         switcher.setAttribute("type", "checkbox");
         switcher.setAttribute("role", "switch");
-        $(switcher).checked = defaultValue;
+        _refine(switcher).checked = defaultValue;
         onInit?.(switcher);
         if (onChange) {
-          let lastValue = $(switcher).checked;
+          let lastValue = _refine(switcher).checked;
           switcher.onchange = () => {
-            onChange(switcher, $(switcher).checked);
+            onChange(switcher, _refine(switcher).checked);
           };
-          $(switcher).onVerifyChange = () => {
-            if (lastValue != $(switcher).checked) {
-              lastValue = $(switcher).checked;
+          _refine(switcher).onVerifyChange = () => {
+            if (lastValue != _refine(switcher).checked) {
+              lastValue = _refine(switcher).checked;
               onChange(switcher, lastValue);
             }
           };
@@ -2487,16 +2485,16 @@ class ComponentAppender extends HTMLComponentConvertable {
               inputField.setAttribute("type", "number");
               inputField.setAttribute("min", min.toString());
               inputField.setAttribute("max", max.toString());
-              $(inputField).value = defaultValue ?? 0;
+              _refine(inputField).value = defaultValue ?? 0;
               onInit?.(inputField);
               if (onChange) {
-                let lastValue = $(inputField).value;
+                let lastValue = _refine(inputField).value;
                 inputField.onchange = () => {
-                  onChange(inputField, parseInt($(inputField).value));
+                  onChange(inputField, parseInt(_refine(inputField).value));
                 };
-                $(inputField).onVerifyChange = () => {
-                  if (lastValue != $(inputField).value) {
-                    lastValue = $(inputField).value;
+                _refine(inputField).onVerifyChange = () => {
+                  if (lastValue != _refine(inputField).value) {
+                    lastValue = _refine(inputField).value;
                     onChange(inputField, lastValue);
                   }
                 };
@@ -2710,10 +2708,10 @@ class ComponentAppender extends HTMLComponentConvertable {
       (inputField) => {
         inputField.id = id;
         inputField.setAttribute("type", "text");
-        defaultValue && ($(inputField).value = defaultValue);
+        defaultValue && (_refine(inputField).value = defaultValue);
         if (onChange) {
           inputField.onchange = () => {
-            onChange(inputField, $(inputField).value);
+            onChange(inputField, _refine(inputField).value);
           };
         }
       }
@@ -2886,7 +2884,7 @@ class ComponentAppender extends HTMLComponentConvertable {
             element.getAttribute("decentral-option-id") ===
             topNode.getAttribute("decentral-selected")
           ) {
-            $(element)?.onclick?.();
+            _refine(element)?.onclick?.();
           }
         }
       },
@@ -3075,14 +3073,23 @@ class ContentPanel extends ComponentAppender {
 /**
  *
  * 불필요한 요소 타입 체크를 건너뛰기 위해 타입을 강제로 줄입니다.
- * @private
  * @param {any} element 타입 소거할 요소
  * @returns {any} 타입 소거된 요소
  */
-function $(element) {
+function _refine(element) {
   return element;
 }
 
+/**
+ *
+ * 요소를 복사하고, 원본 요소 타입으로 캐스팅해 반환합니다.
+ * @template {Node} T
+ * @param {T} element 복사할 요소
+ * @returns {T} 복사된 요소
+ */
+function _clone(element) {
+  return _refine(element.cloneNode(true));
+}
 /**
  * 값을 검증하고, non-null 타입으로 반환합니다.
  * @template T
