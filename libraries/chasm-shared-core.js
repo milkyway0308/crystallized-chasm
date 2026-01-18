@@ -134,6 +134,21 @@ class GenericUtil {
     return item;
   }
 
+
+  
+  /**
+   * 값이 non-null인지 반환합니다.
+   * @template T
+   * @param {T} item 검증할 값
+   * @return {boolean} non-null 여부
+   */
+  static isValid(item) {
+    if (item === undefined || item === null) {
+      return false;
+    }
+    return true;
+  }
+
 }
 
 /**
@@ -259,7 +274,7 @@ class LogUtil {
    */
   warn(message, extra = undefined) {
     if (message) {
-      console.warn(
+      console.log(
         `%c${this.prefix}: %cWarning: %c` + message,
         this.prefixStyle,
         this.warningTitleStyle,
@@ -267,7 +282,7 @@ class LogUtil {
       );
     }
     if (extra) {
-      console.warn(extra);
+      console.log(extra);
     }
   }
 
@@ -278,7 +293,7 @@ class LogUtil {
    */
   error(message, extra = undefined) {
     if (message) {
-      console.error(
+      console.log(
         `%c${this.prefix}: %cError: %c` + message,
         this.prefixStyle,
         this.errorTitleStyle,
@@ -286,7 +301,7 @@ class LogUtil {
       );
     }
     if (extra) {
-      console.error(extra);
+      console.log(extra);
     }
   }
 }
