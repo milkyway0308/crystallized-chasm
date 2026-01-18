@@ -134,6 +134,17 @@ class ArticleInfo {
 //                    로직 클래스
 // =====================================================
 /**
+ * 크랙 테마 관련 유틸리티입니다.
+ */
+class _CrackTheme {
+  isDarkTheme() {
+    return document.body.getAttribute("data-theme") === "dark";
+  }
+  isLightTheme() {
+    return !this.isDarkTheme();
+  }
+}
+/**
  * 크랙 경로 관련 유틸리티입니다.
  */
 class _CrackPath {
@@ -279,15 +290,68 @@ class _CrackNetwork {
   }
 }
 
-class _CrackCracker {
-  #path;
+class _CrackAttend {
   #network;
   /**
-   * @param {_CrackPath} path
    * @param {_CrackNetwork} network
    */
-  constructor(path, network) {
-    this.#path = path;
+  constructor(network) {
+    this.#network = network;
+  }
+
+  /**
+   * 출석 가능 여부를 서버에서 받아와 반환합니다.
+   * @returns {Promise<boolean|Error>} 출석 가능 여부, 혹은 오류
+   */
+  async isAttendable() {
+    const webResult = await this.#network.authFetch(
+      "GET",
+      "https://crack-api.wrtn.ai/crack-cash/attendance"
+    );
+    if (webResult instanceof Error) return webResult;
+    if (
+      webResult.data &&
+      webResult.data.attendanceStatus &&
+      webResult.data.attendanceStatus === "NOT_ATTENDED"
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * 출석을 API를 통해 진행합니다.
+   * @returns {Promise<boolean>} 출석 성공 여부
+   */
+  async performAttend() {
+    const result = await this.#network.authFetch(
+      "POST",
+      "https://crack-api.wrtn.ai/crack-cash/attendance"
+    );
+    if (result instanceof Error) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * 출석 가능한 시간인지 반환합니다.
+   * 크랙은 6시부터 23시 59분까지 출석이 가능합니다.
+   * @returns {boolean} 출석 가능 시간 여부
+   */
+  isAttendableTime() {
+    const time = new Date().getHours();
+    if (time < 6) return false;
+    return true;
+  }
+}
+
+class _CrackCracker {
+  #network;
+  /**
+   * @param {_CrackNetwork} network
+   */
+  constructor(network) {
     this.#network = network;
   }
 
@@ -411,10 +475,37 @@ class _CrackChat {
   }
 }
 
-class CrackUtility {
+class CrackUtil {
   static #cookie = new _CrackCookie();
   static #path = new _CrackPath();
   static #network = new _CrackNetwork(this.#cookie);
+  static #theme = new _CrackTheme();
+  static #cracker = new _CrackCracker(this.#network);
+  static #attend = new _CrackAttend(this.#network);
+
+  /**
+   * 크랙 출석 유틸리티를 반환합니다.
+   * @returns {_CrackAttend} 출석 유틸리티
+   */
+  static attend() {
+    return this.#attend;
+  }
+
+  /**
+   * 크랙 크래커 유틸리티를 반환합니다.
+   * @returns {_CrackCracker} 출석 유틸리티
+   */
+  static cracker() {
+    return this.#cracker;
+  }
+
+  /**
+   * 크랙 테마 유틸리티를 반환합니다.
+   * @returns {_CrackTheme} 테마 유틸리티
+   */
+  static theme() {
+    return this.#theme;
+  }
 
   /**
    * 크랙 쿠키 유틸리티를 반환합니다.
