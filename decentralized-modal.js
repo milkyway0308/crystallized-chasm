@@ -945,19 +945,16 @@ class ModalManager {
       this.doesInit = true;
       const globalDoc = _refine(document);
       if (!globalDoc.__modalManager) {
-        const gmAddStyle = _refine(window).GM_addStyle;
-        if (gmAddStyle) {
-          gmAddStyle(DECENTRAL_CSS_VALUES);
-        } else {
+        try {
+          // @ts-ignore
+          GM_addStyle(DECENTRAL_CSS_VALUES);
+        } catch (ex) {
+          console.warn("!! WARNING !!");
           console.warn(
-            "%s!! WARNING !!",
-            "font-size: 36px; font-weight: bolder; color: red;"
-          );
-          console.warn(
-            "%s브라우저가 아닌 환경에서 decentralized-modal이 초기화되었습니다.\n예상치 못한 오류가 발생할 수 있습니다.",
-            "color: inherit;"
+            "!! WARNING !! GM_addStyle 콜에 실패하였습니다.\n브라우저가 아닌 환경에서 decentralized-modal이 초기화되었을 가능성이 존재합니다.\n해당 환경에서는 decentralized-modal.js가 오작동할 가능성이 존재합니다."
           );
         }
+
         globalDoc.__modalManager = this.#modalMap;
       }
       this.#modalMap = globalDoc.__modalManager;
