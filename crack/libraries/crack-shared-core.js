@@ -84,7 +84,7 @@ class CrackUser {
     createdAt,
     updatedAt,
     follower,
-    following
+    following,
   ) {
     this.id = id;
     this.userId = userId;
@@ -173,7 +173,7 @@ class CrackChattingLog {
     situationImages,
     parameterSnapshots,
     isPrologue,
-    reroll
+    reroll,
   ) {
     this.id = id;
     this.userId = userId;
@@ -259,7 +259,7 @@ class CrackChatRoom {
     updatedAt,
     chatProfileId,
     isSummaryUpdated,
-    doRecommendNextMessage
+    doRecommendNextMessage,
   ) {
     this.id = id;
     this.userId = userId;
@@ -312,6 +312,24 @@ class CrackPersona {
   }
 }
 
+/**
+ * 유틸리티 내부 사용 용도 유틸리티 클래스입니다.
+ * @private
+ */
+class _CrackGenericUtil {
+  /**
+   * 값이 non-null인지 반환합니다.
+   * @template T
+   * @param {T} item 검증할 값
+   * @return {boolean} non-null 여부
+   */
+  isValid(item) {
+    if (item === undefined || item === null) {
+      return false;
+    }
+    return true;
+  }
+}
 /**
  * 크래커 모델의 비용과 이름을 나타내는 클래스입니다.
  */
@@ -498,8 +516,8 @@ class _CrackCookieApi {
   getCookie(key) {
     const e = document.cookie.match(
       new RegExp(
-        `(?:^|; )${key.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1")}=([^;]*)`
-      )
+        `(?:^|; )${key.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1")}=([^;]*)`,
+      ),
     );
     return e ? decodeURIComponent(e[1]) : undefined;
   }
@@ -553,7 +571,7 @@ class _CrackNetworkApi {
       const result = await fetch(url, param);
       if (!result.ok)
         return new Error(
-          `HTTP 요청 실패 (${result.status}) [${await result.json()}]`
+          `HTTP 요청 실패 (${result.status}) [${await result.json()}]`,
         );
       return await result.json();
     } catch (t) {
@@ -579,7 +597,7 @@ class _CrackAttendApi {
   async isAttendable() {
     const webResult = await this.#network.authFetch(
       "GET",
-      "https://crack-api.wrtn.ai/crack-cash/attendance"
+      "https://crack-api.wrtn.ai/crack-cash/attendance",
     );
     if (webResult instanceof Error) return webResult;
     if (
@@ -599,7 +617,7 @@ class _CrackAttendApi {
   async performAttend() {
     const result = await this.#network.authFetch(
       "POST",
-      "https://crack-api.wrtn.ai/crack-cash/attendance"
+      "https://crack-api.wrtn.ai/crack-cash/attendance",
     );
     if (result instanceof Error) {
       return false;
@@ -635,7 +653,7 @@ class _CrackCrackerApi {
   async current() {
     let result = await this.#network.authFetch(
       "GET",
-      "https://crack-api.wrtn.ai/crack-cash/crackers"
+      "https://crack-api.wrtn.ai/crack-cash/crackers",
     );
     if (result instanceof Error) {
       return result;
@@ -651,7 +669,7 @@ class _CrackCrackerApi {
   async crackerModelList() {
     const result = await this.#network.authFetch(
       "GET",
-      "https://crack-api.wrtn.ai/crack-gen/v3/chat-models"
+      "https://crack-api.wrtn.ai/crack-gen/v3/chat-models",
     );
     if (result instanceof Error) {
       return result;
@@ -667,8 +685,8 @@ class _CrackCrackerApi {
           model._id,
           model.name,
           model.crackerQuantity,
-          model.serviceType
-        )
+          model.serviceType,
+        ),
       );
     }
     return array;
@@ -722,7 +740,7 @@ class _CrackCharacterApi {
   async getCharacterInfo(characterId) {
     const result = await this.#network.authFetch(
       "GET",
-      `https://crack-api.wrtn.ai/crack-gen/v3/chats/stories/${characterId}`
+      `https://crack-api.wrtn.ai/crack-gen/v3/chats/stories/${characterId}`,
     );
     if (result instanceof Error) {
       return result;
@@ -735,15 +753,15 @@ class _CrackCharacterApi {
         result.data.creator.nickname,
         result.data.creator.wrtnUid,
         result.data.creator.isCertifiedCreator,
-        result.data.creator.profileId
+        result.data.creator.profileId,
       ),
       new ArticleDescription(
         result.data.description,
         result.data.simpleDescription,
-        result.data.detailDescription
+        result.data.detailDescription,
       ),
       result.data.tags,
-      Visibility.of(result.data.visibility)
+      Visibility.of(result.data.visibility),
     );
   }
 }
@@ -763,7 +781,7 @@ class _CrackUserApi {
   async currentUser() {
     const result = await this.#network.authFetch(
       "GET",
-      "https://crack-api.wrtn.ai/crack-api/profiles"
+      "https://crack-api.wrtn.ai/crack-api/profiles",
     );
     if (result instanceof Error) {
       return result;
@@ -771,7 +789,7 @@ class _CrackUserApi {
     const data = result.data;
     if (!data) {
       return new Error(
-        "크랙에서 잘못된 API 응답을 반환하였습니다; API 스키마가 변경되었을 가능성이 존재합니다."
+        "크랙에서 잘못된 API 응답을 반환하였습니다; API 스키마가 변경되었을 가능성이 존재합니다.",
       );
     }
     return new CrackUser(
@@ -784,7 +802,7 @@ class _CrackUserApi {
       new Date(data.createdAt),
       new Date(data.updatedAt),
       data.follower,
-      data.following
+      data.following,
     );
   }
 
@@ -808,7 +826,7 @@ class _CrackUserApi {
   async personaList(crackId) {
     const result = await this.#network.authFetch(
       "GET",
-      `https://crack-api.wrtn.ai/crack-api/profiles/${crackId}/chat-profiles`
+      `https://crack-api.wrtn.ai/crack-api/profiles/${crackId}/chat-profiles`,
     );
     if (result instanceof Error || !result.data?.chatProfiles) {
       return result;
@@ -824,8 +842,8 @@ class _CrackUserApi {
           item.isRepresentative,
           item.profileId,
           new Date(item.createdAt),
-          new Date(item.updatedAt)
-        )
+          new Date(item.updatedAt),
+        ),
       );
     }
     return array;
@@ -877,13 +895,16 @@ class _CrackUserApi {
 }
 
 class _CrackStoryApi {
+  #generic;
   #user;
   #network;
   /**
+   * @param {_CrackGenericUtil} generic
    * @param {_CrackUserApi} user
    * @param {_CrackNetworkApi} network
    */
-  constructor(user, network) {
+  constructor(generic, user, network) {
+    this.#generic = generic;
     this.#user = user;
     this.#network = network;
   }
@@ -902,7 +923,7 @@ class _CrackStoryApi {
     baseSetId,
     profileId,
     crackerModel = "normalchat",
-    autoRecommend = false
+    autoRecommend = false,
   ) {
     const result = await this.#network.authFetch(
       "POST",
@@ -913,7 +934,7 @@ class _CrackStoryApi {
         baseSetId: baseSetId,
         crackerModel: crackerModel,
         isAutoRecommendUserNextMessage: autoRecommend,
-      }
+      },
     );
     if (result instanceof Error) {
       return result;
@@ -921,7 +942,7 @@ class _CrackStoryApi {
     const data = result.data;
     if (!data) {
       return new Error(
-        "크랙 API에서 예상치 못한 스키마가 반환되었습니다. 이는 일시적 오류일 수 있지만, 크랙 API 변경이 원인일 수 있습니다."
+        "크랙 API에서 예상치 못한 스키마가 반환되었습니다. 이는 일시적 오류일 수 있지만, 크랙 API 변경이 원인일 수 있습니다.",
       );
     }
     return new CrackChatRoom(
@@ -931,7 +952,7 @@ class _CrackStoryApi {
       data.lastMessage,
       data.model,
       data.chatModelId,
-      GenericUtil.isValid(data.story),
+      this.#generic.isValid(data.story),
       data.story?._id ?? data.story._id,
       data.story?.snapshotId ?? data.story.snapshotId,
       data.hasUserNote,
@@ -939,19 +960,22 @@ class _CrackStoryApi {
       new Date(data.updatedAt),
       data.chatProfile?._id ?? "--ERROR--",
       data.isSummaryUpdated,
-      data.isAutoRecommendUserNextMessage
+      data.isAutoRecommendUserNextMessage,
     );
   }
 }
 
 class _CrackChatRoomApi {
+  #generic;
   #user;
   #network;
   /**
+   * @param {_CrackGenericUtil} generic
    * @param {_CrackUserApi} user
    * @param {_CrackNetworkApi} network
    */
-  constructor(user, network) {
+  constructor(generic, user, network) {
+    this.#generic = generic;
     this.#user = user;
     this.#network = network;
   }
@@ -964,7 +988,7 @@ class _CrackChatRoomApi {
   async roomData(chatId) {
     const result = await this.#network.authFetch(
       "GET",
-      `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}`
+      `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}`,
     );
     if (result instanceof Error) {
       return result;
@@ -972,7 +996,7 @@ class _CrackChatRoomApi {
     const data = result.data;
     if (!data) {
       return new Error(
-        "크랙 API에서 예상치 못한 스키마가 반환되었습니다. 이는 일시적 오류일 수 있지만, 크랙 API 변경이 원인일 수 있습니다."
+        "크랙 API에서 예상치 못한 스키마가 반환되었습니다. 이는 일시적 오류일 수 있지만, 크랙 API 변경이 원인일 수 있습니다.",
       );
     }
     return new CrackChatRoom(
@@ -982,7 +1006,7 @@ class _CrackChatRoomApi {
       data.lastMessage,
       data.model,
       data.chatModelId,
-      GenericUtil.isValid(data.story),
+      this.#generic.isValid(data.story),
       data.story?._id ?? data.story._id,
       data.story?.snapshotId ?? data.story.snapshotId,
       data.hasUserNote,
@@ -990,7 +1014,7 @@ class _CrackChatRoomApi {
       new Date(data.updatedAt),
       data.chatProfile?._id ?? "--ERROR--",
       data.isSummaryUpdated,
-      data.isAutoRecommendUserNextMessage
+      data.isAutoRecommendUserNextMessage,
     );
   }
 
@@ -1005,7 +1029,7 @@ class _CrackChatRoomApi {
    */
   async extractLogs(
     chatId,
-    { maxCount = -1, delay = 20, naturalOrder = true } = {}
+    { maxCount = -1, delay = 20, naturalOrder = true } = {},
   ) {
     /** @type {CrackChattingLog[]} */
     const logs = [];
@@ -1042,7 +1066,7 @@ class _CrackChatRoomApi {
           message.situationImages,
           message.parameterSnapshots,
           message.isPrologue,
-          message.reroll ?? false
+          message.reroll ?? false,
         );
         if (naturalOrder) {
           logs.unshift(fetchedLog);
@@ -1057,7 +1081,7 @@ class _CrackChatRoomApi {
     }
     return logs;
   }
-  
+
   /**
    * 지정한 채팅의 현재 페르소나 데이터를 가져옵니다.
    * @param {string} chatId
@@ -1095,9 +1119,17 @@ class _CrackComponentApi {
 class CrackUtil {
   static #cookie = new _CrackCookieApi();
   static #path = new _CrackPathApi();
+  static #generic = new _CrackGenericUtil();
   static #component = new _CrackComponentApi();
   static #network = new _CrackNetworkApi(this.#cookie);
   static #theme = new _CrackThemeApi();
+  static #user = new _CrackUserApi(this.#network);
+  static #room = new _CrackChatRoomApi(
+    this.#generic,
+    this.#user,
+    this.#network,
+  );
+  static #story = new _CrackStoryApi(this.#generic, this.#user, this.#network);
   static #cracker = new _CrackCrackerApi(this.#network);
   static #attend = new _CrackAttendApi(this.#network);
 
@@ -1107,6 +1139,30 @@ class CrackUtil {
    */
   static attend() {
     return this.#attend;
+  }
+
+  /**
+   * 크랙 채팅방 유틸리티를 반환합니다.
+   * @returns {_CrackChatRoomApi} 스토리 유틸리티
+   */
+  static chatRoom() {
+    return this.#room;
+  }
+
+  /**
+   * 크랙 스토리 유틸리티를 반환합니다.
+   * @returns {_CrackStoryApi} 스토리 유틸리티
+   */
+  static story() {
+    return this.#story;
+  }
+
+  /**
+   * 크랙 유저 유틸리티를 반환합니다.
+   * @returns {_CrackUserApi} 유저 유틸리티
+   */
+  static user() {
+    return this.#user;
   }
 
   /**
