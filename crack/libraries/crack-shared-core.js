@@ -1,15 +1,56 @@
-// crack-shared-core.js - 크랙 서드파티 스크립트용 공용 유틸리티 코어
+//
+// crack-shared-core.js v0.0.2 by Team IGX
 // crack-shared-core은 TS의 문법 검사와 JSDoc을 통한 브라우저 스크립트 전용 크랙 유틸리티입니다.
+//
 
 // @ts-check
-/// <reference path="../../libraries/socket-io-4.8.1.js" />
 // =====================================================
-//                 Crack Shared Core
+//                   Crack Shared Core
 // =====================================================
 
 // =====================================================
 //                      데이터 클래스
 // =====================================================
+
+class ImageMappable {
+  /** @property {Map<string, string>} */
+  imageMap = new Map();
+  /**
+   * @param {any} imageContainer 이미지 맵
+   */
+  constructor(imageContainer) {
+    if (imageContainer) {
+      for (let [key, value] of Object.entries(imageContainer)) {
+        this.imageMap.set(key, value);
+      }
+    }
+  }
+
+  /**
+   * 라이트 모드 이미지를 반환합니다.
+   * @returns {?string} 이미지 URL
+   */
+  light() {
+    return this.imageMap.get("light");
+  }
+
+  /**
+   * 라이트 모드 이미지를 반환합니다.
+   * @returns {?string} 이미지 URL
+   */
+  dark() {
+    return this.imageMap.get("dark");
+  }
+
+  /**
+   * 이미지 맵에서 키에 해당되는 이미지 URL을 반환합니다.
+   * @param {string} key 이미지 키
+   * @returns {?string} 이미지 URL
+   */
+  image(key) {
+    return this.imageMap.get(key);
+  }
+}
 class Visibility {
   /** 크랙에서 사용되는 원본 이름 */
   originName;
@@ -43,25 +84,25 @@ class Visibility {
  * 크랙 유저 데이터입니다.
  */
 class CrackUser {
-  /** @property {string} id 크랙 내부 ID */
+  /** @property {string} 크랙 내부 ID */
   id;
-  /** @property {string} userId 유저 ID? */
+  /** @property {string} 유저 ID? */
   userId;
-  /** @property {string} wrtnUid 뤼튼 내부 ID */
+  /** @property {string} 뤼튼 내부 ID */
   wrtnUid;
-  /** @property {string} nickname 표기 닉네임 */
+  /** @property {string} 표기 닉네임 */
   nickname;
-  /** @property {string} introdution 소개 문구 */
+  /** @property {string} 소개 문구 */
   introdution;
-  /** @property {string} profileImage 프로필 이미지 URL */
+  /** @property {string} 프로필 이미지 URL */
   profileImage;
-  /** @property {Date} createdAt 생성 시간 */
+  /** @property {Date} 생성 시간 */
   createdAt;
-  /** @property {Date} updatedAt 갱신 시간 */
+  /** @property {Date} 갱신 시간 */
   updatedAt;
-  /** @property {number} follower 팔로워 수 */
+  /** @property {number} 팔로워 수 */
   follower;
-  /** @property {number} following 팔로잉 수 */
+  /** @property {number} 팔로잉 수 */
   following;
   /**
    * @param {string} id 크랙 내부 ID
@@ -100,43 +141,523 @@ class CrackUser {
   }
 }
 
+class CrackPromptTemplate extends ImageMappable {
+  /** @property {string} 템플릿 표기 이름 */
+  name;
+  /** @property {string} 템플릿 ID */
+  id;
+  /**
+   * @param {string} name 템플릿 표기 이름
+   * @param {string} id 템플릿 ID
+   * @param {any} iconContainer 템플릿 아이콘 이미지
+   */
+  constructor(name, id, iconContainer) {
+    super(iconContainer);
+    this.name = name;
+    this.id = id;
+  }
+
+  /**
+   * JSON 스키마에서 데이터를 정제합니다.
+   * @param {any} container
+   * @returns {CrackPromptTemplate} 정제된 데이터
+   */
+  static of(container) {
+    return new CrackPromptTemplate(
+      container.name,
+      container.template,
+      container.icon,
+    );
+  }
+}
+
+class CrackGenre {
+  /** @param {string} id 장르 ID */
+  id;
+  /** @param {string} name 장르 표시명 */
+  name;
+  /** @param {string} type 장르 영어 타입 */
+  type;
+  /**
+   * @param {string} id 장르 ID
+   * @param {string} name 장르 표시명
+   * @param {string} type 장르 영어 타입
+   */
+  constructor(id, name, type) {
+    this.id = id;
+    this.name = name;
+    this.type = type;
+  }
+
+  /**
+   * JSON 스키마에서 데이터를 정제합니다.
+   * @param {any} container
+   * @returns {CrackGenre} 정제된 데이터
+   */
+  static of(container) {
+    return new CrackGenre(container._id, container.name, container.type);
+  }
+}
+
+class CrackStoryDescription {
+  /** @property {string} 일반 설명 */
+  base;
+  /** @property {string} 한줄 소개 */
+  simple;
+  /** @property {string} 상세 설명 */
+  detail;
+  /**
+   * @param {string} description 일반 설명
+   * @param {string} simple 한줄 소개
+   * @param {string} detail 상세 설명
+   */
+  constructor(description, simple, detail) {
+    this.base = description;
+    this.simple = simple;
+    this.detail = detail;
+  }
+
+  /**
+   * JSON 스키마에서 데이터를 정제합니다.
+   * @param {any} container
+   * @returns {CrackStoryDescription} 정제된 데이터
+   */
+  static of(container) {
+    return new CrackStoryDescription(
+      container.description,
+      container.simpleDescription,
+      container.detailDescription,
+    );
+  }
+}
+class CrackMappedImage extends ImageMappable {
+  /**
+   * @param {any} imageContainer
+   */
+  constructor(imageContainer) {
+    super(imageContainer);
+  }
+
+  /**
+   * 원본 이미지를 가져옵니다.
+   * @returns {string}
+   */
+  origin() {
+    return super.image("origin") ?? "about:blank";
+  }
+
+  /**
+   * 200px 썸네일 이미지를 가져옵니다.
+   * 이 값은 지정되지 않았을 가능성이 존재합니다.
+   * @returns {?string}
+   */
+  w200() {
+    return super.image("w200");
+  }
+
+  /**
+   * 200px 미리보기 이미지를 가져옵니다.
+   * 이 값은 지정되지 않았을 가능성이 존재합니다.
+   * @returns {?string}
+   */
+  w600() {
+    return super.image("w600");
+  }
+
+  /**
+   * GIF 이미지를 가져옵니다.
+   * 이 값은 지정되지 않았을 가능성이 존재합니다.
+   * @returns {?string}
+   */
+  gif() {
+    return super.image("gif");
+  }
+
+  /**
+   *
+   * @returns
+   */
+  tryOrigin() {
+    return this.gif() ?? this.origin();
+  }
+}
+
+class CrackModelInfo extends ImageMappable {
+  /** @property {string} 모델 표시명  */
+  name;
+  /** @property {string} 모델 표시명  */
+  model;
+  /**
+   * @param {string} name 모델 표시명
+   * @param {string} model 모델 ID
+   * @param {any} iconContainer 모델 아이콘
+   */
+  constructor(name, model, iconContainer) {
+    super(iconContainer);
+    this.name = name;
+    this.model = model;
+  }
+}
+/**
+ * 크랙의 스토리 상태 데이터를 표시하는 클래스입니다.
+ */
+class CrackStoryStatus {
+  /** @property {CrackGenre} 작품 장르 데이터  */
+  genre;
+  /** @property {string[]} 작품 장르 데이터 */
+  categories;
+  /** @property {string} 타겟층 (남성향 / 여성향..) */
+  target;
+  /** @property {string} 타입 (시뮬레이션...) */
+  chatType;
+  /** @property {number} 이미지 개수  */
+  imageCount;
+  /** @property {Visibility} 작품 공개 상태 */
+  visibility;
+  /** @property {string} 작품 상태 */
+  status;
+  /** @property {CrackMappedImage} 작품 이미지 */
+  profileImage;
+  /** @property {Date} 작품 생성 시간 */
+  createdAt;
+  /** @property {Date} 작품 갱신 시간 */
+  updatedAt;
+  /** @property {boolean} 언세이프 여부 */
+  isAdult;
+  /** @property {boolean} 운영진에 의해 강제로 변경되었는지의 여부 */
+  isForceConverted;
+  /**
+   * @param {CrackGenre} genre 작품 장르 데이터
+   * @param {number} imageCount 이미지 개수
+   * @param {Visibility} visibility 작품 공개 상태
+   * @param {string} status 작품 공개 상태
+   * @param {string[]} categories 작품 카테고리 데이터
+   * @param {string} target 타겟층 (남성향 / 여성향..)
+   * @param {string} chatType 타입 (시뮬레이션...)
+   * @param {CrackMappedImage} profileImage 작품 이미지
+   * @param {Date} createdAt 작품 생성 시간
+   * @param {Date} updatedAt 작품 갱신 시간
+   * @param {boolean} isAdult 언세이프 여부
+   * @param {boolean} isForceConverted 운영진에 의해 강제로 변경되었는지의 여부
+   */
+  constructor(
+    genre,
+    imageCount,
+    visibility,
+    status,
+    categories,
+    target,
+    chatType,
+    profileImage,
+    createdAt,
+    updatedAt,
+    isAdult,
+    isForceConverted,
+  ) {
+    this.genre = genre;
+    this.categories = categories;
+    this.imageCount = imageCount;
+    this.visibility = visibility;
+    this.status = status;
+    this.target = target;
+    this.chatType = chatType;
+    this.profileImage = profileImage;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+    this.isAdult = isAdult;
+    this.isForceConverted = isForceConverted;
+  }
+
+  /**
+   * JSON 스키마에서 데이터를 정제합니다.
+   * @param {any} container
+   * @returns {CrackStoryStatus} 정제된 데이터
+   */
+  static of(container) {
+    return new CrackStoryStatus(
+      CrackGenre.of(container.genre),
+      container.imageCount,
+      Visibility.of(container.visibility),
+      container.status,
+      container.categories,
+      container.target?.name,
+      container.chatType?.name,
+      new CrackMappedImage(container.profileImage),
+      new Date(container.createdAt),
+      new Date(container.updatedAt),
+      container.isAdult,
+      container.isConvertedToAdult,
+    );
+  }
+}
+/**
+ * 스토리 시작 상황 데이터를 나타내는 클래스입니다.
+ */
+class CrackStoryStartingSet {
+  /** @property {string} 크랙 내부 ID  */
+  id;
+  /** @property {string} 크랙 내부 시작 세트 ID  */
+  baseSetId;
+  /** @property {string} 시작 상황 이름 */
+  name;
+  /** @property {string} 시작 상황 이름  */
+  initialMessages;
+  /** @property {string[]} 추천 시작 응답 */
+  replySuggestion;
+  /** @property {string} 플레이 가이드 */
+  playGuide;
+  /**
+   * @param {string} id 크랙 내부 ID
+   * @param {string} baseSetId 크랙 내부 시작 세트 ID
+   * @param {string} name 시작 상황 이름
+   * @param {string[]} initialMessages 시작 메시지
+   * @param {string[]} replySuggestion 추천 시작 응답
+   * @param {string} playGuide 플레이 가이드
+   */
+  constructor(
+    id,
+    baseSetId,
+    name,
+    initialMessages,
+    replySuggestion,
+    playGuide,
+  ) {
+    this.id = id;
+    this.baseSetId = baseSetId;
+    this.name = name;
+    this.initialMessages = initialMessages;
+    this.replySuggestion = replySuggestion;
+    this.playGuide = playGuide;
+  }
+
+  /**
+   * JSON 스키마에서 데이터를 정제합니다.
+   * @param {any} container
+   * @returns {CrackStoryStartingSet} 정제된 데이터
+   */
+  static of(container) {
+    return new CrackStoryStartingSet(
+      container._id,
+      container.baseSetId,
+      container.name,
+      container.initialMessages,
+      container.replySuggestions,
+      container.playGuide,
+    );
+  }
+}
+class CrackComment {
+  /** @property {string} 댓글 ID */
+  id;
+  /** @property {string} 댓글 내용 */
+  content;
+  /** @property {UserInfo} 댓글 작성자 */
+  writer;
+
+  /**
+   * @param {string} id 댓글 ID
+   * @param {string} content 댓글 내용
+   * @param {UserInfo} writer 댓글 작성자
+   */
+  constructor(id, content, writer) {
+    this.id = id;
+    this.content = content;
+    this.writer = writer;
+  }
+
+  /**
+   * JSON 스키마에서 데이터를 정제합니다.
+   * @param {any} container
+   * @returns {CrackComment} 정제된 데이터
+   */
+  static of(container) {
+    return new CrackComment(
+      container._id,
+      container.content,
+      UserInfo.of(container.writer),
+    );
+  }
+}
+
+class CrackStoryInfo {
+  /** @property {string} 작품 ID */
+  id;
+  /** @property {string[]} 작품 초기 메시지*/
+  initialMessages;
+  /** @property {string} 기본 크래커 모델 (superchat_2_0...)*/
+  crackerModel;
+  /** @property {string} 채팅 모델 ID */
+  model;
+  /** @property {UserInfo} 제작자 */
+  creator;
+  /** @property {string} 작품 이름 */
+  name;
+  /** @property {CrackStoryDescription} 작품 설명 */
+  description;
+  /** @property {CrackArticleStatistics} 작품 통계 */
+  statistics;
+  /** @property {CrackStoryStatus} 작품 상태 및 메타데이터*/
+  status;
+  /** @property {CrackPromptTemplate} 작품 프롬프트 템플릿 */
+  template;
+  /** @property {?CrackComment} 고정 혹은 대표 댓글 */
+  representiveComment;
+  /** @property {CrackStoryStartingSet[]} 시작 설정 */
+  startingSets;
+  /** @property {?string} 공유 URL */
+  shareUrl;
+  /**
+   * @param {string} id 작품 ID
+   * @param {string[]} initialMessages 작품 초기 메시지
+   * @param {string} crackerModel 기본 크래커 모델 (superchat_2_0...)
+   * @param {string} model 채팅 모델 ID
+   * @param {UserInfo} creator 제작자
+   * @param {string} name 작품 이름
+   * @param {CrackStoryDescription} description 작품 설명
+   * @param {CrackArticleStatistics} statistics 작품 통계
+   * @param {CrackStoryStatus} status 작품 상태 및 메타데이터
+   * @param {CrackPromptTemplate} template 작품 프롬프트 템플릿
+   * @param {?CrackComment} representiveComment 고정 혹은 대표 댓글
+   * @param {CrackStoryStartingSet[]} startingSets 시작 설정
+   * @param {?string} shareUrl 공유 URL
+   */
+  constructor(
+    id,
+    initialMessages,
+    crackerModel,
+    model,
+    creator,
+    name,
+    description,
+    statistics,
+    status,
+    template,
+    representiveComment,
+    startingSets,
+    shareUrl,
+  ) {
+    this.id = id;
+    this.initialMessages = initialMessages;
+    this.crackerModel = crackerModel;
+    this.model = model;
+    this.creator = creator;
+    this.name = name;
+    this.description = description;
+    this.statistics = statistics;
+    this.status = status;
+    this.template = template;
+    this.representiveComment = representiveComment;
+    this.startingSets = startingSets;
+    this.shareUrl = shareUrl;
+  }
+
+  /**
+   * JSON 스키마에서 데이터를 정제합니다.
+   * @param {any} container
+   * @returns {CrackStoryInfo} 정제된 데이터
+   */
+  static of(container) {
+    return new CrackStoryInfo(
+      container._id,
+      container.initialMessages,
+      container.defaultCrackerModel,
+      container.chatModelId,
+      UserInfo.of(container.creator),
+      container.name,
+      CrackStoryDescription.of(container),
+      CrackArticleStatistics.of(container),
+      CrackStoryStatus.of(container),
+      CrackPromptTemplate.of(container.promptTemplate),
+      CrackComment.of(container.representativeComment),
+      Array.from(container.startingSets).map((item) =>
+        CrackStoryStartingSet.of(item),
+      ),
+      container.shareUrl,
+    );
+  }
+}
+/**
+ * 작품의 통계 데이터를 나타내는 클래스입니다.
+ */
+class CrackArticleStatistics {
+  /** @property {number} 작품에 보내진 메시지의 총 개수 */
+  messageSent;
+  /** @property {number} 이 작품으로 생성된 채팅방 개수 */
+  roomCreated;
+  /** @property {number} 이 작품에 채팅을 보낸 플레이어 수 */
+  players;
+  /** @property {number} 좋아요 수 */
+  likes;
+  /** @property {number} 댓글 수 */
+  comments;
+  /**
+   * @param {number} messageSent 작품에 보내진 메시지의 총 개수
+   * @param {number} roomCreated 이 작품으로 생성된 채팅방 개수
+   * @param {number} players 이 작품에 채팅을 보낸 플레이어 수
+   * @param {number} likes 좋아요 수
+   * @param {number} comments 댓글 수
+   */
+  constructor(messageSent, roomCreated, players, likes, comments) {
+    this.messageSent = messageSent;
+    this.roomCreated = roomCreated;
+    this.players = players;
+    this.likes = likes;
+    this.comments = comments;
+  }
+
+  /**
+   * JSON 스키마에서 데이터를 정제합니다.
+   * @param {any} container
+   * @returns {CrackArticleStatistics} 정제된 데이터
+   */
+  static of(container) {
+    return new CrackArticleStatistics(
+      container.totalMessageCount,
+      container.chatUserCount,
+      container.chatUserCount,
+      container.likeCount,
+      container.commentCount,
+    );
+  }
+}
+
 /**
  * 크랙 채팅 로그 데이터입니다.
  */
 class CrackChattingLog {
-  /** @property {string} id 메시지 내부 ID  */
+  /** @property {string} 메시지 내부 ID  */
   id;
-  /** @property {string} userId 유저 ID */
+  /** @property {string} 유저 ID */
   userId;
-  /** @property {string} messageId 메시지 외부 ID. 이 파라미터는 일반적으로 사용되지 않습니다. */
+  /** @property {string} 메시지 외부 ID. 이 파라미터는 일반적으로 사용되지 않습니다. */
   messageId;
-  /** @property {string} role 메시지 전송 주체 (user, assistant..) */
+  /** @property {string} 메시지 전송 주체 (user, assistant..) */
   role;
-  /** @property {string} content 메시지 컨텐츠 */
+  /** @property {string} 메시지 컨텐츠 */
   content;
-  /** @property {string} model 사용 모델 ID */
+  /** @property {string} 사용 모델 ID */
   model;
-  /** @property {string} turnId 턴 ID */
+  /** @property {string} 턴 ID */
   turnId;
-  /** @property {string} status 메시지 상태 (end = 정상 종료) */
+  /** @property {string} 메시지 상태 (end = 정상 종료) */
   status;
-  /** @property {string[]} recommendList 추천 목록 */
+  /** @property {string[]} 추천 목록 */
   recommendList;
-  /** @property {string} crackerModel 사용 크래커 모델 */
+  /** @property {string} 사용 크래커 모델 */
   crackerModel;
-  /** @property {string} chatModelId 사용 크래커 모델 ID*/
+  /** @property {string} 사용 크래커 모델 ID*/
   chatModelId;
-  /** @property {boolean} isContinuallyGeneratable 계속 생성 가능 여부 */
+  /** @property {boolean} 계속 생성 가능 여부 */
   isContinuallyGeneratable;
-  /** @property {boolean} isContinued "계속 생성" 기능에 의해 생성되었는지의 여부 */
+  /** @property {boolean} "계속 생성" 기능에 의해 생성되었는지의 여부 */
   isContinued;
-  /** @property {string[]} situationImages 상황 이미지 목록 */
+  /** @property {string[]} 상황 이미지 목록 */
   situationImages;
-  /** @property {string[]} parameterSnapshots 스탯 목록 */
+  /** @property {string[]} 스탯 목록 */
   parameterSnapshots;
-  /** @property {boolean} isPrologue 프롤로그 여부 */
+  /** @property {boolean} 프롤로그 여부 */
   isPrologue;
-  /** @property {boolean} reroll 리롤 여부 */
+  /** @property {boolean} 리롤 여부 */
   reroll;
   /**
    * @param {string} id 메시지 내부 ID
@@ -196,37 +717,97 @@ class CrackChattingLog {
   }
 }
 
-class CrackChatRoom {
-  /** @property {string} id 채팅방 ID */
+class CrackStorySessionInfo extends ImageMappable {
+  /** @property {string} 스토리 ID */
   id;
-  /** @property {string} userId 유저 ID */
+  /** @property {string} 스토리 스냅샷 ID */
+  snapshotId;
+  /** @property {string} 스토리 이름 */
+  name;
+  /** @property {string} 시작 설정 ID */
+  startingSetId;
+  /** @property {string} 시작 설정 세트 ID */
+  baseSetId;
+  /** @property {boolean} 언세이프 여부 */
+  isAdult;
+  /**
+   * @param {string} id 스토리 ID
+   * @param {string} snapshotId 스토리 스냅샷 ID
+   * @param {string} name 스토리 이름
+   * @param {any} images 이미지 컨테이너
+   * @param {string} startingSetId 시작 설정 ID
+   * @param {string} baseSetId 시작 설정 세트 ID
+   * @param {boolean} isAdult 언세이프 여부
+   */
+  constructor(id, snapshotId, name, images, startingSetId, baseSetId, isAdult) {
+    super(images);
+    this.id = id;
+    this.snapshotId = snapshotId;
+    this.name = name;
+    this.startingSetId = startingSetId;
+    this.baseSetId = baseSetId;
+    this.isAdult = isAdult;
+  }
+
+  /**
+   * JSON 스키마에서 데이터를 정제합니다.
+   * @param {any} container
+   * @returns {CrackStorySessionInfo} 정제된 데이터
+   */
+  static of(container) {
+    return new CrackStorySessionInfo(
+      container._id,
+      container.snapshotId,
+      container.name,
+      container.profileImage,
+      container.statringSetId,
+      container.baseSetId,
+      container.isAdult,
+    );
+  }
+}
+
+class CrackCharacterSessionInfo {
+  /**
+   * JSON 스키마에서 데이터를 정제합니다.
+   * @param {any} container
+   * @returns {CrackCharacterSessionInfo} 정제된 데이터
+   */
+  static of(container) {
+    return new CrackCharacterSessionInfo();
+  }
+}
+
+class CrackChatRoom {
+  /** @property {string} 채팅방 ID */
+  id;
+  /** @property {string} 유저 ID */
   userId;
-  /** @property {string} title 제목 */
+  /** @property {string} 제목 */
   title;
-  /** @property {string} lastMessage 마지막 메시지 */
+  /** @property {string} 마지막 메시지 */
   lastMessage;
-  /** @property {string} model 사용 모델 이름 (sonnet, gemini..) */
+  /** @property {string} 사용 모델 이름 (sonnet, gemini..) */
   model;
-  /** @property {string} modelId 사용 모델 ID */
+  /** @property {string} 사용 모델 ID */
   modelId;
-  /** @property {boolean} isStory 스토리 여부. true일 경우 스토리, false일 경우 캐릭터 채팅. */
-  isStory;
-  /** @property {string} originId 스토리 혹은 캐릭터 ID */
-  originId;
-  /** @property {string} originSnapshotId 스토리 혹은 캐릭터 스냅샷 ID */
-  originSnapshotId;
-  /** @property {string} hasUserNote 유저노트 여부 */
+
+  /** @property {string} 유저노트 여부 */
   hasUserNote;
-  /** @property {Date} createdAt 생성 시간 */
+  /** @property {Date} 생성 시간 */
   createdAt;
-  /** @property {Date} updatedAt 갱신 시간 */
+  /** @property {Date} 갱신 시간 */
   updatedAt;
-  /** @property {string} chatProfileId 사용중인 채팅 프로필 ID*/
-  chatProfileId;
-  /** @property {boolean} isSummaryUpdated 업데이트 여부 */
+  /** @property {boolean} 업데이트 여부 */
   isSummaryUpdated;
-  /** @property {boolean} doRecommendNextMessage 다음 메시지 추천 여부 */
+  /** @property {boolean} 다음 메시지 추천 여부 */
   doRecommendNextMessage;
+  /** @property {?string} 현재 채팅 프로필 ID (페르소나 ID) */
+  chatProfileId;
+  /** @property {?CrackStorySessionInfo} 현재 방의 스토리 세션 정보 */
+  story;
+  /** @property {?CrackCharacterSessionInfo} 현재 방의 캐릭터 세션 정보 */
+  character;
   /**
    *
    * @param {string} id 채팅방 ID
@@ -235,15 +816,14 @@ class CrackChatRoom {
    * @param {string} lastMessage 마지막 메시지
    * @param {string} model 사용 모델 이름 (sonnet, gemini..)
    * @param {string} modelId 사용 모델 ID
-   * @param {boolean} isStory 스토리 여부. true일 경우 스토리, false일 경우 캐릭터 채팅.
-   * @param {string} originId 스토리 혹은 캐릭터 ID
-   * @param {string} originSnapshotId 스토리 혹은 캐릭터 스냅샷 ID
    * @param {string} hasUserNote 유저노트 여부
    * @param {Date} createdAt 생성 시간
    * @param {Date} updatedAt 갱신 시간
-   * @param {string} chatProfileId 사용중인 채팅 프로필 ID
    * @param {boolean} isSummaryUpdated 업데이트 여부
    * @param {boolean} doRecommendNextMessage 다음 메시지 추천 여부
+   * @param {?string} chatProfileId 현재 채팅 프로필 ID (페르소나 ID)
+   * @param {?CrackStorySessionInfo} story 현재 방의 스토리 세션 정보
+   * @param {?CrackCharacterSessionInfo} character 현재 방의 캐릭터 세션 정보
    */
   constructor(
     id,
@@ -252,15 +832,14 @@ class CrackChatRoom {
     lastMessage,
     model,
     modelId,
-    isStory,
-    originId,
-    originSnapshotId,
     hasUserNote,
     createdAt,
     updatedAt,
-    chatProfileId,
     isSummaryUpdated,
     doRecommendNextMessage,
+    chatProfileId,
+    story,
+    character,
   ) {
     this.id = id;
     this.userId = userId;
@@ -268,32 +847,57 @@ class CrackChatRoom {
     this.lastMessage = lastMessage;
     this.model = model;
     this.modelId = modelId;
-    this.isStory = isStory;
-    this.originId = originId;
-    this.originSnapshotId = originSnapshotId;
     this.hasUserNote = hasUserNote;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
-    this.chatProfileId = chatProfileId;
     this.isSummaryUpdated = isSummaryUpdated;
     this.doRecommendNextMessage = doRecommendNextMessage;
+    this.chatProfileId = chatProfileId;
+    this.story = story;
+    this.character = character;
+  }
+
+  /**
+   * JSON 스키마에서 데이터를 정제합니다.
+   * @param {any} container
+   * @returns {CrackChatRoom} 정제된 데이터
+   */
+  static of(container) {
+    return new CrackChatRoom(
+      container._id,
+      container.userId,
+      container.title,
+      container.lastMessage,
+      container.model,
+      container.chatModelId,
+      container.hasUserNote,
+      new Date(container.createdAt),
+      new Date(container.updatedAt),
+      container.isSummaryUpdated,
+      container.isAutoRecommendUserNextMessage,
+      container.chatProfile?._id,
+      container.story ? CrackStorySessionInfo.of(container.story) : null,
+      container.character
+        ? CrackCharacterSessionInfo.of(container.character)
+        : null,
+    );
   }
 }
 /**
  * 페르소나 데이터입니다.
  */
 class CrackPersona {
-  /** @property {string} id 페르소나 ID */
+  /** @property {string} 페르소나 ID */
   id;
-  /** @property {string} name 페르소나 이름 */
+  /** @property {string} 페르소나 이름 */
   name;
-  /** @property {boolean} isRepresentative 대표 프로필 여부 */
+  /** @property {boolean} 대표 프로필 여부 */
   isRepresentative;
-  /** @property {string} profileId 계정 프로필 ID */
+  /** @property {string} 계정 프로필 ID */
   profileId;
-  /** @property {Date} created 생성 시간 타임스탬프 */
+  /** @property {Date} 생성 시간 타임스탬프 */
   created;
-  /** @property {Date} updated 갱신 시간 타임스탬프 */
+  /** @property {Date} 갱신 시간 타임스탬프 */
   updated;
   /**
    * @param {string} id 페르소나 ID
@@ -335,13 +939,13 @@ class _CrackGenericUtil {
  * 크래커 모델의 비용과 이름을 나타내는 클래스입니다.
  */
 class CrackerModel {
-  /** @property {string} id 모델 내부 ID */
+  /** @property {string} 모델 내부 ID */
   id;
-  /** @property {string} name 표시 이름 */
+  /** @property {string} 표시 이름 */
   name;
-  /** @property {number} quantity 1회당 소모 크래커 */
+  /** @property {number} 1회당 소모 크래커 */
   quantity;
-  /** @property {string} serviceType 서비스 타입 */
+  /** @property {string} 서비스 타입 */
   serviceType;
   /**
    * @param {string} id 모델 내부 ID
@@ -360,65 +964,48 @@ class CrackerModel {
 /**
  * 유저 정보를 나타내는 클래스입니다.
  */
-class UserInfo {
-  /** 표기 닉네임*/
+class UserInfo extends CrackMappedImage {
+  /** @property {string} 크랙 내부 ID */
+  id;
+  /** @property {string} 표기 닉네임 */
   nickname;
-  /** 뤼튼 ID */
+  /** @property {string} 뤼튼 ID */
   wrtnId;
-  /** 크리에이터 여부 */
-  isCertificated;
-  /** 유저 프로필 ID */
+  /** @property {string}  유저 프로필 ID */
   profileId;
+  /** @property {?boolean} 크리에이터 여부. null 혹은 undefined일 경우, 주어진 데이터에서 유추할 수 없음을 뜻합니다. */
+  isCertificated;
   /**
+   * @param {string} id 크랙 내부 ID
    * @param {string} nickname 표기 닉네임
    * @param {string} wrtnId 뤼튼 ID
-   * @param {string} isCertificated 크리에이터 여부
+   * @param {?boolean} isCertificated 크리에이터 여부
    * @param {string} profileId 유저 프로필 ID
+   * @param {any} container 이미지 컨테이너
    */
-  constructor(nickname, wrtnId, isCertificated, profileId) {
+  constructor(id, nickname, wrtnId, isCertificated, profileId, container) {
+    super(container);
+    this.id = id;
     this.nickname = nickname;
     this.wrtnId = wrtnId;
     this.isCertificated = isCertificated;
     this.profileId = profileId;
   }
-}
 
-class ArticleDescription {
   /**
-   * @param {string} description 기본 작품 설명
-   * @param {string} simple 한줄 소개
-   * @param {string} detail 상세 소개
+   * JSON 스키마에서 데이터를 정제합니다.
+   * @param {any} container
+   * @returns {UserInfo} 정제된 데이터
    */
-  constructor(description, simple, detail) {
-    this.description = description;
-    this.simple = simple;
-    this.detail = detail;
-  }
-}
-
-/**
- * 작품 정보를 나타내는 클래스입니다.
- * 스토리와 캐릭터 상관 없이 해당 클래스로 표현합니다.
- */
-class ArticleInfo {
-  /**
-   *
-   * @param {string} id 작품 ID
-   * @param {string} title 표시 제목
-   * @param {string} crackerModel 권장 크래커 모델
-   * @param {UserInfo} author 제작자
-   * @param {ArticleDescription} description 작품 설명
-   * @param {string[]} tags 작품 태그
-   * @param {Visibility} visibility 공개 여부
-   */
-  constructor(id, title, crackerModel, author, description, tags, visibility) {
-    this.id = id;
-    this.title = title;
-    this.crackerModel = crackerModel;
-    this.author = author;
-    this.description = description;
-    this.tags = tags;
-    this.visibility = visibility;
+  static of(container) {
+    return new UserInfo(
+      container.userId,
+      container.nickname,
+      container.wrtnId,
+      container.isCertifiedCreator,
+      container.profileId,
+      container.profileImage,
+    );
   }
 }
 
@@ -732,39 +1319,6 @@ class _CrackCharacterApi {
   constructor(network) {
     this.#network = network;
   }
-
-  /**
-   *
-   * @param {string} characterId
-   * @returns {Promise<ArticleInfo | Error>}
-   */
-  async getCharacterInfo(characterId) {
-    const result = await this.#network.authFetch(
-      "GET",
-      `https://crack-api.wrtn.ai/crack-gen/v3/chats/stories/${characterId}`,
-    );
-    if (result instanceof Error) {
-      return result;
-    }
-    return new ArticleInfo(
-      result.data._id,
-      result.data.name,
-      result.data.defaultCrackerModel,
-      new UserInfo(
-        result.data.creator.nickname,
-        result.data.creator.wrtnUid,
-        result.data.creator.isCertifiedCreator,
-        result.data.creator.profileId,
-      ),
-      new ArticleDescription(
-        result.data.description,
-        result.data.simpleDescription,
-        result.data.detailDescription,
-      ),
-      result.data.tags,
-      Visibility.of(result.data.visibility),
-    );
-  }
 }
 
 class _CrackUserApi {
@@ -946,23 +1500,26 @@ class _CrackStoryApi {
         "크랙 API에서 예상치 못한 스키마가 반환되었습니다. 이는 일시적 오류일 수 있지만, 크랙 API 변경이 원인일 수 있습니다.",
       );
     }
-    return new CrackChatRoom(
-      data._id,
-      data.userId,
-      data.title,
-      data.lastMessage,
-      data.model,
-      data.chatModelId,
-      this.#generic.isValid(data.story),
-      data.story?._id ?? data.story._id,
-      data.story?.snapshotId ?? data.story.snapshotId,
-      data.hasUserNote,
-      new Date(data.createdAt),
-      new Date(data.updatedAt),
-      data.chatProfile?._id ?? "--ERROR--",
-      data.isSummaryUpdated,
-      data.isAutoRecommendUserNextMessage,
+    return CrackChatRoom.of(data);
+  }
+
+  /**
+   * 스토리 정보를 가져옵니다.
+   * @param {string} storyId
+   * @returns {Promise<CrackStoryInfo | Error>} 정제된 데이터 혹은 오류
+   */
+  async of(storyId) {
+    const result = await this.#network.authFetch(
+      "GET",
+      `https://crack-api.wrtn.ai/crack-api/stories/${storyId}`,
     );
+    if (result instanceof Error) {
+      return result;
+    }
+    if (!result.data) {
+      return new Error("크랙 API에서 데이터 컨테이너를 반환하지 않았습니다.");
+    }
+    return CrackStoryInfo.of(result.data);
   }
 }
 
@@ -1006,23 +1563,7 @@ class _CrackChatRoomApi {
         "크랙 API에서 예상치 못한 스키마가 반환되었습니다. 이는 일시적 오류일 수 있지만, 크랙 API 변경이 원인일 수 있습니다.",
       );
     }
-    return new CrackChatRoom(
-      data._id,
-      data.userId,
-      data.title,
-      data.lastMessage,
-      data.model,
-      data.chatModelId,
-      this.#generic.isValid(data.story),
-      data.story?._id ?? data.story._id,
-      data.story?.snapshotId ?? data.story.snapshotId,
-      data.hasUserNote,
-      new Date(data.createdAt),
-      new Date(data.updatedAt),
-      data.chatProfile?._id ?? "--ERROR--",
-      data.isSummaryUpdated,
-      data.isAutoRecommendUserNextMessage,
-    );
+    return CrackChatRoom.of(data);
   }
 
   /**
@@ -1352,7 +1893,7 @@ class _CrackChatRoomApi {
     if (personaMap instanceof Error) {
       return personaMap;
     }
-    return personaMap.get(chatData.chatProfileId) ?? null;
+    return personaMap.get(chatData.chatProfileId ?? "--UNKNOWN--") ?? null;
   }
 }
 
