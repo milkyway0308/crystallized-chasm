@@ -1,7 +1,8 @@
-// @ts-check
 // crack-shared-core.js - 크랙 서드파티 스크립트용 공용 유틸리티 코어
 // crack-shared-core은 TS의 문법 검사와 JSDoc을 통한 브라우저 스크립트 전용 크랙 유틸리티입니다.
 
+// @ts-check
+/// <reference path="../../libraries/socket-io-4.8.1.js" />
 // =====================================================
 //                 Crack Shared Core
 // =====================================================
@@ -969,15 +970,21 @@ class _CrackChatRoomApi {
   #generic;
   #user;
   #network;
+  #cookie;
+  #io;
   /**
    * @param {_CrackGenericUtil} generic
    * @param {_CrackUserApi} user
    * @param {_CrackNetworkApi} network
+   * @param {_CrackCookieApi} cookie
+   * @param {_SocketIoUtil} io
    */
-  constructor(generic, user, network) {
+  constructor(generic, user, network, cookie, io) {
     this.#generic = generic;
     this.#user = user;
     this.#network = network;
+    this.#cookie = cookie;
+    this.#io = io;
   }
 
   /**
@@ -1019,34 +1026,33 @@ class _CrackChatRoomApi {
   }
 
   /**
-   *
+   * 채팅 로그를 추출합니다.
+   * **이 펑션은 항상 최신 메시지부터 오래된 메시지까지 역순으로 반환합니다.**
+   * @generator
    * @param {string} chatId 채팅 로그를 가져올 채팅방 ID입니다.
    * @param {Object} [param] 옵션 파라미터
-   * @param {number} [param.maxCount] 최대로 가져올 메시지 개수. -1로 입력시, 모든 메시지를 가져옵니다.
-   * @param {number} [param.delay] 각 요청마다 대기할 간격입니다. 이 옵션이 없는 경우, 크랙의 API 서버에서 레이트리밋을 반환할 가능성이 존재합니다.
-   * @param {boolean} [param.naturalOrder] 어느 순서로 메시지를 가져올지의 여부입니다. true일 경우, 시간 흐름대로 반환합니다(오래된 메시지 -> 최신 메시지). false일 경우, 역순으로 반환합니다(최신 메시지 -> 오래된 메시지).
-   * @returns {Promise<CrackChattingLog[] | Error>} 채팅 로그 목록 혹은 오류
+   * @param {number} [param.maxCount=-1] 최대로 가져올 메시지 개수. -1로 입력시, 모든 메시지를 가져옵니다.
+   * @param {number} [param.delay=20] 각 요청마다 대기할 간격입니다. 이 옵션이 없는 경우, 크랙의 API 서버에서 레이트리밋을 반환할 가능성이 존재합니다.
+   * @param {number} [param.itemPerPage=20] 각 요청마다 가져올 최대 페이지입니다. 특별한 상황이 아닌 경우, 기본 값 사용을 권장합니다. 20개를 초과할 경우, 크랙 API가 작동하지 않을 수 있습니다.
+   * @yields {CrackChattingLog} 추출된 채팅 로그
+   * @returns {AsyncGenerator<CrackChattingLog, void, void>} 생성된 제너레이터
    */
-  async extractLogs(
+  async *iterateLogs(
     chatId,
-    { maxCount = -1, delay = 20, naturalOrder = true } = {},
+    { maxCount = -1, delay = 20, itemPerPage = 20 } = {},
   ) {
-    /** @type {CrackChattingLog[]} */
-    const logs = [];
+    let amount = 0;
     let cursor = undefined;
-    while (maxCount === -1 || logs.length < maxCount) {
+    while (maxCount === -1 || amount < maxCount) {
       const nextUrl =
         cursor === undefined
-          ? `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}/messages?limit=20`
-          : `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}/messages?limit=20&cursor=${cursor}`;
+          ? `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}/messages?limit=${itemPerPage}`
+          : `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}/messages?limit=${itemPerPage}&cursor=${cursor}`;
       const result = await this.#network.authFetch("GET", nextUrl);
       if (result instanceof Error) {
-        return result;
+        throw result;
       }
-      cursor = result.data.nextCursor;
-      if (cursor === undefined || cursor === null) {
-        break;
-      }
+
       for (let message of result.data.messages) {
         if ((message.content?.length ?? 0) === 0) continue;
         const fetchedLog = new CrackChattingLog(
@@ -1068,18 +1074,268 @@ class _CrackChatRoomApi {
           message.isPrologue,
           message.reroll ?? false,
         );
-        if (naturalOrder) {
-          logs.unshift(fetchedLog);
-        } else {
-          logs.push(fetchedLog);
-        }
-        if (maxCount !== -1 && logs.length >= maxCount) {
+        yield fetchedLog;
+        if (maxCount !== -1 && ++amount >= maxCount) {
           break;
         }
       }
       delay > 0 && (await new Promise((resolve) => setTimeout(resolve, delay)));
     }
+  }
+  /**
+   * 채팅 로그를 추출합니다.
+   * @param {string} chatId 채팅 로그를 가져올 채팅방 ID입니다.
+   * @param {Object} [param] 옵션 파라미터
+   * @param {number} [param.maxCount] 최대로 가져올 메시지 개수. -1로 입력시, 모든 메시지를 가져옵니다.
+   * @param {number} [param.delay] 각 요청마다 대기할 간격입니다. 이 옵션이 없는 경우, 크랙의 API 서버에서 레이트리밋을 반환할 가능성이 존재합니다.
+   * @param {boolean} [param.naturalOrder] 어느 순서로 메시지를 가져올지의 여부입니다. true일 경우, 시간 흐름대로 반환합니다(오래된 메시지 -> 최신 메시지). false일 경우, 역순으로 반환합니다(최신 메시지 -> 오래된 메시지).
+   * @returns {Promise<CrackChattingLog[] | Error>} 채팅 로그 목록 혹은 오류
+   */
+  async extractLogs(
+    chatId,
+    { maxCount = -1, delay = 20, naturalOrder = true } = {},
+  ) {
+    /** @type {CrackChattingLog[]} */
+    const logs = [];
+    for await (let log of this.iterateLogs(chatId, {
+      maxCount: maxCount,
+      delay: delay,
+    })) {
+      if (naturalOrder) {
+        logs.unshift(log);
+      } else {
+        logs.push(log);
+      }
+    }
     return logs;
+  }
+
+  /**
+   * 지정된 채팅의 마지막 메시지를 역할에 맞춰 찾아 가져옵니다.
+   * @param {string} chatId
+   * @returns {Promise<?CrackChattingLog | Error>}
+   */
+  async fetchLastMessage(chatId) {
+    try {
+      const next = (await this.iterateLogs(chatId, { maxCount: 1 }).next())
+        .value;
+      if (next) return next;
+    } catch (error) {
+      if (error instanceof Error) return error;
+    }
+    return null;
+  }
+  /**
+   * 지정된 채팅의 마지막 메시지를 역할에 맞춰 찾아 가져옵니다.
+   * @param {string} chatId
+   * @param {string} requireRole
+   * @returns {Promise<?CrackChattingLog | Error>}
+   */
+  async findLastMessageId(chatId, requireRole = "assistant") {
+    try {
+      for await (let item of this.iterateLogs(chatId)) {
+        if (item.role === requireRole) {
+          return item;
+        }
+      }
+    } catch (error) {
+      if (error instanceof Error) return error;
+    }
+    return null;
+  }
+
+  /**
+   *
+   * @param {string} chatId
+   * @returns {Promise<?CrackChattingLog | Error>}
+   */
+  async findLastBotMessage(chatId) {
+    return this.findLastMessageId(chatId, "assistant");
+  }
+
+  /**
+   *
+   * @param {string} chatId
+   * @returns {Promise<?CrackChattingLog | Error>}
+   */
+  async findLastUserMessage(chatId) {
+    return this.findLastMessageId(chatId, "user");
+  }
+
+  /**
+   *
+   * @param {string} chatId
+   */
+  async connect(chatId) {
+    const socket = (await this.#io.prepareIo())(
+      "https://contents-api.wrtn.ai/v3/chats",
+      {
+        reconnectionDelayMax: 1000,
+        transports: ["websocket"],
+        path: "/character-chat/socket.io",
+        auth: {
+          token: this.#cookie.getCookie("access_token"),
+          refreshToken: this.#cookie.getCookie("refresh_token"),
+          platform: "web",
+        },
+      },
+    );
+    await new Promise(async (resolve, reject) => {
+      // @ts-ignore
+      socket.emit("enter", { chatId: chatId }, async (response) => {
+        if (response.result !== "success") {
+          reject(new Error("socket.io 방 입장 감지에 실패하였습니다."));
+          return;
+        }
+        resolve(undefined);
+      });
+    });
+    return socket;
+  }
+
+  /**
+   * socket.io 프레임워크를 사용해 메시지를 보냅니다.
+   * **이 펑션은 socket.io를 스크립트에 불러옵니다. **
+   *
+   * @singleflow 이 태그가 있는 펑션은 동일한 펑션이 아니더라도 2개 이상의 펑션이 동시에 호출되어서는 안됩니다. 모든 결과가 도출된 후에 호출해야 동시성 문제가 발생하지 않습니다.
+   * @see {@link _SocketIoUtil.prepareIo()} socket.io 자동 임포트
+   * @requires socket.io@>=4.8.1
+   * @param {string} chatId
+   * @param {string} message
+   * @param {Object} [param] 옵션 파라미터
+   * @param {?Object} [param.socket] 방 소켓. undefined일 경우, 새 방을 열고 보낸 후 소켓을 닫습니다.
+   * @param {(userMessageId: CrackChattingLog, botMessageId: CrackChattingLog) => Promise<void> | void} [param.onMessageSent] 봇 메시지가 전송된 후에 트리거될 메시지 핸들러
+   * @param {number} [param.timeout] 몇 ms 뒤에 요청을 실패로 간주할지 설정합니다.
+   * @returns {Promise<Error | undefined>} 오류 혹은 undefined
+   */
+  async send(
+    chatId,
+    message,
+    { socket = undefined, onMessageSent = undefined, timeout = 100_000 } = {},
+  ) {
+    try {
+      const currentSocket = socket ?? (await this.connect(chatId));
+      const lastMessage = await this.fetchLastMessage(chatId);
+      if (lastMessage instanceof Error) {
+        return lastMessage;
+      }
+      if (!lastMessage) {
+        return new Error("불가능한 상태입니다: 첫 메시지가 존재하지 않습니다.");
+      }
+      const result = await new Promise(async (resolve, reject) => {
+        let isResolved = false;
+        const taskId = setTimeout(() => {
+          if (!isResolved) {
+            isResolved = true;
+            resolve(false);
+          }
+        }, timeout);
+        currentSocket.emit(
+          "send",
+          {
+            chatId: chatId,
+            message: message,
+            prevMessageId: lastMessage.id,
+          },
+          // @ts-ignore
+          async (sendResponse) => {
+            if (sendResponse.result === "success") {
+              // @ts-ignore
+              currentSocket.on(
+                "characterMessageGenerated",
+                // @ts-ignore
+                async (response) => {
+                  if (!isResolved) {
+                    isResolved = true;
+                    clearTimeout(taskId);
+                  }
+                  try {
+                    await this.#handleResponse(chatId, onMessageSent);
+                  } finally {
+                    resolve(true);
+                  }
+                },
+              );
+            } else {
+              reject(new Error("socket.io 메시지 전송에 실패하였습니다."));
+            }
+          },
+        );
+      });
+      if (!result) {
+        return new Error(
+          "지정한 시간 안에 메시지 응답이 완료되지 않았습니다, 실패로 간주합니다.",
+        );
+      }
+    } catch (error) {
+      if (error instanceof Error) return error;
+    }
+    return undefined;
+  }
+
+  /**
+   * socket.io 프레임워크를 사용해 메시지를 보냅니다.
+   * **이 펑션은 socket.io를 스크립트에 불러옵니다. **
+   *
+   * @singleflow 이 태그가 있는 펑션은 동일한 펑션이 아니더라도 2개 이상의 펑션이 동시에 호출되어서는 안됩니다. 모든 결과가 도출된 후에 호출해야 동시성 문제가 발생하지 않습니다.
+   * @see {@link _SocketIoUtil.prepareIo()} socket.io 자동 임포트
+   * @requires socket.io@>=4.8.1
+   * @param {string} chatId 채팅 ID
+   * @param {string} message 유저 메시지
+   * @param {Object} [param] 옵션 파라미터
+   * @param {?Object} [param.socket] 방 소켓. undefined일 경우, 새 방을 열고 보낸 후 소켓을 닫습니다.
+   * @param {number} [param.timeout]  몇 ms 뒤에 요청을 실패로 간주할지 설정합니다.
+   * @param {(userMessageId: CrackChattingLog) => Promise<void> | void} [param.onMessageSent] 봇 메시지가 삭제된 후에 트리거될 메시지 핸들러
+   */
+  async sendUserMessage(
+    chatId,
+    message,
+    { socket = undefined, timeout = 100_000, onMessageSent = undefined } = {},
+  ) {
+    return await this.send(chatId, message, {
+      socket: socket,
+      timeout: timeout,
+      onMessageSent: async (user, bot) => {
+        await this.deleteMessage(chatId, bot.id);
+        const result = onMessageSent?.(user);
+        if (result instanceof Promise) {
+          await result;
+        }
+      },
+    });
+  }
+
+  /**
+   * socket.io를 통한 메시지 응답을 처리합니다.
+   * @param {string} chatId 채팅방 ID
+   * @param {(userMessageId: CrackChattingLog, botMessageId: CrackChattingLog) => Promise<void> | void} [onMessageSent] 봇 메시지가 전송된 후에 트리거될 메시지 핸들러
+   */
+  async #handleResponse(chatId, onMessageSent) {
+    if (onMessageSent) {
+      const message = await this.extractLogs(chatId, {
+        maxCount: 2,
+        naturalOrder: true,
+      });
+      if (message instanceof Error) {
+        throw message;
+      }
+      const result = onMessageSent(message[0], message[1]);
+      if (result instanceof Promise) await result;
+    }
+  }
+
+  /**
+   * 메시지를 삭제합니다.
+   * @param {string} chatId 채팅방 ID
+   * @param {string} messageId 메시지 ID
+   * @returns {Promise<boolean>} 성공 여부
+   */
+  async deleteMessage(chatId, messageId) {
+    const result = await this.#network.authFetch(
+      "DELETE",
+      `https://contents-api.wrtn.ai/character-chat/characters/chat/${chatId}/message/${messageId}`,
+    );
+    return !(result instanceof Error);
   }
 
   /**
@@ -1116,7 +1372,43 @@ class _CrackComponentApi {
     return node?.children[0]?.children[0];
   }
 }
+
+/**
+ * socket.io 유틸리티
+ */
+class _SocketIoUtil {
+  /**
+   * @type {undefined | any}
+   */
+  #socketIo;
+
+  async enable() {
+    if (this.#socketIo) return;
+    const { io } = await import(
+      // @ts-ignore
+      "https://cdn.socket.io/4.8.1/socket.io.esm.min.js"
+    );
+    this.#socketIo = io;
+  }
+
+  async prepareIo() {
+    if (!this.#socketIo) await this.enable();
+    return this.io();
+  }
+
+  /**
+   * Socket.IO 인스턴스를 반환합니다.
+   */
+  io() {
+    if (this.#socketIo) {
+      return this.#socketIo;
+    }
+    throw new Error("socket.io not prepared yet");
+  }
+}
+
 class CrackUtil {
+  static #io = new _SocketIoUtil();
   static #cookie = new _CrackCookieApi();
   static #path = new _CrackPathApi();
   static #generic = new _CrackGenericUtil();
@@ -1128,6 +1420,8 @@ class CrackUtil {
     this.#generic,
     this.#user,
     this.#network,
+    this.#cookie,
+    this.#io,
   );
   static #story = new _CrackStoryApi(this.#generic, this.#user, this.#network);
   static #cracker = new _CrackCrackerApi(this.#network);
