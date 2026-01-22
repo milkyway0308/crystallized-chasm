@@ -135,6 +135,17 @@ class GenericUtil {
   static clone(element) {
     return this.refine(element.cloneNode(true));
   }
+
+  /**
+   * 요소를 복사하고, HTMLElement로 캐스팅해 반환합니다.
+   * @template {Node} T
+   * @param {T} element 복사할 요소
+   * @returns {HTMLElement} 복사된 요소
+   */
+  static cloneCast(element) {
+    return this.refine(element.cloneNode(true));
+  }
+
   /**
    * 값을 검증하고, non-null 타입으로 반환합니다.
    * @template T
