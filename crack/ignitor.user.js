@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Crack Chasm Crystallized Ignitor (크랙 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRAK-IGNT-v1.6.1
+// @version     CRAK-IGNT-v1.6.2
 // @description 캐즘 버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다. **기존 캐즘 버너 및 결정화 캐즘 버너+와 호환되지 않습니다. 버너 모듈을 제거하고 사용하세요.**
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -92,7 +92,7 @@ GM_addStyle(`
 
 !(async function () {
   const PLATFORM_SAVE_KEY = "chasm-ignt-settings";
-  const VERSION = "v1.6.0";
+  const VERSION = "v1.6.2";
 
   const { initializeApp } = await import(
     // @ts-ignore
@@ -2485,6 +2485,18 @@ GM_addStyle(`
       let replyEditor = async (message) => {
         return new Error("Failed to edit response");
       };
+      const normalChatModel = await CrackUtil.cracker().crackerModel("일반챗");
+      if (normalChatModel instanceof Error || !normalChatModel) {
+        return new Error("일반 채팅 ID를 가져오는데에 실패하였습니다.");
+      }
+      const originChatId = await CrackUtil.chatRoom().roomData(this.chatRoomId);
+      if (originChatId instanceof Error) {
+        return new Error("원본 방 데이터를 가져오는데에 실패하였습니다.");
+      }
+      await CrackUtil.chatRoom().changeChatModel(
+        this.chatRoomId,
+        normalChatModel.id,
+      );
       const result = await CrackUtil.chatRoom().send(
         this.chatRoomId,
         "OOC: '1' 하나만 응답할 것.",
@@ -2505,9 +2517,15 @@ GM_addStyle(`
           },
         },
       );
+      await CrackUtil.chatRoom().changeChatModel(
+        this.chatRoomId,
+        originChatId.modelId,
+      );
+
       if (result instanceof Error) {
         return result;
       }
+
       return replyEditor;
     }
   }
@@ -2567,7 +2585,11 @@ GM_addStyle(`
       if (result instanceof Error) {
         return result;
       }
-      return result.data?.character?.userNote?.content ?? result.data?.story?.userNote?.content ?? "";
+      return (
+        result.data?.character?.userNote?.content ??
+        result.data?.story?.userNote?.content ??
+        ""
+      );
     }
   }
 
