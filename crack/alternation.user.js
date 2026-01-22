@@ -1,16 +1,16 @@
 // ==UserScript==
 // @name        Chasm Crystallized Alternation (결정화 캐즘 차원이동)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-ALTR-v1.5.0p
+// @version     CRYS-ALTR-v1.5.0
 // @description 채팅 로그 복사 및 새 채팅방으로 포크. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alternation.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alternation.user.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/2f6b0de1ef12d0eea29058b907944a573d1633d7/crack/libraries/toastify-injection.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/2f6b0de1ef12d0eea29058b907944a573d1633d7/crack/libraries/crack-shared-core.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/2f6b0de1ef12d0eea29058b907944a573d1633d7/libraries/chasm-shared-core.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/2f6b0de1ef12d0eea29058b907944a573d1633d7/decentralized-modal.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-toastify-injection@v1.0.0/crack/libraries/toastify-injection.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-shared-core@v1.0.0/crack/libraries/crack-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@chasm-shared-core@v1.0.0/libraries/chasm-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.15/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 

@@ -1,16 +1,16 @@
 // ==UserScript==
 // @name        Chasm Crystallized Neo-Copy (결정화 캐즘 네오-카피)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRCK-NCPY-v2.3.0p
+// @version     CRCK-NCPY-v2.3.0
 // @description 크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
 // @downloadURL https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/neocopy.user.js
 // @updateURL   https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/neocopy.user.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/4e25ff24b52aaa00c70d74ab19a13d6617fc59b8/crack/libraries/toastify-injection.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/4e25ff24b52aaa00c70d74ab19a13d6617fc59b8/crack/libraries/crack-shared-core.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/4e25ff24b52aaa00c70d74ab19a13d6617fc59b8/libraries/chasm-shared-core.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/4e25ff24b52aaa00c70d74ab19a13d6617fc59b8/decentralized-modal.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-toastify-injection@v1.0.0/crack/libraries/toastify-injection.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-shared-core@v1.0.0/crack/libraries/crack-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@chasm-shared-core@v1.0.0/libraries/chasm-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.15/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 
@@ -19,7 +19,7 @@
 /// <reference path="../libraries/chasm-shared-core.js" />
 /// <reference path="./libraries/crack-shared-core.js" />
 
-const VERSION = "CRCK-NCPY-v2.3.0 Preview";
+const VERSION = "CRCK-NCPY-v2.3.0";
 // @ts-ignore
 GM_addStyle(`
   #chasm-copy-dropdown-container {

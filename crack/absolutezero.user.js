@@ -1,15 +1,16 @@
 // ==UserScript==
 // @name        Chasm Crystallized AbsoluteZero (결정화 캐즘 절대영도)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-AZRO-v1.2.0p
+// @version     CRYS-AZRO-v1.2.0
 // @description 선택하거나 호버하지 않은 작품의 GIF 차단. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/absolutezero.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/absolutezero.user.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/2f6b0de1ef12d0eea29058b907944a573d1633d7/crack/libraries/crack-shared-core.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/2f6b0de1ef12d0eea29058b907944a573d1633d7/decentralized-modal.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/2f6b0de1ef12d0eea29058b907944a573d1633d7/libraries/chasm-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-toastify-injection@v1.0.0/crack/libraries/toastify-injection.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-shared-core@v1.0.0/crack/libraries/crack-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@chasm-shared-core@v1.0.0/libraries/chasm-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.15/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 

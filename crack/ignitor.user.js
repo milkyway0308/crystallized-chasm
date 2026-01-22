@@ -2,17 +2,17 @@
 // ==UserScript==
 // @name        Crack Chasm Crystallized Ignitor (크랙 / 결정화 캐즘 점화기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRAK-IGNT-v1.5.1
+// @version     CRAK-IGNT-v1.6.0
 // @description 캐즘 버너의 기능 계승. 이 기능은 결정화 캐즘 오리지널 패치입니다. **기존 캐즘 버너 및 결정화 캐즘 버너+와 호환되지 않습니다. 버너 모듈을 제거하고 사용하세요.**
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/ignitor.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/ignitor.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@4.2.1/dist/dexie.min.js#sha256-STeEejq7AcFOvsszbzgCDL82AjypbLLjD5O6tUByfuA=
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/c47df84c018dbfd4e41214f96879b537b3ec97bb/crack/libraries/toastify-injection.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/c47df84c018dbfd4e41214f96879b537b3ec97bb/crack/libraries/crack-shared-core.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/c47df84c018dbfd4e41214f96879b537b3ec97bb/libraries/chasm-shared-core.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/c47df84c018dbfd4e41214f96879b537b3ec97bb/decentralized-modal.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-toastify-injection@v1.0.0/crack/libraries/toastify-injection.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-shared-core@v1.0.0/crack/libraries/crack-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@chasm-shared-core@v1.0.0/libraries/chasm-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.15/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 
@@ -92,7 +92,7 @@ GM_addStyle(`
 
 !(async function () {
   const PLATFORM_SAVE_KEY = "chasm-ignt-settings";
-  const VERSION = "v1.5.1";
+  const VERSION = "v1.6.0";
 
   const { initializeApp } = await import(
     // @ts-ignore
@@ -762,6 +762,7 @@ GM_addStyle(`
     const logContainer = GenericUtil.refine(
       document.getElementById("chasm-ignt-log-container"),
     );
+    if (!logContainer) return;
     const time = new Date();
     const timeMessage = `[${time.getHours().toString().padStart(2, "0")}:${time
       .getMinutes()
@@ -818,7 +819,6 @@ GM_addStyle(`
     // Restore current
     modal.getOpened().withPreOpenHandler((modalItem) => {
       const chatId = PlatformProvider.getProvider().getCurrentId();
-
       const menu = modalItem.getMenu("결정화 캐즘 이그나이터");
       if (!menu) {
         throw new Error("알 수 없는 오류 발생");
@@ -924,9 +924,9 @@ GM_addStyle(`
     if (!modelBox.findSelected()) {
       modelBox.setSelected(
         // @ts-ignore
-        MODEL_MAPPINGS[settings.lastUsedProvider][
+        MODEL_MAPPINGS[settings.config.lastUsedProvider][
           // @ts-ignore
-          Object.keys(MODEL_MAPPINGS[settings.lastUsedProvider])[0]
+          Object.keys(MODEL_MAPPINGS[settings.config.lastUsedProvider])[0]
         ].name,
       );
     }
@@ -1093,10 +1093,12 @@ GM_addStyle(`
               "chasm-ignt-embedded-prompt",
             )) {
               if (
-                // @ts-ignore
-                element.getAttribute("author") === settings.lastSelected[0] &&
-                // @ts-ignore
-                element.getAttribute("presetName") === settings.lastSelected[1]
+                element.getAttribute("author") ===
+                  // @ts-ignore
+                  settings.config.lastSelected[0] &&
+                element.getAttribute("presetName") ===
+                  // @ts-ignore
+                  settings.config.lastSelected[1]
               ) {
                 matched = true;
                 promptPreset.setSelected(element);
@@ -1655,7 +1657,6 @@ GM_addStyle(`
                       "전송 완료! 페이지를 새로 고쳐 결과를 확인하세요.";
                     accept(undefined);
                   } catch (error) {
-                    console.log("Error occured");
                     statusTextNode.textContent = "상태: 오류 발생";
                     reject(error);
                   }
@@ -2472,6 +2473,42 @@ GM_addStyle(`
     constructor(chatRoomId) {
       super();
       this.chatRoomId = chatRoomId;
+    }
+
+    /**
+     *
+     * @param {string} message
+     * @returns {Promise<((message: string) => Promise<void | Error>) | Error>}
+     */
+    async send(message) {
+      /** @type {(message: string) => Promise<void | Error>} */
+      let replyEditor = async (message) => {
+        return new Error("Failed to edit response");
+      };
+      const result = await CrackUtil.chatRoom().send(
+        this.chatRoomId,
+        "OOC: '1' 하나만 응답할 것.",
+        {
+          onMessageSent: async (user, bot) => {
+            await CrackUtil.chatRoom().editMessage(
+              this.chatRoomId,
+              user.id,
+              message,
+            );
+            replyEditor = async (msg) => {
+              await CrackUtil.chatRoom().editMessage(
+                this.chatRoomId,
+                bot.id,
+                msg,
+              );
+            };
+          },
+        },
+      );
+      if (result instanceof Error) {
+        return result;
+      }
+      return replyEditor;
     }
   }
 

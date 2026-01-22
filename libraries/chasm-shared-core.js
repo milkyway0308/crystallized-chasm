@@ -1,7 +1,10 @@
-// @ts-check
-// chasm-shared-core.js - 결정화 캐즘 스크립트용 공용 유틸리티 코어
-// chasm-shared-core은 TS의 문법 검사와 JSDoc을 통한 브라우저 스크립트 전용 유틸리티입니다.
 
+//
+// chasm-shared-core.js v1.0.0 by Team IGX
+// chasm-shared-core은 TS의 문법 검사와 JSDoc을 통한 브라우저 스크립트 전용 유틸리티입니다.
+//
+
+// @ts-check
 // =====================================================
 //           Crystallized Chasm Shared Core
 // =====================================================

@@ -1,5 +1,5 @@
 //
-// crack-shared-core.js v0.0.2 by Team IGX
+// crack-shared-core.js v1.0.0 by Team IGX
 // crack-shared-core은 TS의 문법 검사와 JSDoc을 통한 브라우저 스크립트 전용 크랙 유틸리티입니다.
 //
 

@@ -2,16 +2,16 @@
 // ==UserScript==
 // @name         Chasm Crystallized TMI (캐즘 과포화)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-TMI-v1.6.3
+// @version      CRYS-TMI-v1.7.0
 // @description  크랙 UI에 추가 정보 제공. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/tmi.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/tmi.user.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/d8085f94a5e8ce58d14f99b5410a0c29f3c74d42/crack/libraries/toastify-injection.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/d8085f94a5e8ce58d14f99b5410a0c29f3c74d42/crack/libraries/crack-shared-core.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/d8085f94a5e8ce58d14f99b5410a0c29f3c74d42/libraries/chasm-shared-core.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/d8085f94a5e8ce58d14f99b5410a0c29f3c74d42/decentralized-modal.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-toastify-injection@v1.0.0/crack/libraries/toastify-injection.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-shared-core@v1.0.0/crack/libraries/crack-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@chasm-shared-core@v1.0.0/libraries/chasm-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.15/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 

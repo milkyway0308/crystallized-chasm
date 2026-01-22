@@ -2,17 +2,17 @@
 // ==UserScript==
 // @name         Chasm Crystallized Local Sesimometer (캐즘 국소지진계)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-LSEM-v1.0.2
+// @version      CRYS-LSEM-v1.1.0
 // @description  요약 메모리가 변경될 때 마다 알림 전송. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/local-seismometer.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/local-seismometer.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@4.2.1/dist/dexie.min.js#sha256-STeEejq7AcFOvsszbzgCDL82AjypbLLjD5O6tUByfuA=
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/21eec201e75b752768ef7f6a12a1ee5b6db5c415/crack/libraries/toastify-injection.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/21eec201e75b752768ef7f6a12a1ee5b6db5c415/crack/libraries/crack-shared-core.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/21eec201e75b752768ef7f6a12a1ee5b6db5c415/libraries/chasm-shared-core.js
-// @require      https://github.com/milkyway0308/crystallized-chasm/raw/21eec201e75b752768ef7f6a12a1ee5b6db5c415/decentralized-modal.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-toastify-injection@v1.0.0/crack/libraries/toastify-injection.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-shared-core@v1.0.0/crack/libraries/crack-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@chasm-shared-core@v1.0.0/libraries/chasm-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.15/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
 
