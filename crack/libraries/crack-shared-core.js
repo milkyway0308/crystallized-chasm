@@ -1323,8 +1323,7 @@ class _CrackCrackerApi {
     if (result instanceof Error) {
       return result;
     }
-    let json = await result.json();
-    return json.data.quantity ?? 0;
+    return result.data.quantity ?? 0;
   }
 
   /**
@@ -1882,8 +1881,6 @@ class _CrackChatRoomApi {
         },
       },
     );
-    console.log("#1");
-    console.log(socket);
     await new Promise(async (resolve, reject) => {
       // @ts-ignore
       socket.emit("enter", { chatId: chatId }, async (response) => {
@@ -1919,7 +1916,6 @@ class _CrackChatRoomApi {
   ) {
     try {
       const currentSocket = socket ?? (await this.connect(chatId));
-      console.log(currentSocket);
       const socketCloser = () => {
         if (!socket) {
           try {
@@ -1930,13 +1926,10 @@ class _CrackChatRoomApi {
       };
       const lastMessage = await this.fetchLastMessage(chatId);
       if (lastMessage instanceof Error) {
-        console.log("LAST MESSAGE FETCH ERROR");
-        console.log(lastMessage);
         return lastMessage;
       }
       if (!lastMessage) {
         socketCloser();
-        console.log("No last message");
         return new Error("불가능한 상태입니다: 첫 메시지가 존재하지 않습니다.");
       }
       const result = await this.#emitMessage(
@@ -1949,7 +1942,6 @@ class _CrackChatRoomApi {
         onMessageSent,
       );
       if (!result) {
-        console.log("timeout");
         socketCloser();
         return new Error(
           "지정한 시간 안에 메시지 응답이 완료되지 않았습니다, 실패로 간주합니다.",
@@ -1981,11 +1973,9 @@ class _CrackChatRoomApi {
     socketCloser,
     onMessageSent,
   ) {
-    console.log("Start emit stage");
     return await new Promise(async (resolve, reject) => {
       let isResolved = false;
       const taskId = setTimeout(() => {
-        console.log("TIMEOUT!");
         if (!isResolved) {
           socketCloser();
           isResolved = true;
@@ -1993,7 +1983,6 @@ class _CrackChatRoomApi {
         }
       }, timeout);
       try {
-        console.log("Emit start");
         currentSocket.emit(
           "send",
           {
@@ -2003,16 +1992,12 @@ class _CrackChatRoomApi {
           },
           // @ts-ignore
           async (sendResponse) => {
-            console.log("Response: ");
-            console.log(JSON.stringify(sendResponse));
             if (sendResponse.result === "success") {
               // @ts-ignore
               currentSocket.once(
                 "characterMessageGenerated",
                 // @ts-ignore
                 async (response) => {
-                  console.log("Generate complete");
-                  console.log(JSON.stringify(resolve));
                   socketCloser();
                   if (!isResolved) {
                     isResolved = true;
@@ -2092,8 +2077,6 @@ class _CrackChatRoomApi {
       socket: socket,
       timeout: timeout,
       onMessageSent: async (user, bot) => {
-        console.log(JSON.stringify(user));
-        console.log(await this.findLastUserMessage(chatId));
         await this.deleteMessage(chatId, user.id);
         const result = onMessageSent?.(bot);
         if (result instanceof Promise) {
