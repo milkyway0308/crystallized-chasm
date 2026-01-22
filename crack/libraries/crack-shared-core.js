@@ -1731,7 +1731,7 @@ class _CrackChatRoomApi {
     }
     return true;
   }
-  
+
   /**
    * 메시지를 삭제합니다.
    * @param {string} chatId 채팅방 ID
@@ -1810,6 +1810,8 @@ class _CrackChatRoomApi {
         },
       },
     );
+    console.log("#1");
+    console.log(socket);
     await new Promise(async (resolve, reject) => {
       // @ts-ignore
       socket.emit("enter", { chatId: chatId }, async (response) => {
@@ -1830,8 +1832,8 @@ class _CrackChatRoomApi {
    * @singleflow 이 태그가 있는 펑션은 동일한 펑션이 아니더라도 2개 이상의 펑션이 동시에 호출되어서는 안됩니다. 모든 결과가 도출된 후에 호출해야 동시성 문제가 발생하지 않습니다.
    * @see {@link _SocketIoUtil.prepareIo()} socket.io 자동 임포트
    * @requires socket.io@>=4.8.1
-   * @param {string} chatId
-   * @param {string} message
+   * @param {string} chatId 채팅방 ID
+   * @param {string} message 보낼 유저 메시지
    * @param {Object} [param] 옵션 파라미터
    * @param {?Object} [param.socket] 방 소켓. undefined일 경우, 새 방을 열고 보낸 후 소켓을 닫습니다.
    * @param {(userMessage: CrackChattingLog, botMessage: CrackChattingLog) => Promise<void> | void} [param.onMessageSent] 봇 메시지가 전송된 후에 트리거될 메시지 핸들러
@@ -1845,6 +1847,7 @@ class _CrackChatRoomApi {
   ) {
     try {
       const currentSocket = socket ?? (await this.connect(chatId));
+      console.log(currentSocket);
       const socketCloser = () => {
         if (currentSocket === socket) {
           try {
@@ -1861,15 +1864,57 @@ class _CrackChatRoomApi {
         socketCloser();
         return new Error("불가능한 상태입니다: 첫 메시지가 존재하지 않습니다.");
       }
-      const result = await new Promise(async (resolve, reject) => {
-        let isResolved = false;
-        const taskId = setTimeout(() => {
-          if (!isResolved) {
-            socketCloser();
-            isResolved = true;
-            resolve(false);
-          }
-        }, timeout);
+      const result = await this.#emitMessage(
+        currentSocket,
+        timeout,
+        chatId,
+        message,
+        lastMessage,
+        socketCloser,
+        onMessageSent,
+      );
+      if (!result) {
+        socketCloser();
+        return new Error(
+          "지정한 시간 안에 메시지 응답이 완료되지 않았습니다, 실패로 간주합니다.",
+        );
+      }
+    } catch (error) {
+      if (error instanceof Error) return error;
+    }
+    return undefined;
+  }
+
+  /**
+   *
+   * @param {any} currentSocket
+   * @param {number} timeout
+   * @param {string} chatId
+   * @param {string} message
+   * @param {CrackChattingLog} lastMessage
+   * @param {() => void} socketCloser
+   * @param {(userMessage: CrackChattingLog, botMessage: CrackChattingLog) => Promise<void> | void} [onMessageSent] 봇 메시지가 전송된 후에 트리거될 메시지 핸들러
+   * @returns {Promise<boolean>} 성공 여부
+   */
+  async #emitMessage(
+    currentSocket,
+    timeout,
+    chatId,
+    message,
+    lastMessage,
+    socketCloser,
+    onMessageSent,
+  ) {
+    return await new Promise(async (resolve, reject) => {
+      let isResolved = false;
+      const taskId = setTimeout(() => {
+        if (!isResolved) {
+          socketCloser();
+          isResolved = true;
+          resolve(false);
+        }
+      }, timeout);
+      try {
         currentSocket.emit(
           "send",
           {
@@ -1903,17 +1948,10 @@ class _CrackChatRoomApi {
             }
           },
         );
-      });
-      if (!result) {
-        socketCloser();
-        return new Error(
-          "지정한 시간 안에 메시지 응답이 완료되지 않았습니다, 실패로 간주합니다.",
-        );
+      } catch (err) {
+        reject(err);
       }
-    } catch (error) {
-      if (error instanceof Error) return error;
-    }
-    return undefined;
+    });
   }
 
   /**
