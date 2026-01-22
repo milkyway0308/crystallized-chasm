@@ -1219,6 +1219,22 @@ class DecentrallizedModal {
   }
 
   /**
+   * 생성된 최상위 메뉴를 가져옵니다.
+   * @param {string} menuName 메뉴 이름
+   * @returns {?ModalMenu} 대상 메뉴
+   */
+  getMenu(menuName) {
+    return this.#menuItems.get(menuName) ?? null;
+  }
+
+  /**
+   * 생성된 최상위 메뉴를 삭제합니다.
+   * @param {string} menuName 메뉴 이름
+   */
+  deleteMenu(menuName) {
+    this.#menuItems.delete(menuName);
+  }
+  /**
    * 현재 모달을 표시합니다.
    * @param {boolean} isDarkTheme 다크 모드 색상 사용 여부
    * @param {string[] | undefined} preSelected 미리 선택할 메뉴
