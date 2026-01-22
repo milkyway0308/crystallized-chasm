@@ -8,9 +8,19 @@
 // @match        https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/tmi.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/tmi.user.js
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.13/decentralized-modal.js#sha256-tt5YRTDFPCoQwcSaw4d4QnjTytPbyVNLzM3g8rkdi8Q=
+// @require      https://github.com/milkyway0308/crystallized-chasm/raw/d8085f94a5e8ce58d14f99b5410a0c29f3c74d42/crack/libraries/toastify-injection.js
+// @require      https://github.com/milkyway0308/crystallized-chasm/raw/d8085f94a5e8ce58d14f99b5410a0c29f3c74d42/crack/libraries/crack-shared-core.js
+// @require      https://github.com/milkyway0308/crystallized-chasm/raw/d8085f94a5e8ce58d14f99b5410a0c29f3c74d42/libraries/chasm-shared-core.js
+// @require      https://github.com/milkyway0308/crystallized-chasm/raw/d8085f94a5e8ce58d14f99b5410a0c29f3c74d42/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
+
+// @ts-check
+/// <reference path="../decentralized-modal.js" />
+/// <reference path="../libraries/chasm-shared-core.js" />
+/// <reference path="./libraries/crack-shared-core.js" />
+
+// @ts-ignore
 GM_addStyle(`
   body[data-theme="light"] {
     --chasm-tmi-font-color: #242424;
@@ -76,6 +86,7 @@ GM_addStyle(`
   //                        상수
   // =====================================================
 
+  /** @type {number | undefined} */
   let initialCracker = undefined;
   let doesInitialized = false;
   let updating = false;
@@ -84,58 +95,11 @@ GM_addStyle(`
   let requireReupdate = false;
   /** @type {Map<string, CrackerModels> | Error} */
   let cachedModels = await getCrackerModels();
-
-  // =====================================================
-  //                      유틸리티
-  // =====================================================
-
-  function log(message) {
-    console.log(
-      "%cChasm Crystallized TMI: %cInfo: %c" + message,
-      "color: yellow;",
-      "color: blue;",
-      "color: inherit;"
-    );
-  }
-
-  function logWarning(message) {
-    console.log(
-      "%cChasm Crystallized TMI: %cWarning: %c" + message,
-      "color: yellow;",
-      "color: yellow;",
-      "color: inherit;"
-    );
-  }
-
-  function logError(message) {
-    console.log(
-      "%cChasm Crystallized TMI: %cError: %c" + message,
-      "color: yellow;",
-      "color: red;",
-      "color: inherit;"
-    );
-  }
+  const logger = new LogUtil("Chasm Crystallized TMI", false);
 
   // =====================================================
   //                   크랙 종속 유틸리티
   // =====================================================
-
-  /**
-   * 쿠키에서 액세스 토큰을 추출해 반환합니다.
-   * @returns 액세스 토큰
-   */
-  function extractAccessToken() {
-    const cookies = document.cookie.split(";");
-    for (let cookie of cookies) {
-      const [key, value] = cookie.trim().split("=");
-      if (key === "access_token") return value;
-    }
-    return null;
-  }
-
-  function isDarkMode() {
-    return document.body.getAttribute("data-theme") === "dark";
-  }
 
   function isARPGPath() {
     return /\/arpg\/[a-f0-9]+\/[a-f0-9]+\/play/.test(location.pathname);
@@ -145,128 +109,46 @@ GM_addStyle(`
     return /\/arpg\/[a-f0-9]+\/builder/.test(location.pathname);
   }
 
-  /**
-   * 현재 URL이 스토리챗의 URL인지 반환합니다.
-   * @returns 채팅 URL 일치 여부
-   */
-  function isStoryPath() {
-    // 2025-09-17 Path
-    return (
-      /\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname) ||
-      // Legacy Path
-      /\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)
-    );
-  }
-
-  /**
-   * 현재 URL이 캐릭터챗의 URL인지 반환합니다.
-   * @returns 채팅 URL 일치 여부
-   */
-  function isCharacterPath() {
-    return /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname);
-  }
-
-  // =====================================================
-  //                  크랙 데이터 통신 펑션
-  // =====================================================
-  async function getCrackerFromServer() {
-    let result = await fetch("https://crack-api.wrtn.ai/crack-cash/crackers", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${extractAccessToken()}`,
-        "Content-Type": "application/json",
-      },
-    });
-    if (!result.ok) {
-      logWarning("서버에서 크래커 개수를 가져오는데에 실패하였습니다.");
-      return -1;
-    }
-    let json = await result.json();
-    return json.data.quantity;
-  }
-
-  /**
-   * 크랙의 토큰을 인증 수단으로 사용하여 요청을 보냅니다.
-   * @param {string} method 요청 메서드
-   * @param {string} url 요청 URL
-   * @param {any | undefined} body 요청 바디 파라미터
-   * @returns {any | Error} 파싱된 값 혹은 오류
-   */
-  async function authFetch(method, url, body) {
-    try {
-      const param = {
-        method: method,
-        headers: {
-          Authorization: `Bearer ${extractAccessToken()}`,
-          "Content-Type": "application/json",
-        },
-      };
-      if (body) {
-        param.body = JSON.stringify(body);
-      }
-      const result = await fetch(url, param);
-      if (!result.ok)
-        return new Error(
-          `HTTP 요청 실패 (${result.status}) [${await result.json()}]`
-        );
-      return await result.json();
-    } catch (t) {
-      return new Error(`알 수 없는 오류 (${t.message ?? JSON.stringify(t)})`);
-    }
-  }
-
   // =====================================================
   //                      설정
   // =====================================================
-  const settings = {
+  const settings = new LocaleStorageConfig("chasm-tmi-settings", {
     enableLeftCracker: true,
     enableCrackerDelta: true,
     enableStoryChatLeft: true,
     enableModelPopupLeft: true,
     enableArpgRerollLeft: true,
     enableArpgChatLeft: true,
-  };
-
-  // It's good to use IndexedDB, but we have to use LocalStorage to block site
-  // cause of risk from unloaded environment and unexpected behavior
-  function loadSettings() {
-    const loadedSettings = localStorage.getItem("chasm-tmi-settings");
-    if (loadedSettings) {
-      const json = JSON.parse(loadedSettings);
-      for (let key of Object.keys(json)) {
-        // Merge setting for version compatibility support
-        settings[key] = json[key];
-      }
-    }
-  }
-
-  function saveSettings() {
-    log("설정 저장중..");
-    // Yay, no need to filtering anything!
-    localStorage.setItem("chasm-tmi-settings", JSON.stringify(settings));
-    log("설정 저장 완료");
-  }
+  });
 
   function doStoryChatCalc() {
-    return isStoryPath() && settings.enableStoryChatLeft;
+    return (
+      CrackUtil.path().isStoryPath() && settings.config.enableStoryChatLeft
+    );
   }
 
   function doStoryModelCalc() {
-    return isStoryPath() && settings.enableModelPopupLeft;
+    return (
+      CrackUtil.path().isStoryPath() && settings.config.enableModelPopupLeft
+    );
   }
 
   function doArpgRerollCalc() {
-    return isARPGBuilderPath() && settings.enableArpgRerollLeft;
+    return isARPGBuilderPath() && settings.config.enableArpgRerollLeft;
   }
 
   function doArpgChatCalc() {
-    return isARPGPath() && settings.enableArpgChatLeft;
+    return isARPGPath() && settings.config.enableArpgChatLeft;
   }
 
   // =====================================================
   //                      로직
   // =====================================================
 
+  /**
+   *
+   * @param {number} cracker
+   */
   function updateCracker(cracker) {
     initialCracker = cracker;
     updateCrackerText(cracker);
@@ -277,7 +159,7 @@ GM_addStyle(`
 
   function findCrackerButton() {
     const topContainerElement = document.getElementsByClassName(
-      isDarkMode() ? "css-7238to" : "css-9gj46x"
+      CrackUtil.theme().isDarkTheme() ? "css-7238to" : "css-9gj46x",
     );
     if (topContainerElement.length <= 0) return;
     const hyperLinkElement = topContainerElement[0].getElementsByTagName("a");
@@ -291,7 +173,7 @@ GM_addStyle(`
 
   function findMobileCrackerPosition() {
     const topElement = document.getElementsByClassName(
-      isDarkMode() ? "css-7238to" : "css-9gj46x"
+      CrackUtil.theme().isDarkTheme() ? "css-7238to" : "css-9gj46x",
     );
     if (topElement.length > 0) {
       return topElement[0].childNodes[0].childNodes[0];
@@ -299,11 +181,16 @@ GM_addStyle(`
     return undefined;
   }
 
+  /**
+   *
+   * @param {number} cracker
+   * @returns
+   */
   function createCrackerTag(cracker) {
     const tag = document.createElement("p");
     tag.id = "chasm-cracker-text";
     tag.className = "chasm-cracker-text";
-    if (isDarkMode()) {
+    if (CrackUtil.theme().isDarkTheme()) {
       tag.className = "chasm-cracker-display";
     } else {
       tag.className = "chasm-cracker-display";
@@ -313,7 +200,7 @@ GM_addStyle(`
       maximumFractionDigits: 0,
     });
     tag.textContent = nextText;
-    if (settings.enableCrackerDelta) {
+    if (settings.config.enableCrackerDelta) {
       tag.setAttribute("chasm-tmi-current", cracker.toString());
     } else {
       tag.setAttribute("chasm-tmi-current", cracker.toString());
@@ -326,8 +213,13 @@ GM_addStyle(`
     return tag;
   }
 
+  /**
+   *
+   * @param {number} cracker
+   * @returns
+   */
   function updateCrackerText(cracker) {
-    if (!settings.enableLeftCracker) return;
+    if (!settings.config.enableLeftCracker) return;
     if (cracker === undefined) {
       return;
     }
@@ -342,7 +234,7 @@ GM_addStyle(`
     }
     let mobileText = document.querySelectorAll("chasm-cracker-text[mobile]");
     if (mobileText.length <= 0) {
-      const parent = findMobileCrackerPosition();
+      const parent = GenericUtil.refine(findMobileCrackerPosition());
       if (parent) {
         const tag = createCrackerTag(cracker);
         tag.setAttribute("mobile", "true");
@@ -358,30 +250,42 @@ GM_addStyle(`
     }
   }
 
+  /**
+   *
+   * @param {number} cracker
+   * @returns
+   */
   function updateARPGRemainingText(cracker) {
     if (doArpgChatCalc()) {
       const leftButton = document.getElementsByClassName(
-        isDarkMode() ? "css-td6bk9" : "css-1rrnf8q"
+        CrackUtil.theme().isDarkTheme() ? "css-td6bk9" : "css-1rrnf8q",
       );
       if (leftButton && leftButton.length > 0) {
         if (leftButton[0].getAttribute("last-cracker") !== cracker.toString()) {
           leftButton[0].setAttribute("last-cracker", cracker.toString());
           leftButton[0].childNodes[0].childNodes[1].childNodes[1].textContent =
-            "110 | " + parseInt(cracker / 110) + "회";
+            "110 | " + Math.floor(cracker / 110) + "회";
         }
       } else {
         return;
       }
-      const rightButton = leftButton[0].parentElement.childNodes[1];
-      if (rightButton.getAttribute("last-cracker") !== cracker.toString()) {
-        rightButton.setAttribute("last-cracker", cracker.toString());
-        rightButton.childNodes[0].childNodes[1].childNodes[1].textContent =
-          "55 | " + parseInt(cracker / 55) + "회";
+      const rightButton = leftButton[0].parentElement?.childNodes[1];
+      if (
+        GenericUtil.refine(rightButton).getAttribute("last-cracker") !==
+        cracker.toString()
+      ) {
+        GenericUtil.refine(rightButton).setAttribute(
+          "last-cracker",
+          cracker.toString(),
+        );
+        GenericUtil.refine(
+          rightButton?.childNodes[0].childNodes[1].childNodes[1],
+        ).textContent = "55 | " + Math.floor(cracker / 55) + "회";
       }
     }
     if (doArpgRerollCalc()) {
       const confirmButton = document.getElementsByClassName(
-        isDarkMode() ? "css-td6bk9" : "css-1rrnf8q"
+        CrackUtil.theme().isDarkTheme() ? "css-td6bk9" : "css-1rrnf8q",
       );
       if (confirmButton && confirmButton.length > 0) {
         if (
@@ -393,24 +297,31 @@ GM_addStyle(`
           ) {
             confirmButton[0].setAttribute("last-cracker", cracker.toString());
             confirmButton[0].childNodes[0].childNodes[1].childNodes[1].textContent =
-              "50 | " + parseInt(cracker / 50) + "회";
+              "50 | " + Math.floor(cracker / 50) + "회";
           }
         }
       }
     }
   }
 
+  /**
+   *
+   * @param {number} cracker
+   * @returns
+   */
   function updateRemainingText(cracker) {
     if (!doStoryChatCalc()) return;
     let targets = document.querySelectorAll(
-      "div.css-160ssko div div[data-state]"
+      "div.css-160ssko div.flex.gap-3.items-center",
     );
     if (!targets || targets.length <= 0) {
       return;
     }
+    // @ts-ignore
     targets = targets[0].childNodes;
-    const currentTarget = targets[targets.length - 1];
+    const currentTarget = targets[targets.length - 2];
     const textTag = currentTarget.getElementsByTagName("span")[0];
+    console.log(currentTarget);
     if (!textTag.hasAttribute("chasm-tmi-model-type")) {
       if (textTag.textContent.trim().length <= 0) {
         // To prevent pre-load replacement
@@ -419,9 +330,9 @@ GM_addStyle(`
       textTag.setAttribute("chasm-tmi-model-type", textTag.textContent);
     }
     let nextText = formatChatLeft(
-      textTag.getAttribute("chasm-tmi-model-type"),
+      textTag.getAttribute("chasm-tmi-model-type") ?? "-ERROR-",
       cracker,
-      true
+      true,
     );
     if (nextText === textTag.textContent) {
       return;
@@ -429,15 +340,20 @@ GM_addStyle(`
     textTag.textContent = nextText;
   }
 
+  /**
+   *
+   * @param {number} cracker
+   * @returns
+   */
   function updateModalText(cracker) {
     if (!doStoryModelCalc()) return;
     let indicatorEntity = document.getElementsByClassName(
-      "chasm-tmi-indicator"
+      "chasm-tmi-indicator",
     );
     if (indicatorEntity.length <= 0) {
       // Inject small indicator
       const elements = document.querySelectorAll(
-        "div.css-160ssko div[data-radix-popper-content-wrapper] [data-radix-collection-item]"
+        "div.css-160ssko div[data-radix-popper-content-wrapper] [data-radix-collection-item]",
       );
       for (let element of elements) {
         const modelTextNode = element.getElementsByTagName("span");
@@ -453,9 +369,9 @@ GM_addStyle(`
 
     for (let textNode of indicatorEntity) {
       const nextText = formatChatLeft(
-        textNode.getAttribute("target-model"),
+        textNode.getAttribute("target-model") ?? "-ERROR-",
         cracker,
-        false
+        false,
       );
       if (nextText !== textNode.textContent) {
         textNode.textContent = nextText;
@@ -463,10 +379,20 @@ GM_addStyle(`
     }
   }
 
+  /**
+   *
+   * @param {string} chatType
+   * @param {number} cracker
+   * @param {boolean} includeModelName
+   * @returns
+   */
   function formatChatLeft(chatType, cracker, includeModelName) {
+    if (cachedModels instanceof Error) return " | --회";
     if (cachedModels.has(chatType)) {
       /** @type {CrackerModels} */
-      const model = cachedModels.get(chatType);
+      const model =
+        cachedModels.get(chatType) ??
+        new CrackerModels("PLACEHOLDER", "PLACEHOLDER", 0, "none");
       if (model.quantity <= 0) {
         if (includeModelName) {
           return chatType + " | 잔여 ∞회";
@@ -506,10 +432,9 @@ GM_addStyle(`
           expectedLabel.textContent === "나의 크래커"
         ) {
           return parseInt(
-            element.childNodes[1].childNodes[1].childNodes[0].textContent.replace(
-              ",",
-              ""
-            )
+            GenericUtil.refine(
+              element.childNodes[1].childNodes[1].childNodes[0].textContent,
+            ).replace(",", ""),
           );
         }
       }
@@ -521,9 +446,9 @@ GM_addStyle(`
    * @returns {Promise<Map<string, CrackerModels>|Error>}
    */
   async function getCrackerModels() {
-    const result = await authFetch(
+    const result = await CrackUtil.network().authFetch(
       "GET",
-      "https://crack-api.wrtn.ai/crack-gen/v3/chat-models"
+      "https://crack-api.wrtn.ai/crack-gen/v3/chat-models",
     );
     if (result instanceof Error) {
       console.error(result);
@@ -541,15 +466,15 @@ GM_addStyle(`
           model._id,
           model.name,
           model.crackerQuantity,
-          model.serviceType
-        )
+          model.serviceType,
+        ),
       );
     }
     return map;
   }
   async function extractCracker() {
-    cracker = extractCharacterCracker();
-    if (cracker && cracker !== NaN) {
+    let cracker = await extractCharacterCracker();
+    if (cracker && !Number.isNaN(cracker)) {
       return cracker;
     }
     return undefined;
@@ -559,13 +484,13 @@ GM_addStyle(`
     if (updating) return;
     if (!doesInitialized) {
       doesInitialized = true;
-      attachObserver(document.body, doInitialize);
+      GenericUtil.attachObserver(document.body, doInitialize);
       runSchedule();
     }
     if (initialCracker === undefined) {
       updating = true;
-      const lastCracker = await getCrackerFromServer();
-      if (lastCracker !== undefined) {
+      const lastCracker = await CrackUtil.cracker().current();
+      if (!(lastCracker instanceof Error)) {
         updateCracker(lastCracker);
         updating = false;
         return;
@@ -574,7 +499,7 @@ GM_addStyle(`
     }
     if (requireReupdate) {
       requireReupdate = false;
-      updateCracker(initialCracker);
+      updateCracker(initialCracker ?? -1);
     }
     if (isARPGPath()) {
       // Let's use more modern and solid solution
@@ -588,7 +513,7 @@ GM_addStyle(`
     } else {
       let nextCracker = await extractCracker();
       if (nextCracker !== undefined) {
-        updateCracker(await extractCracker());
+        updateCracker((await extractCracker()) ?? -1);
       }
       const rootElement = document.getElementsByClassName("css-160ssko");
       if (
@@ -596,8 +521,8 @@ GM_addStyle(`
         !rootElement[0].hasAttribute("chasm-cmi-monitoring")
       ) {
         rootElement[0].setAttribute("chasm-cmi-monitoring", "true");
-        attachObserver(rootElement[0], () => {
-          updateModalText(initialCracker);
+        GenericUtil.attachObserver(rootElement[0], () => {
+          updateModalText(initialCracker ?? -1);
         });
       }
     }
@@ -607,10 +532,10 @@ GM_addStyle(`
     setInterval(async () => {
       if (!isARPGPath()) return;
       if (updating) return;
-      if (!fetched && new Date() - updateStoppedAt > 500) {
+      if (!fetched && new Date().getTime() - updateStoppedAt.getTime() > 500) {
         fetched = true;
-        const lastCracker = await getCrackerFromServer();
-        if (lastCracker !== undefined) {
+        const lastCracker = await CrackUtil.cracker().current();
+        if (!(lastCracker instanceof Error)) {
           updateCracker(lastCracker);
           updating = false;
         }
@@ -620,20 +545,24 @@ GM_addStyle(`
     setInterval(() => {
       const element = document.getElementById("chasm-cracker-text");
       if (element) {
-        const objective = parseInt(element.getAttribute("chasm-tmi-target"));
-        const current = parseInt(element.getAttribute("chasm-tmi-current"));
+        const objective = parseInt(
+          element.getAttribute("chasm-tmi-target") ?? "0",
+        );
+        const current = parseInt(
+          element.getAttribute("chasm-tmi-current") ?? "0",
+        );
         const abs = Math.abs(current - objective);
         const delta = abs > 300 ? 16 : abs > 100 ? 8 : abs > 50 ? 2 : 1;
         if (current > objective) {
           const next = current - delta;
-          element.setAttribute("chasm-tmi-current", next);
+          element.setAttribute("chasm-tmi-current", next.toString());
           element.textContent = next.toLocaleString(undefined, {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
           });
         } else if (current < objective) {
           const next = current + delta;
-          element.setAttribute("chasm-tmi-current", next);
+          element.setAttribute("chasm-tmi-current", next.toString());
           element.textContent = next.toLocaleString(undefined, {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
@@ -641,18 +570,6 @@ GM_addStyle(`
         }
       }
     }, 7);
-  }
-
-  function attachObserver(observeTarget, lambda) {
-    const Observer = window.MutationObserver || window.WebKitMutationObserver;
-    if (observeTarget && Observer) {
-      let instance = new Observer(lambda);
-      instance.observe(observeTarget, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-      });
-    }
   }
 
   function addMenu() {
@@ -665,48 +582,48 @@ GM_addStyle(`
           "잔여 크래커 표시",
           "잔여 크래커를 표시할지의 여부입니다.",
           {
-            defaultValue: settings.enableLeftCracker,
-            action: (_, value) => {
-              settings.enableLeftCracker = value;
-              saveSettings();
+            defaultValue: settings.config.enableLeftCracker,
+            onChange: (_, value) => {
+              settings.config.enableLeftCracker = value;
+              settings.save();
             },
-          }
+          },
         );
         panel.addSwitchBox(
           "tmi-chat-calc",
           "스토리 채팅 잔여 채팅 횟수 표시",
           "스토리 채팅에서 잔여 채팅 횟수를 표시할지의 여부입니다.",
           {
-            defaultValue: settings.enableStoryChatLeft,
-            action: (_, value) => {
-              settings.enableStoryChatLeft = value;
-              saveSettings();
+            defaultValue: settings.config.enableStoryChatLeft,
+            onChange: (_, value) => {
+              settings.config.enableStoryChatLeft = value;
+              settings.save();
             },
-          }
+          },
         );
         panel.addSwitchBox(
           "tmi-chat-model-calc",
           "스토리 채팅 모델 팝업 잔여 채팅 횟수 표시",
           "스토리 채팅 모델 팝업에서 잔여 채팅 횟수를 표시할지의 여부입니다.",
           {
-            defaultValue: settings.enableModelPopupLeft,
-            action: (_, value) => {
-              settings.enableModelPopupLeft = value;
-              saveSettings();
+            defaultValue: settings.config.enableModelPopupLeft,
+            onChange: (_, value) => {
+              settings.config.enableModelPopupLeft = value;
+              settings.save();
             },
-          }
+          },
         );
         panel.addSwitchBox(
           "tmi-cracker-delta",
           "델타 애니메이션",
           "크래커의 감소 뎉라 애니메이션을 적용할지의 여부입니다.",
           {
-            defaultValue: settings.enableCrackerDelta,
-            action: (_, value) => {
-              settings.enableCrackerDelta = value;
-              saveSettings();
+            defaultValue: settings.config.enableCrackerDelta,
+            onChange: (_, value) => {
+              settings.config.enableCrackerDelta = value;
+              settings.save();
             },
-          }
+          },
         );
         panel.addTitleText("ARPG 설정");
         panel.addSwitchBox(
@@ -714,48 +631,48 @@ GM_addStyle(`
           "ARPG 잔여 횟수 표시",
           "ARPG의 잔여 횟수를 표시할지의 여부입니다.",
           {
-            defaultValue: settings.enableArpgChatLeft,
-            action: (_, value) => {
-              settings.enableArpgChatLeft = value;
-              saveSettings();
+            defaultValue: settings.config.enableArpgChatLeft,
+            onChange: (_, value) => {
+              settings.config.enableArpgChatLeft = value;
+              settings.save();
             },
-          }
+          },
         );
         panel.addSwitchBox(
           "tmi-arpg-reroll-left",
           "ARPG 리롤 잔여 횟수 표기",
           "ARPG의 리롤 잔여 횟수를 표시할지의 여부입니다.",
           {
-            defaultValue: settings.enableArpgRerollLeft,
-            action: (_, value) => {
-              settings.enableArpgRerollLeft = value;
-              saveSettings();
+            defaultValue: settings.config.enableArpgRerollLeft,
+            onChange: (_, value) => {
+              settings.config.enableArpgRerollLeft = value;
+              settings.save();
             },
-          }
+          },
         );
       }, "결정화 캐즘 과포화");
     });
     manager.addLicenseDisplay((panel) => {
       panel.addTitleText("결정화 캐즘 과포화");
       panel.addText(
-        "- decentralized-modal.js 프레임워크 (https://github.com/milkyway0308/crystalized-chasm/decentralized-modal.js)"
+        "- decentralized-modal.js 프레임워크 (https://github.com/milkyway0308/crystalized-chasm/decentralized-modal.js)",
       );
     });
   }
 
-  loadSettings();
+  settings.load();
   addMenu();
   if (cachedModels instanceof Error) {
-    logError("모델 데이터를 불러오는데에 실패하였습니다.");
+    logger.error("모델 데이터를 불러오는데에 실패하였습니다.");
     return;
   }
   "loading" === document.readyState
     ? (document.addEventListener("DOMContentLoaded", doInitialize),
       window.addEventListener("load", doInitialize))
     : "interactive" === document.readyState ||
-      "complete" === document.readyState
-    ? await doInitialize()
-    : setTimeout(doInitialize, 100);
+        "complete" === document.readyState
+      ? await doInitialize()
+      : setTimeout(doInitialize, 100);
 
   // =================================================
   //                  메뉴 강제 추가
@@ -766,7 +683,7 @@ GM_addStyle(`
       const itemFound = modal.getElementsByTagName("a");
       for (let item of itemFound) {
         if (item.getAttribute("href") === "/setting") {
-          const clonedElement = item.cloneNode(true);
+          const clonedElement = GenericUtil.clone(item);
           clonedElement.id = "chasm-decentral-menu";
           const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
@@ -778,7 +695,7 @@ GM_addStyle(`
               .withLicenseCredential()
               .display(document.body.getAttribute("data-theme") !== "light");
           };
-          item.parentElement.append(clonedElement);
+          item.parentElement?.append(clonedElement);
           break;
         }
       }
@@ -790,7 +707,7 @@ GM_addStyle(`
       const selected = document.getElementsByTagName("a");
       for (const element of selected) {
         if (element.getAttribute("href") === "/my-page") {
-          const clonedElement = element.cloneNode(true);
+          const clonedElement = GenericUtil.clone(element);
           clonedElement.id = "chasm-decentral-menu";
           const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
@@ -802,16 +719,17 @@ GM_addStyle(`
               .withLicenseCredential()
               .display(document.body.getAttribute("data-theme") !== "light");
           };
-          element.parentElement.append(clonedElement);
+          element.parentElement?.append(clonedElement);
         }
       }
     }
   }
 
   function __doModalMenuInit() {
-    if (document.c2ModalInit) return;
-    document.c2ModalInit = true;
-    attachObserver(document, () => {
+    const refined = GenericUtil.refine(document);
+    if (refined.c2ModalInit) return;
+    refined.c2ModalInit = true;
+    GenericUtil.attachObserver(document, () => {
       __updateModalMenu();
     });
   }
