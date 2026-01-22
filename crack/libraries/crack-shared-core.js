@@ -725,6 +725,14 @@ class CrackChattingLog {
   }
 
   /**
+   * 채팅 로그를 단순화해 반한합니다.
+   * @returns {CrackSimplifiedChattingLog} 단순화된 로그
+   */
+  simplify() {
+    return new CrackSimplifiedChattingLog(this.role, this.content, this.situationImages, this.parameterSnapshots);
+  }
+
+  /**
    * JSON 스키마에서 데이터를 정제합니다.
    * @param {any} container
    * @returns {CrackChattingLog} 정제된 데이터
@@ -749,6 +757,32 @@ class CrackChattingLog {
       container.isPrologue,
       container.reroll ?? false,
     );
+  }
+}
+
+/**
+ * 단순화된 채팅 로그입니다.
+ */
+class CrackSimplifiedChattingLog {
+  /** @property {string} role 메시지 전송 주체 (user, assistant..) */
+  role;
+  /** @property {string} content 메시지 내용 */
+  content;
+  /** @property {string[]} situationImages 상황 이미지 URL 목록 */
+  situationImages;
+  /** @property {any} parameterSnapshots 능력치 목록 */
+  parameterSnapshots;
+  /**
+   * @param {string} role 메시지 전송 주체 (user, assistant..)
+   * @param {string} content 메시지 내용
+   * @param {string[]} situationImages 상황 이미지 URL 목록
+   * @param {any} parameterSnapshots 능력치 목록
+   */
+  constructor(role, content, situationImages, parameterSnapshots) {
+    this.role = role;
+    this.content = content;
+    this.situationImages = situationImages;
+    this.parameterSnapshots = parameterSnapshots;
   }
 }
 
@@ -1176,7 +1210,7 @@ class _CrackNetworkApi {
    * @param {string} method 요청 메서드
    * @param {string} url 요청 URL
    * @param {any | undefined} body 요청 바디 파라미터
-   * @returns {Promise<any | Error>} 파싱된 값 혹은 오류
+   * @returns {Promise<(Error & {code: number}) | any>} 파싱된 값 혹은 오류
    */
   async authFetch(method, url, body = undefined) {
     try {
@@ -1192,10 +1226,13 @@ class _CrackNetworkApi {
         param.body = JSON.stringify(body);
       }
       const result = await fetch(url, param);
-      if (!result.ok)
-        return new Error(
+      if (!result.ok) {
+        const errorItem = new Error(
           `HTTP 요청 실패 (${result.status}) [${await result.json()}]`,
         );
+        Object.assign(errorItem, { code: result.status });
+        return errorItem;
+      }
       return await result.json();
     } catch (t) {
       // @ts-ignore
