@@ -8,35 +8,18 @@
 // @match        https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/lyophilization.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/lyophilization.user.js
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.13/decentralized-modal.js#sha256-tt5YRTDFPCoQwcSaw4d4QnjTytPbyVNLzM3g8rkdi8Q=
+// @require      https://github.com/milkyway0308/crystallized-chasm/raw/4e25ff24b52aaa00c70d74ab19a13d6617fc59b8/crack/libraries/toastify-injection.js
+// @require      https://github.com/milkyway0308/crystallized-chasm/raw/4e25ff24b52aaa00c70d74ab19a13d6617fc59b8/crack/libraries/crack-shared-core.js
+// @require      https://github.com/milkyway0308/crystallized-chasm/raw/4e25ff24b52aaa00c70d74ab19a13d6617fc59b8/libraries/chasm-shared-core.js
+// @require      https://github.com/milkyway0308/crystallized-chasm/raw/4e25ff24b52aaa00c70d74ab19a13d6617fc59b8/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
+
+// @ts-check
+/// <reference path="../decentralized-modal.js" />
+/// <reference path="../libraries/chasm-shared-core.js" />
+/// <reference path="./libraries/crack-shared-core.js" />
 (function () {
-  class PlatformMessage {
-    /**
-     *
-     * @param {string} role
-     * @param {string} userName
-     * @param {string} message
-     */
-    constructor(role, userName, message) {
-      this.role = role;
-      this.userName = userName;
-      this.message = message;
-    }
-
-    anonymize() {
-      return {
-        role: this.role,
-        message: this.message,
-      };
-    }
-
-    withPersona(persona) {
-      return new PlatformMessage(this.role, persona, this.message);
-    }
-  }
-
   function createCopySVG() {
     return `<svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M19.5 16.5L19.5 4.5L18.75 3.75H9L8.25 4.5L8.25 7.5L5.25 7.5L4.5 8.25V20.25L5.25 21H15L15.75 20.25V17.25H18.75L19.5 16.5ZM15.75 15.75L15.75 8.25L15 7.5L9.75 7.5V5.25L18 5.25V15.75H15.75ZM6 9L14.25 9L14.25 19.5L6 19.5L6 9Z" fill="var(--icon_tertiary)"></path> </g></svg>`;
   }
@@ -52,300 +35,34 @@
   // =================================================
   //                    HTML 추출 유틸리티
   // =================================================
-  // =================================================
-  //                 크랙 종속성 유틸리티
-  // =================================================
-
-  function getCurrentChatId() {
-    if (isChattingPath()) {
-      const split = window.location.pathname.substring(1).split("/");
-      const characterId = split[1];
-      const chatRoomId = split[3];
-      return chatRoomId;
-    }
-    return undefined;
-  }
-
-  function getCharacterId() {
-    if (isChattingPath()) {
-      const split = window.location.pathname.substring(1).split("/");
-      const characterId = split[1];
-      const chatRoomId = split[3];
-      return characterId;
-    }
-    return undefined;
-  }
-
-  async function getCharacterInfo(characterId) {
-    const url = `https://crack-api.wrtn.ai/crack-gen/v3/chats/stories/${characterId}`;
-    const result = await authFetch("GET", url);
-    if (result instanceof Error) {
-      return result;
-    }
-    return result.data ?? new Error("알 수 없는 오류가 발생하였습니다.");
-  }
-
-  async function fetchMessages(chatId, maxCount) {
-    const messages = [];
-    let url = `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}/messages?limit=20`;
-    let currentCursor = undefined;
-    while (maxCount === 0 || messages.length < maxCount) {
-      const fetchResult = await authFetch("GET", url);
-      if (fetchResult instanceof Error) {
-        throw fetchResult;
-      }
-      const rawMessage = fetchResult.data?.list ?? fetchResult.data.messages;
-      if (!rawMessage) {
-        throw new Error("메시지를 가져오는데에 실패하였습니다.");
-      }
-      for (let message of rawMessage) {
-        if (maxCount !== 0 && messages.length >= maxCount) break;
-        messages.unshift(
-          new PlatformMessage(message.role, "user", message.content)
-        );
-      }
-      if (
-        fetchResult.data.nextCursor &&
-        fetchResult.data.nextCursor != currentCursor
-      ) {
-        currentCursor = fetchResult.data.nextCursor;
-        url = `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}/messages?limit=20&cursor=${fetchResult.data.nextCursor}`;
-      } else {
-        break;
-      }
-    }
-    return messages;
-  }
-
-  async function getRepresentivePersona(chatId) {
-    const userIdFetch = await authFetch(
-      "GET",
-      "https://crack-api.wrtn.ai/crack-api/profiles"
-    );
-    if (userIdFetch instanceof Error) {
-      return userIdFetch;
-    }
-    const wrtnId = userIdFetch.data?.wrtnUid;
-    if (!wrtnId) {
-      return new Error("Wrtn UID not found");
-    }
-    const userId = userIdFetch.data?._id;
-    if (!userId) {
-      return new Error("User ID not found");
-    }
-    const personaFetch = await authFetch(
-      "GET",
-      `https://crack-api.wrtn.ai/crack-api/profiles/${userId}/chat-profiles`
-    );
-    if (personaFetch instanceof Error) {
-      return personaFetch;
-    }
-    const personaResult = personaFetch.data?.chatProfiles;
-    if (!personaResult) {
-      return new Error("Persona list not found");
-    }
-    const roomData = await authFetch(
-      "GET",
-      `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}`
-    );
-    if (!roomData) {
-      return new Error("Chatting room not found");
-    }
-    if (roomData.data?.chatProfile?._id) {
-      return roomData.data?.chatProfile?._id;
-    } else {
-      for (let data of personaResult) {
-        if (data.isRepresentative === true) {
-          return data._id;
-        }
-      }
-
-      return new Error("No active representive persona");
-    }
-  }
-  /**
-   * 현재 URL이 채팅방의 URL인지 반환합니다.
-   * @returns 채팅 URL 일치 여부
-   */
-  function isChattingPath() {
-    // 2025-09-17 Path
-    return (
-      /\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname) ||
-      // 2025-09-11 Path
-      /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname) ||
-      // Legacy Path
-      /\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)
-    );
-  }
-  /**
-   * 사이드 패널의 요소를 찾아 반환합니다.
-   * @returns {HTMLElement} 사이드 패널 요소
-   */
-  function extractSidePanel() {
-    const node = isDarkMode()
-      ? document.getElementsByClassName("css-c82bbp")[0]
-      : document.getElementsByClassName("css-c82bbp")[0];
-
-    if (node) {
-      return node.childNodes[0].childNodes[0];
-    }
-    return undefined;
-  }
-
-  /**
-   * 크랙 페이지의 테마가 다크 모드인지 확인합니다.
-   * @returns {boolean} 다크 모드 여부
-   */
-  function isDarkMode() {
-    return document.body.getAttribute("data-theme") === "dark";
-  }
-
-  /**
-   * 쿠키에서 액세스 토큰을 추출해 반환합니다.
-   * @returns 액세스 토큰
-   */
-  function extractAccessToken() {
-    const cookies = document.cookie.split(";");
-    for (let cookie of cookies) {
-      const [key, value] = cookie.trim().split("=");
-      if (key === "access_token") return value;
-    }
-    return null;
-  }
-  function extractCookie(key) {
-    const e = document.cookie.match(
-      new RegExp(
-        `(?:^|; )${key.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1")}=([^;]*)`
-      )
-    );
-    return e ? decodeURIComponent(e[1]) : null;
-  }
-  // =================================================
-  //                     유틸리티
-  // =================================================
-  /**
-   * 인증키를 통해 HTTP 요청을 보냅니다.
-   * @param {string} url URL
-   * @param {string} method 메서드
-   * @param {*|undefined} body 바디 데이터
-   * @param {string|undefined} authKey 인증 키 혹은 undefined
-   * @param {string|undefined} contentsType 컨텐츠 타입 혹은 undefined
-   * @returns {Promise<Response>} 응답
-   */
-  function fetchWithAuth(url, method, body, authKey, contentsType) {
-    const init = {
-      method: method,
-      headers: {},
-    };
-    if (body) {
-      init.body = JSON.stringify(body);
-    }
-    if (authKey) {
-      init.headers.Authorization = authKey;
-    }
-    if (contentsType) {
-      init.headers["Content-Type"] = contentsType;
-    }
-    return fetch(url, init);
-  }
-
-  function attachObserver(observeTarget, lambda) {
-    const Observer = window.MutationObserver || window.WebKitMutationObserver;
-    if (observeTarget && Observer) {
-      let instance = new Observer(lambda);
-      instance.observe(observeTarget, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-      });
-    }
-  }
-
-  /**
-   * 크랙의 토큰을 인증 수단으로 사용하여 요청을 보냅니다.
-   * @param {string} method 요청 메서드
-   * @param {string} url 요청 URL
-   * @param {any | undefined} body 요청 바디 파라미터
-   * @returns {any | Error} 파싱된 값 혹은 오류
-   */
-  async function authFetch(method, url, body) {
-    try {
-      const param = {
-        method: method,
-        headers: {
-          Authorization: `Bearer ${extractAccessToken()}`,
-          "Content-Type": "application/json",
-          accept: "application/json",
-        },
-      };
-      if (body) {
-        param.body = JSON.stringify(body);
-      }
-      const result = await fetch(url, param);
-      if (!result.ok)
-        return new Error(
-          `HTTP 요청 실패 (${result.status}) [${await result.json()}]`
-        );
-      return await result.json();
-    } catch (t) {
-      return new Error(`알 수 없는 오류 (${t.message ?? JSON.stringify(t)})`);
-    }
-  }
-
-  function log(message) {
-    console.log(
-      "%cChasm Crystallized Lyophilization: %cInfo: %c" + message,
-      "color: cyan;",
-      "color: blue;",
-      "color: inherit;"
-    );
-  }
-
-  function logWarning(message) {
-    console.log(
-      "%cChasm Crystallized Lyophilization: %cWarning: %c" + message,
-      "color: cyan;",
-      "color: yellow;",
-      "color: inherit;"
-    );
-  }
-
-  function logError(message) {
-    console.log(
-      "%cChasm Crystallized Lyophilization: %cError: %c" + message,
-      "color: cyan;",
-      "color: red;",
-      "color: inherit;"
-    );
-  }
 
   // =================================================
   //                    초기화
   // =================================================
   function setup() {
-    if (!isChattingPath()) return;
+    if (!CrackUtil.path().isChattingPath()) return;
     injectButton(
       "chasm-lyop-extract-raw-copy",
       createCopySVG(),
       "로그 복사",
       () => {
-        const currentId = getCurrentChatId();
+        const currentId = CrackUtil.path().chatRoom();
         if (!currentId) {
           ToastifyInjector.findInjector().doToastifyAlert(
             "채팅방 ID를 가져오는데에 실패했어요.\n결정화 캐즘 프로젝트 지원 채널에 제보해주세요.",
-            3000
+            3000,
           );
           return;
         }
         ToastifyInjector.findInjector().doToastifyAlert(
           "메시지를 불러오고 있어요.",
-          3000
+          3000,
         );
         const amount = parseInt(
           prompt(
             "최대 몇 개의 메시지를 가져올까요?\n0으로 입력시, 모든 메시지를 가져옵니다.",
-            "0"
-          )
+            "0",
+          ) ?? "",
         );
         if (amount === undefined || amount === null || amount === Number.NaN) {
           return;
@@ -354,57 +71,64 @@
           confirm("0개 미만의 개수는 가져올 수 없습니다.");
           return;
         }
-        fetchMessages(currentId, amount)
+        CrackUtil.chatRoom()
+          .extractLogs(currentId, { maxCount: amount <= 0 ? -1 : amount })
           .then(async (result) => {
             try {
-              await window.navigator.clipboard.writeText(
-                JSON.stringify(
-                  {
-                    messages: result,
-                  },
-                  undefined,
-                  2
-                )
-              );
+              if (result instanceof Error) {
+                ToastifyInjector.findInjector().doToastifyAlert(
+                  "메시지를 가져오는 도중 오류가 발생했어요.",
+                );
+              } else {
+                await window.navigator.clipboard.writeText(
+                  JSON.stringify(
+                    {
+                      messages: result.map((it) => it.simplify()),
+                    },
+                    undefined,
+                    2,
+                  ),
+                );
+              }
               ToastifyInjector.findInjector().doToastifyAlert(
-                "클립보드로 채팅방 데이터를 복사했어요."
+                "클립보드로 채팅방 데이터를 복사했어요.",
               );
             } catch (e) {
               ToastifyInjector.findInjector().doToastifyAlert(
-                "클립보드로 데이터를 붙여넣는 도중 오류가 발생했어요."
+                "클립보드로 데이터를 붙여넣는 도중 오류가 발생했어요.",
               );
             }
           })
           .catch((err) => {
             console.error(err);
             ToastifyInjector.findInjector().doToastifyAlert(
-              "메시지를 가져오는데에 실패했어요.\n결정화 캐즘 프로젝트 지원 채널에 제보해주세요."
+              "메시지를 가져오는데에 실패했어요.\n결정화 캐즘 프로젝트 지원 채널에 제보해주세요.",
             );
           });
-      }
+      },
     );
     injectButton(
       "chasm-lyop-extract-raw",
       createDownloadSVG(),
       "로그 추출",
       () => {
-        const currentId = getCurrentChatId();
+        const currentId = CrackUtil.path().chatRoom();
         if (!currentId) {
           ToastifyInjector.findInjector().doToastifyAlert(
             "채팅방 ID를 가져오는데에 실패했어요.\n결정화 캐즘 프로젝트 지원 채널에 제보해주세요.",
-            3000
+            3000,
           );
           return;
         }
         ToastifyInjector.findInjector().doToastifyAlert(
           "메시지를 불러오고 있어요.",
-          3000
+          3000,
         );
         const amount = parseInt(
           prompt(
             "최대 몇 개의 메시지를 가져올까요?\n0으로 입력시, 모든 메시지를 가져옵니다.",
-            "0"
-          )
+            "0",
+          ) ?? "",
         );
         if (amount === undefined || amount === null || amount === Number.NaN) {
           return;
@@ -413,7 +137,8 @@
           confirm("0개 미만의 개수는 가져올 수 없습니다.");
           return;
         }
-        fetchMessages(currentId, amount)
+        CrackUtil.chatRoom()
+          .extractLogs(currentId, { maxCount: amount <= 0 ? -1 : amount })
           .then(async (result) => {
             const blob = new Blob(
               [
@@ -421,13 +146,13 @@
                   messages: result,
                 }),
               ],
-              { type: "text/plain;charset=UTF-8" }
+              { type: "text/plain;charset=UTF-8" },
             );
 
             const blobUrl = window.URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = blobUrl;
-            link.download = `${getCurrentChatId()}.txt`;
+            link.download = `${CrackUtil.path().chatRoom()}.txt`;
             link.click();
             link.remove();
             window.URL.revokeObjectURL(blobUrl);
@@ -435,27 +160,35 @@
           .catch((err) => {
             console.error(err);
             ToastifyInjector.findInjector().doToastifyAlert(
-              "메시지를 가져오는데에 실패했어요.\n결정화 캐즘 프로젝트 지원 채널에 제보해주세요."
+              "메시지를 가져오는데에 실패했어요.\n결정화 캐즘 프로젝트 지원 채널에 제보해주세요.",
             );
           });
-      }
+      },
     );
     // injectButton(
     //   "chasm-lyop-extract-html",
     //   createHTMLSVG(),
     //   "HTML로 추출",
     //   () => {
-        
+
     //   }
     // );
   }
 
+  /**
+   *
+   * @param {string} id
+   * @param {string} svg
+   * @param {string} title
+   * @param {() => void} action
+   * @returns
+   */
   function injectButton(id, svg, title, action) {
     const item = document.getElementsByClassName(id);
     if (item.length > 0) {
       return;
     }
-    const panel = extractSidePanel();
+    const panel = CrackUtil.component().sidePanel();
     if (!panel) {
       return;
     }
@@ -463,7 +196,7 @@
     if (!appendingTarget) {
       for (let element of panel.getElementsByTagName("p")) {
         if (element.textContent === "나의 크래커") {
-          const itemElement = element.cloneNode(true);
+          const itemElement = GenericUtil.clone(element);
           itemElement.textContent = "채팅 내역 추출";
           panel.insertBefore(itemElement, element);
           const divier = document.createElement("div");
@@ -476,7 +209,9 @@
       appendingTarget = document.getElementById("chasm-lyop-eof");
     }
     if (!appendingTarget) return;
-    const button = panel.childNodes[1].cloneNode(true);
+    /** @type {HTMLElement} */
+    // @ts-ignore
+    const button = GenericUtil.clone(panel.childNodes[1]);
     button.onclick = () => {};
     button.classList.add(id);
     button.addEventListener("click", action);
@@ -493,138 +228,12 @@
   }
   function prepare() {
     setup();
-    attachObserver(document, () => {
+    GenericUtil.attachObserver(document, () => {
       setup();
     });
   }
-  "loading" === document.readyState
+  ("loading" === document.readyState
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
-    window.addEventListener("load", prepare);
-
-  // toastify-injection.js - 크랙 Toastify 알림 인젝션
-
-  // =====================================================
-  //                 Toastify Injection
-  // =====================================================
-  /**
-   * 크랙 플랫폼의 Toastify 인젝션을 쉽게 해주는 유틸리티 클래스입니다.
-   */
-  class ToastifyInjector {
-    /**
-     * 마지막으로 등록된 인젝터를 가져오거나, 등록합니다.
-     * @returns {ToastifyInjector} 등록된 인스턴스
-     */
-    static findInjector() {
-      if (document.__toastifyInjector) {
-        return document.__toastifyInjector;
-      }
-      document.__toastifyInjector = new ToastifyInjector();
-      return document.__toastifyInjector;
-    }
-
-    /**
-     * ToastifyInjector을 초기화합니다.
-     */
-    constructor() {
-      this.#init();
-    }
-
-    /**
-     * 삽입된 알림 요소의 트래킹을 진행합니다.
-     */
-    #trackNotification() {
-      const current = new Date().getTime();
-      const toastifies = document.getElementsByClassName("Toastify");
-      if (toastifies.length <= 0) {
-        return;
-      }
-      const rootNode = toastifies[0];
-      if (rootNode.childNodes.length > 0) {
-        if (
-          rootNode.getElementsByClassName("chasm-toastify-track").length !=
-          rootNode.childNodes.length
-        ) {
-          for (const element of Array.from(
-            rootNode.getElementsByClassName("chasm-toastify-track")
-          )) {
-            if (element.hasAttribute("completed")) {
-              element.removeAttribute("completed");
-              element.removeAt = current + 1000;
-            }
-          }
-        }
-      }
-      for (const element of rootNode.getElementsByClassName(
-        "chasm-toastify-track"
-      )) {
-        if (element.expireAt < current && element.hasAttribute("completed")) {
-          element.removeAttribute("completed");
-          element.removeAt = current + 1000;
-        } else if (element.removeAt < current) {
-          element.remove();
-        }
-      }
-    }
-    #init() {
-      GM_addStyle(`
-        .chasm-toastify-track {
-            transform: translateY(-200%);
-            transition: transform 0.4s;
-        }
-
-        .chasm-toastify-track[completed="true"] {
-            transform: translateY(0);
-            transition: transform 0.4s;
-        }
-    `);
-
-      setInterval(this.#trackNotification, 50);
-    }
-
-    /**
-     * 알림 요소를 삽입합니다.
-     * 해당 펑션으로 삽입된 알림은 기존 알림을 강제로 제거합니다.
-     *
-     * 해당 펑션은 크랙 스타일 알림을 생성합니다.
-     * @param {string} message 표시할 메시지
-     * @param {number} expires 유지 시간 (ms)
-     */
-    doToastifyAlert(message, expires = 3000) {
-      const textNode = document.createElement("p");
-      textNode.textContent = message;
-      textNode.style =
-        "color: #FFFFFF; text-align: center; font-size: 16px; line-height: 140%; font-weight: 600; white-space: pre-line;";
-
-      const containerNode = document.createElement("div");
-      containerNode.style =
-        "background-color: rgb(46, 45, 43); padding: 16px; border-radius: 10px; width: 100%; max-width: 95vw; height: 100%;";
-
-      containerNode.append(textNode);
-
-      const wrapperNode = document.createElement("div");
-      wrapperNode.className =
-        "Toastify__toast-container Toastify__toast-container--top-center chasm-toastify-track";
-      wrapperNode.style.cssText =
-        "background: transparent; min-width: 461px; min-height: 0px; height: fit-content; border-radius: 10px; justify-content: center; left: auto; justify-self: center;";
-      wrapperNode.append(containerNode);
-
-      wrapperNode.expireAt = new Date().getTime() + expires;
-
-      const toastifies = document.getElementsByClassName("Toastify");
-      if (toastifies.length <= 0) {
-        return;
-      }
-      if (toastifies.length > 0) {
-        for (const element of Array.from(toastifies[0].childNodes)) {
-          element.remove();
-        }
-      }
-      const rootNode = toastifies[0];
-      rootNode.append(wrapperNode);
-      setTimeout(() => {
-        wrapperNode.setAttribute("completed", "true");
-      });
-    }
-  }
+    window.addEventListener("load", prepare));
 })();
