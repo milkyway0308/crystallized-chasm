@@ -951,7 +951,7 @@ class ModalManager {
         } catch (ex) {
           console.warn("!! WARNING !!");
           console.warn(
-            "!! WARNING !! GM_addStyle 콜에 실패하였습니다.\n브라우저가 아닌 환경에서 decentralized-modal이 초기화되었을 가능성이 존재합니다.\n해당 환경에서는 decentralized-modal.js가 오작동할 가능성이 존재합니다."
+            "!! WARNING !! GM_addStyle 콜에 실패하였습니다.\n브라우저가 아닌 환경에서 decentralized-modal이 초기화되었을 가능성이 존재합니다.\n해당 환경에서는 decentralized-modal.js가 오작동할 가능성이 존재합니다.",
           );
         }
 
@@ -1085,17 +1085,17 @@ class ModalManager {
           .addTitleText(DECENTRAL_VERSION)
           .addText("decentralized.js는 IGX 팀에서 제작되었습니다.")
           .addText(
-            "이 프레임워크는 임베딩 가능한 탈중앙화된 모달 프레임워크입니다."
+            "이 프레임워크는 임베딩 가능한 탈중앙화된 모달 프레임워크입니다.",
           )
           .addTitleText("SVG 아이콘 디자인")
           .addText("decentralized.js의 모든 아이콘은 SVGRepo에서 가져왔습니다.")
           .addText(
-            "- 설정 아이콘 (https://www.svgrepo.com/svg/458353/setting-line)"
+            "- 설정 아이콘 (https://www.svgrepo.com/svg/458353/setting-line)",
           )
           .addText("- 닫기 아이콘 (https://www.svgrepo.com/svg/494725/close)")
           .addText("- 메뉴 아이콘 (https://www.svgrepo.com/svg/522418/menu)")
           .addText(
-            "- 스위치 소스 코드 참조 (https://www.daleseo.com/css-toggle-switch/)"
+            "- 스위치 소스 코드 참조 (https://www.daleseo.com/css-toggle-switch/)",
           );
         for (let adjuster of this.#licenseAdjusters) {
           adjuster(panel);
@@ -1291,7 +1291,7 @@ class DecentrallizedModal {
       "decentral-modal-container decentral-color-container",
       (node) => {
         node.id = `decentral-container-${this.baseId}`;
-      }
+      },
     );
     this.__container.onclick = (e) => {
       e.stopPropagation();
@@ -1304,16 +1304,16 @@ class DecentrallizedModal {
       (this.__menuPanel = new MenuPanel(
         this,
         this.#menuItems,
-        this.#selectedMenu
-      )).asHTML()
+        this.#selectedMenu,
+      )).asHTML(),
     );
     const verticalPanel = setupClassNode("div", "decentral-vertical-container");
     verticalPanel.appendChild(
       (this.__mobileMenuPanel = new MobileMenuPanel(
         this,
         this.#menuItems,
-        this.#selectedMenu
-      )).asHTML()
+        this.#selectedMenu,
+      )).asHTML(),
     );
     verticalPanel.appendChild(
       (this.__contentPanel = new ContentPanel(
@@ -1325,8 +1325,8 @@ class DecentrallizedModal {
         },
         () => {
           this.close();
-        }
-      )).asHTML()
+        },
+      )).asHTML(),
     );
     this.__modal.append(verticalPanel);
     this.__container.setAttribute("theme", isDarkTheme ? "dark" : "light");
@@ -1342,7 +1342,7 @@ class DecentrallizedModal {
    */
   replaceContentPanel(lambda, title, iconSvg = undefined) {
     const element = assert(
-      document.getElementById(`decentral-content-${this.baseId}`)
+      document.getElementById(`decentral-content-${this.baseId}`),
     );
 
     this.__contentPanel = new ContentPanel(
@@ -1354,13 +1354,13 @@ class DecentrallizedModal {
       },
       () => {
         this.close();
-      }
+      },
     );
     lambda(this.__contentPanel);
     element.id = "";
     assert(element.parentElement).insertBefore(
       this.__contentPanel.asHTML(),
-      element
+      element,
     );
     element.remove();
   }
@@ -1370,17 +1370,17 @@ class DecentrallizedModal {
     const mobileMenu = new MobileMenuPanel(
       this,
       this.#menuItems,
-      this.#selectedMenu
+      this.#selectedMenu,
     );
     assert(this.__menuPanel?.currentMenu()?.parentElement).insertBefore(
       mainMenu.asHTML(),
-      assert(this.__menuPanel?.currentMenu())
+      assert(this.__menuPanel?.currentMenu()),
     );
     this.__menuPanel?.currentMenu()?.remove();
 
     assert(this.__mobileMenuPanel?.currentMenu()?.parentElement).append(
       mobileMenu.asHTML(),
-      assert(this.__mobileMenuPanel?.currentMenu())
+      assert(this.__mobileMenuPanel?.currentMenu()),
     );
     this.__mobileMenuPanel?.currentMenu()?.remove();
 
@@ -1492,7 +1492,7 @@ class MenuPanel extends BaseMenuPanel {
         menuItem,
         (isActive) => {
           isElementActiveSelected = isActive;
-        }
+        },
       );
       container.append(menuContainer);
     }
@@ -1512,7 +1512,7 @@ class MenuPanel extends BaseMenuPanel {
   createMenuContainer(itemName, menuItem, setActiveSelected) {
     const menuContainer = setupClassNode(
       "div",
-      "decentral-menu-element-container"
+      "decentral-menu-element-container",
     );
     const menuText = setupClassNode(
       "span",
@@ -1529,7 +1529,7 @@ class MenuPanel extends BaseMenuPanel {
           this.replaceSelected([itemName]);
           this.runSelected();
         };
-      }
+      },
     );
     menuContainer.appendChild(menuText);
     if (menuItem.__subMenus.size > 0) {
@@ -1538,7 +1538,7 @@ class MenuPanel extends BaseMenuPanel {
         menuItem,
         menuContainer,
         menuText,
-        setActiveSelected
+        setActiveSelected,
       );
       menuContainer.append(subMenuContainer);
     }
@@ -1560,11 +1560,11 @@ class MenuPanel extends BaseMenuPanel {
     menuItem,
     menuContainer,
     menuText,
-    setActiveSelected
+    setActiveSelected,
   ) {
     const subMenuContainer = setupClassNode(
       "div",
-      "decentral-sub-menu-container"
+      "decentral-sub-menu-container",
     );
     for (const [subItemName, subItem] of menuItem.__subMenus) {
       const subMenuNode = setupClassNode(
@@ -1583,7 +1583,7 @@ class MenuPanel extends BaseMenuPanel {
             this.replaceSelected(expectedSubmenu);
             this.runSelected();
           };
-        }
+        },
       );
       subMenuContainer.appendChild(subMenuNode);
       if (
@@ -1611,11 +1611,11 @@ class MenuPanel extends BaseMenuPanel {
 
       if (this.selectedMenu.length === 0) {
         targetMenuContainer = container.querySelector(
-          ".decentral-menu-element-container"
+          ".decentral-menu-element-container",
         );
       } else if (this.selectedMenu.length === 1) {
         const menuElements = container.querySelectorAll(
-          ".decentral-menu-element"
+          ".decentral-menu-element",
         );
         for (const menuText of menuElements) {
           if (menuText.textContent === selectedItemName) {
@@ -1668,7 +1668,7 @@ class MobileMenuPanel extends BaseMenuPanel {
   asHTML() {
     const container = (this.#menu = setupClassNode(
       "div",
-      "decentral-mobile-menu-container"
+      "decentral-mobile-menu-container",
     ));
     let isElementActiveSelected = false;
 
@@ -1679,7 +1679,7 @@ class MobileMenuPanel extends BaseMenuPanel {
         (isActive) => {
           isElementActiveSelected = isActive;
           return false;
-        }
+        },
       );
       container.append(menuContainer);
     }
@@ -1707,7 +1707,7 @@ class MobileMenuPanel extends BaseMenuPanel {
   createMenuContainer(itemName, menuItem, setActiveSelected) {
     const menuContainer = setupClassNode(
       "div",
-      "decentral-mobile-menu-element-container"
+      "decentral-mobile-menu-element-container",
     );
     const menuText = setupClassNode(
       "span",
@@ -1725,7 +1725,7 @@ class MobileMenuPanel extends BaseMenuPanel {
           this.replaceSelected([itemName]);
           this.runSelected();
         };
-      }
+      },
     );
 
     menuContainer.appendChild(menuText);
@@ -1736,7 +1736,7 @@ class MobileMenuPanel extends BaseMenuPanel {
         menuItem,
         menuContainer,
         menuText,
-        setActiveSelected
+        setActiveSelected,
       );
       menuContainer.append(subMenuContainer);
     }
@@ -1758,11 +1758,11 @@ class MobileMenuPanel extends BaseMenuPanel {
     menuItem,
     menuContainer,
     menuText,
-    setActiveSelected
+    setActiveSelected,
   ) {
     const subMenuContainer = setupClassNode(
       "div",
-      "decentral-mobile-sub-menu-container"
+      "decentral-mobile-sub-menu-container",
     );
     for (const [subItemName, subItem] of menuItem.__subMenus) {
       const subMenuNode = setupClassNode(
@@ -1782,7 +1782,7 @@ class MobileMenuPanel extends BaseMenuPanel {
             this.replaceSelected(expectedSubmenu);
             this.runSelected();
           };
-        }
+        },
       );
       subMenuContainer.appendChild(subMenuNode);
 
@@ -1811,11 +1811,11 @@ class MobileMenuPanel extends BaseMenuPanel {
 
       if (this.selectedMenu.length === 0) {
         targetMenuContainer = container.querySelector(
-          ".decentral-mobile-menu-element-container"
+          ".decentral-mobile-menu-element-container",
         );
       } else if (this.selectedMenu.length === 1) {
         const menuElements = container.querySelectorAll(
-          ".decentral-mobile-menu-element"
+          ".decentral-mobile-menu-element",
         );
         for (const menuText of menuElements) {
           if (menuText.textContent === selectedItemName) {
@@ -1855,7 +1855,7 @@ class ComponentAppender extends HTMLComponentConvertable {
    */
   addGrid(titleText, isLongField, lambda) {
     this.parentElement.appendChild(
-      createGridElement(titleText, isLongField, lambda)
+      createGridElement(titleText, isLongField, lambda),
     );
     return this;
   }
@@ -1873,7 +1873,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     { initializer = undefined, __proxy = this } = {
       initializer: undefined,
       __proxy: this,
-    }
+    },
   ) {
     __proxy.parentElement.append(
       createLongFlatGridElement(null, (node) => {
@@ -1883,9 +1883,9 @@ class ComponentAppender extends HTMLComponentConvertable {
             if (initializer) {
               initializer(textNode);
             }
-          })
+          }),
         );
-      })
+      }),
     );
     return this;
   }
@@ -1906,9 +1906,9 @@ class ComponentAppender extends HTMLComponentConvertable {
             if (initializer) {
               initializer(textNode);
             }
-          })
+          }),
         );
-      })
+      }),
     );
     return this;
   }
@@ -1924,7 +1924,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     id,
     titleText,
     isLongField,
-    { defaultValue = undefined, onInit = undefined, onChange = undefined } = {}
+    { defaultValue = undefined, onInit = undefined, onChange = undefined } = {},
   ) {
     let inputNode = setupClassNode(
       "input",
@@ -1949,13 +1949,13 @@ class ComponentAppender extends HTMLComponentConvertable {
             }
           };
         }
-      }
+      },
     );
     this.parentElement.append(
       createGridElement(titleText, isLongField, (node, title, suffix) => {
         node.append(inputNode);
         onInit?.(inputNode, title, suffix);
-      })
+      }),
     );
     return inputNode;
   }
@@ -1972,7 +1972,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     id,
     titleText,
     isLongField,
-    { defaultValue = undefined, onInit = undefined, onChange = undefined } = {}
+    { defaultValue = undefined, onInit = undefined, onChange = undefined } = {},
   ) {
     this.constructInputGrid(id, titleText, isLongField, {
       defaultValue: defaultValue,
@@ -1991,7 +1991,7 @@ class ComponentAppender extends HTMLComponentConvertable {
   constructTextAreaGrid(
     id,
     titleText,
-    { defaultValue = undefined, onInit = undefined, onChange = undefined } = {}
+    { defaultValue = undefined, onInit = undefined, onChange = undefined } = {},
   ) {
     let textNode = setupClassNode(
       "textarea",
@@ -2011,13 +2011,13 @@ class ComponentAppender extends HTMLComponentConvertable {
             }
           };
         }
-      }
+      },
     );
     this.parentElement.append(
       createGridElement(titleText, true, (node, title, suffix) => {
         node.append(textNode);
         onInit?.(textNode, title, suffix);
-      })
+      }),
     );
     return textNode;
   }
@@ -2034,7 +2034,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     id,
     titleText,
     description,
-    { defaultValue = undefined, onInit = undefined, onChange = undefined } = {}
+    { defaultValue = undefined, onInit = undefined, onChange = undefined } = {},
   ) {
     let textNode = setupClassNode(
       "textarea",
@@ -2054,7 +2054,7 @@ class ComponentAppender extends HTMLComponentConvertable {
             }
           };
         }
-      }
+      },
     );
     let topNode = this.constructLongBoxedField(titleText, description, {
       onInit: (node) => {
@@ -2076,7 +2076,7 @@ class ComponentAppender extends HTMLComponentConvertable {
   addTextAreaGrid(
     id,
     titleText,
-    { defaultValue = undefined, onInit = undefined, onChange = undefined } = {}
+    { defaultValue = undefined, onInit = undefined, onChange = undefined } = {},
   ) {
     this.constructTextAreaGrid(id, titleText, {
       defaultValue: defaultValue,
@@ -2097,7 +2097,7 @@ class ComponentAppender extends HTMLComponentConvertable {
   constructLoggingArea(
     id,
     titleText,
-    { defaultValue = undefined, onInit = undefined } = {}
+    { defaultValue = undefined, onInit = undefined } = {},
   ) {
     let textNode = setupClassNode(
       "textarea",
@@ -2106,13 +2106,13 @@ class ComponentAppender extends HTMLComponentConvertable {
         area.id = id;
         area.setAttribute("readonly", "true");
         defaultValue && (_refine(area).value = defaultValue);
-      }
+      },
     );
     this.parentElement.append(
       createGridElement(titleText, true, (node, title, suffix) => {
         node.append(textNode);
         onInit?.(textNode, title, suffix);
-      })
+      }),
     );
     return textNode;
   }
@@ -2128,7 +2128,7 @@ class ComponentAppender extends HTMLComponentConvertable {
   addLoggingArea(
     id,
     titleText,
-    { defaultValue = undefined, onInit = undefined } = {}
+    { defaultValue = undefined, onInit = undefined } = {},
   ) {
     this.constructLoggingArea(id, titleText, {
       defaultValue: defaultValue,
@@ -2149,7 +2149,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     id,
     titleText,
     description,
-    { onInit = undefined, onTrigger = undefined } = {}
+    { onInit = undefined, onTrigger = undefined } = {},
   ) {
     const buttonNode = setupClassNode(
       "button",
@@ -2163,7 +2163,7 @@ class ComponentAppender extends HTMLComponentConvertable {
             onTrigger(button);
           };
         }
-      }
+      },
     );
     this.addBoxedField(titleText, description, {
       onInit: (node) => {
@@ -2185,7 +2185,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     id,
     titleText,
     short,
-    { onInit = undefined, onTrigger = undefined } = {}
+    { onInit = undefined, onTrigger = undefined } = {},
   ) {
     let buttonNode = setupClassNode("button", "decentral-button", (button) => {
       button.id = id;
@@ -2200,7 +2200,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     this.parentElement.append(
       createGridElement(null, short, (node) => {
         node.append(buttonNode);
-      })
+      }),
     );
     return buttonNode;
   }
@@ -2215,7 +2215,7 @@ class ComponentAppender extends HTMLComponentConvertable {
   addShortButton(
     id,
     titleText,
-    { onInit = undefined, onTrigger = undefined } = {}
+    { onInit = undefined, onTrigger = undefined } = {},
   ) {
     this.constructButton(id, titleText, true, {
       onInit: onInit,
@@ -2256,21 +2256,21 @@ class ComponentAppender extends HTMLComponentConvertable {
                 field.append(
                   setupClassNode("p", "element-title", (text) => {
                     text.innerText = title;
-                  })
+                  }),
                 );
                 field.append(
                   setupClassNode("p", "element-description", (text) => {
                     text.innerText = description;
-                  })
+                  }),
                 );
-              })
+              }),
             );
             area.append(
-              setupClassNode("div", "element-input-container", onInit)
+              setupClassNode("div", "element-input-container", onInit),
             );
-          })
+          }),
         );
-      }))
+      })),
     );
     return topNode;
   }
@@ -2291,23 +2291,23 @@ class ComponentAppender extends HTMLComponentConvertable {
                 field.append(
                   setupClassNode("p", "element-title", (text) => {
                     text.innerText = title;
-                  })
+                  }),
                 );
                 field.append(
                   setupClassNode("p", "element-description", (text) => {
                     text.innerText = description;
-                  })
+                  }),
                 );
-              })
+              }),
             );
             area.append(
               setupClassNode("div", "element-input-container", (container) => {
                 onInit?.(container);
-              })
+              }),
             );
-          })
+          }),
         );
-      })
+      }),
     );
     return this;
   }
@@ -2325,10 +2325,10 @@ class ComponentAppender extends HTMLComponentConvertable {
           setupClassNode(
             "div",
             padded ? "decentral-padded-boxed-field" : "decentral-boxed-field",
-            onInit
-          )
+            onInit,
+          ),
         );
-      })
+      }),
     );
     return this;
   }
@@ -2349,19 +2349,19 @@ class ComponentAppender extends HTMLComponentConvertable {
               field.append(
                 setupClassNode("p", "element-title", (text) => {
                   text.innerText = title;
-                })
+                }),
               );
               field.append(
                 setupClassNode("p", "element-description", (text) => {
                   text.innerText = description;
-                })
+                }),
               );
               field.append(
-                setupClassNode("div", "element-input-container-long", onInit)
+                setupClassNode("div", "element-input-container-long", onInit),
               );
-            })
+            }),
           );
-        })
+        }),
       );
     });
     this.parentElement.append(topNode);
@@ -2380,7 +2380,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     id,
     title,
     description,
-    { defaultValue = false, onInit = undefined, onChange = undefined } = {}
+    { defaultValue = false, onInit = undefined, onChange = undefined } = {},
   ) {
     let inputNode = setupClassNode(
       "input",
@@ -2403,7 +2403,7 @@ class ComponentAppender extends HTMLComponentConvertable {
             }
           };
         }
-      }
+      },
     );
     this.addBoxedField(title, description, {
       onInit: (node) => {
@@ -2413,8 +2413,8 @@ class ComponentAppender extends HTMLComponentConvertable {
             "element-input-container",
             (container) => {
               container.append(inputNode);
-            }
-          ))
+            },
+          )),
         );
       },
     });
@@ -2433,7 +2433,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     id,
     title,
     description,
-    { defaultValue = false, onInit = undefined, onChange = undefined } = {}
+    { defaultValue = false, onInit = undefined, onChange = undefined } = {},
   ) {
     this.constructSwitchBox(id, title, description, {
       defaultValue: defaultValue,
@@ -2463,20 +2463,20 @@ class ComponentAppender extends HTMLComponentConvertable {
       max = 1000,
       onInit = undefined,
       onChange = undefined,
-    } = {}
+    } = {},
   ) {
     let inputNode = setupClassNode(
       "div",
       "element-input-container",
       (container) => {
         container.append(
-          (inputNode = setupClassNode(
+          setupClassNode(
             "input",
             (type === 0
               ? "element-small-input"
               : type === 1
-              ? "element-medium-input"
-              : "element-large-input") + " decentral-modifiable-component",
+                ? "element-medium-input"
+                : "element-large-input") + " decentral-modifiable-component",
             (inputField) => {
               inputField.id = id;
               inputField.setAttribute("type", "number");
@@ -2496,10 +2496,10 @@ class ComponentAppender extends HTMLComponentConvertable {
                   }
                 };
               }
-            }
-          ))
+            },
+          ),
         );
-      }
+      },
     );
     this.addBoxedField(title, description, {
       onInit: (node) => {
@@ -2526,7 +2526,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       max = 1000,
       onInit = undefined,
       onChange = undefined,
-    } = {}
+    } = {},
   ) {
     return this.__addNumberBox(id, title, description, 0, {
       defaultValue: defaultValue,
@@ -2555,7 +2555,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       max = 1000,
       onInit = undefined,
       onChange = undefined,
-    } = {}
+    } = {},
   ) {
     this.constructShortNumberBox(id, title, description, {
       defaultValue: defaultValue,
@@ -2585,7 +2585,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       max = 1000,
       onInit = undefined,
       onChange = undefined,
-    } = {}
+    } = {},
   ) {
     return this.__addNumberBox(id, title, description, 1, {
       defaultValue: defaultValue,
@@ -2614,7 +2614,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       max = 1000,
       onInit = undefined,
       onChange = undefined,
-    } = {}
+    } = {},
   ) {
     this.constructMediumNumberBox(id, title, description, {
       defaultValue: defaultValue,
@@ -2644,7 +2644,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       max = 1000,
       onInit = undefined,
       onChange = undefined,
-    } = {}
+    } = {},
   ) {
     return this.__addNumberBox(id, title, description, 2, {
       defaultValue: defaultValue,
@@ -2673,7 +2673,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       max = 1000,
       onInit = undefined,
       onChange = undefined,
-    } = {}
+    } = {},
   ) {
     this.constructNumberBox(id, title, description, {
       defaultValue: defaultValue,
@@ -2697,7 +2697,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     id,
     title,
     description,
-    { defaultValue = undefined, onInit = undefined, onChange = undefined } = {}
+    { defaultValue = undefined, onInit = undefined, onChange = undefined } = {},
   ) {
     let inputNode = setupClassNode(
       "input",
@@ -2711,7 +2711,7 @@ class ComponentAppender extends HTMLComponentConvertable {
             onChange(inputField, _refine(inputField).value);
           };
         }
-      }
+      },
     );
     const topNode = this.constructLongBoxedField(title, description, {
       onInit: (node) => {
@@ -2734,7 +2734,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     id,
     title,
     description,
-    { defaultValue = undefined, onInit = undefined, onChange = undefined } = {}
+    { defaultValue = undefined, onInit = undefined, onChange = undefined } = {},
   ) {
     this.constructBoxedInputGrid(id, title, description, {
       defaultValue: defaultValue,
@@ -2798,16 +2798,16 @@ class ComponentAppender extends HTMLComponentConvertable {
         option.append(
           setupStyleNode("span", "height: fit-content;", (textNode) => {
             textNode.textContent = initialText;
-          })
+          }),
         );
         option.append(
           setupStyleNode("div", "margin-left: auto;", (iconNode) => {
             iconNode.append(
               setupNode("div", (node) => {
                 node.innerHTML = DECENTRAL_ARROW_ICON_SVG;
-              })
+              }),
             );
-          })
+          }),
         );
         option.onclick = (event) => {
           if (this.hasOuterClickDetection()) {
@@ -2828,11 +2828,11 @@ class ComponentAppender extends HTMLComponentConvertable {
               this.createOuterClickDetection(() => {
                 topNode.removeAttribute("list-enabled");
                 this.removeOuterClickDetection();
-              })
+              }),
             );
           }
         };
-      }
+      },
     );
     topNode.append(title);
     topNode.append(optionContainer);
@@ -2862,7 +2862,7 @@ class ComponentAppender extends HTMLComponentConvertable {
             if (selectedId && onclick?.(selectedId, option)) {
               topNode.setAttribute("decentral-selected", selectedId);
               title.childNodes[0].textContent = option.getAttribute(
-                "decentral-option-text"
+                "decentral-option-text",
               );
             }
           };
@@ -2875,7 +2875,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       },
       runSelected: () => {
         for (const element of topNode.getElementsByClassName(
-          "decentral-option"
+          "decentral-option",
         )) {
           if (
             element.getAttribute("decentral-option-id") ===
@@ -2910,7 +2910,7 @@ class ComponentAppender extends HTMLComponentConvertable {
       },
       findSelected: () => {
         for (const element of topNode.getElementsByClassName(
-          "decentral-option"
+          "decentral-option",
         )) {
           if (
             element.getAttribute("decentral-option-id") ===
@@ -2935,7 +2935,7 @@ class ComponentAppender extends HTMLComponentConvertable {
        */
       findGroup: (groupId) => {
         for (const element of topNode.getElementsByClassName(
-          "decentral-option"
+          "decentral-option",
         )) {
           if (element.getAttribute("decentral-option-id") === groupId) {
             return element;
@@ -2954,7 +2954,7 @@ class ComponentAppender extends HTMLComponentConvertable {
           "decentral-option-group",
           (group) => {
             group.innerText = text;
-          }
+          },
         );
         optionContainer.append(node);
         lambda && lambda(node);
@@ -2967,7 +2967,7 @@ class ContentPanel extends ComponentAppender {
   __verticalContainer = setupClassNode(
     "div",
     "decentral-vertical-container",
-    () => {}
+    () => {},
   );
   __footerGrid = setupClassNode("div", "decentral-grid-container", () => {});
   __footer = setupClassNode("div", "decentral-modal-footer", (node) => {
@@ -2990,12 +2990,12 @@ class ContentPanel extends ComponentAppender {
     const icon = setupClassNode(
       "div",
       "decentral-modal-title-icon",
-      (node) => {}
+      (node) => {},
     );
     const gridWrapper = setupClassNode(
       "div",
       "decentral-grid-container",
-      () => {}
+      () => {},
     );
     this.__verticalContainer.append(
       setupClassNode("div", "decentral-modal-title-container", (node) => {
@@ -3003,7 +3003,7 @@ class ContentPanel extends ComponentAppender {
         node.append(
           setupClassNode("p", "decental-modal-title-text", (node) => {
             node.innerText = title;
-          })
+          }),
         );
         node.append(
           setupClassNode("div", "decentral-modal-button-container", (node) => {
@@ -3015,19 +3015,19 @@ class ContentPanel extends ComponentAppender {
                   svgNode.innerHTML = DECENTRAL_MENU_ICON_SVG;
                   svgNode.id = `${id}-menu`;
                   mobileOpenAction && (svgNode.onclick = mobileOpenAction);
-                }
-              )
+                },
+              ),
             );
             node.append(
               setupClassNode("div", "decentral-close-button", (svgNode) => {
                 svgNode.innerHTML = DECENTRAL_CLOSE_ICON_SVG;
                 svgNode.id = `${id}-close`;
                 closeAction && (svgNode.onclick = closeAction);
-              })
+              }),
             );
-          })
+          }),
         );
-      })
+      }),
     );
     svg && (icon.outerHTML = svg);
     icon.classList.add("decentral-modal-title-icon");
@@ -3050,7 +3050,7 @@ class ContentPanel extends ComponentAppender {
 
   runModifyVerification() {
     const foundElements = this.__verticalContainer.getElementsByClassName(
-      "decentral-modifiable-component"
+      "decentral-modifiable-component",
     );
     for (const element of foundElements) {
       if ("onVerifyChange" in element) {
@@ -3096,7 +3096,7 @@ function _clone(element) {
 function assert(item) {
   if (item === undefined || item === null) {
     throw new Error(
-      "ASSERTION FAILED; null or undefined object detected at non-null logic"
+      "ASSERTION FAILED; null or undefined object detected at non-null logic",
     );
   }
   return item;
@@ -3273,17 +3273,17 @@ function createGridElement(titleText, isLongField, lambda) {
             elementTitle.append(
               setupNode("p", (node) => {
                 node.textContent = titleText;
-              })
+              }),
             );
             elementTitle.append(suffix);
-          }
+          },
         );
         node.append(title);
         lambda && lambda(node, title, suffix);
       } else {
         lambda && lambda(node, undefined, undefined);
       }
-    }
+    },
   );
 }
 
@@ -3310,10 +3310,10 @@ function createLongFlatGridElement(titleText, lambda) {
           elementTitle.append(
             setupNode("p", (node) => {
               node.textContent = titleText;
-            })
+            }),
           );
           elementTitle.append(suffix);
-        }
+        },
       );
       node.append(title);
       lambda?.(node, title, suffix);
@@ -3349,16 +3349,16 @@ function createLongSemiFlatGridElement(titleText, lambda) {
             elementTitle.append(
               setupNode("p", (node) => {
                 node.textContent = titleText;
-              })
+              }),
             );
             elementTitle.append(suffix);
-          }
+          },
         );
         node.append(title);
         lambda?.(node, title, suffix);
       } else {
         lambda?.(node);
       }
-    }
+    },
   );
 }
