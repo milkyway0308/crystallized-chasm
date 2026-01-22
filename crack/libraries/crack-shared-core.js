@@ -1935,7 +1935,7 @@ class _CrackChatRoomApi {
             console.log(JSON.stringify(sendResponse));
             if (sendResponse.result === "success") {
               // @ts-ignore
-              currentSocket.on(
+              currentSocket.once(
                 "characterMessageGenerated",
                 // @ts-ignore
                 async (response) => {
