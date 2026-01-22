@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         Chasm Crystallized Lyophilization (결정화 캐즘 동결건조)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-LYOP-v1.0.0
+// @version      CRYS-LYOP-v1.1.0p
 // @description  채팅방 백업 및 완전한 아카이브화 지원. 이 기능은 원본 채팅 백업 확장 스크립트의 유지보수 버전입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
