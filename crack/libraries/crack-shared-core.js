@@ -723,6 +723,33 @@ class CrackChattingLog {
   isUser() {
     return this.role === "user";
   }
+
+  /**
+   * JSON 스키마에서 데이터를 정제합니다.
+   * @param {any} container
+   * @returns {CrackChattingLog} 정제된 데이터
+   */
+  static of(container) {
+    return new CrackChattingLog(
+      container._id,
+      container.userId,
+      container.chatId,
+      container.role,
+      container.content,
+      container.model,
+      container.turnId,
+      container.status,
+      container.dynamicChipList,
+      container.crackerModel,
+      container.chatModelId,
+      container.isContinuallyGeneratable,
+      container.isContinued,
+      container.situationImages,
+      container.parameterSnapshots,
+      container.isPrologue,
+      container.reroll ?? false,
+    );
+  }
 }
 
 class CrackStorySessionInfo extends ImageMappable {
@@ -1604,26 +1631,7 @@ class _CrackChatRoomApi {
 
       for (let message of result.data.messages) {
         if ((message.content?.length ?? 0) === 0) continue;
-        const fetchedLog = new CrackChattingLog(
-          message._id,
-          message.userId,
-          message.chatId,
-          message.role,
-          message.content,
-          message.model,
-          message.turnId,
-          message.status,
-          message.dynamicChipList,
-          message.crackerModel,
-          message.chatModelId,
-          message.isContinuallyGeneratable,
-          message.isContinued,
-          message.situationImages,
-          message.parameterSnapshots,
-          message.isPrologue,
-          message.reroll ?? false,
-        );
-        yield fetchedLog;
+        yield CrackChattingLog.of(message);
         if (maxCount !== -1 && ++amount >= maxCount) {
           break;
         }
@@ -1730,6 +1738,23 @@ class _CrackChatRoomApi {
       return result;
     }
     return true;
+  }
+
+  /**
+   * 지정한 ID의 메시지 데이터를 가져옵니다.
+   * @param {string} chatId 채팅방 ID
+   * @param {string} messageId 메시지 ID
+   * @returns {Promise<CrackChattingLog | Error>}
+   */
+  async getMessage(chatId, messageId) {
+    const result = await this.#network.authFetch(
+      "GET",
+      `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}/messages/${messageId}`,
+    );
+    if (result instanceof Error) {
+      return result;
+    }
+    return CrackChattingLog.of(result.data);
   }
 
   /**
