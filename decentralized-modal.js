@@ -2208,7 +2208,7 @@ class ComponentAppender extends HTMLComponentConvertable {
     let buttonNode = setupClassNode("button", "decentral-button", (button) => {
       button.id = id;
       button.innerText = titleText;
-      onTrigger?.(button);
+      onInit?.(button);
       if (onTrigger) {
         button.onclick = () => {
           onTrigger(button);
