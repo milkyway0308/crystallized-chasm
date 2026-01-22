@@ -1858,10 +1858,13 @@ class _CrackChatRoomApi {
       };
       const lastMessage = await this.fetchLastMessage(chatId);
       if (lastMessage instanceof Error) {
+        console.log("LAST MESSAGE FETCH ERROR");
+        console.log(lastMessage);
         return lastMessage;
       }
       if (!lastMessage) {
         socketCloser();
+        console.log("No last message");
         return new Error("불가능한 상태입니다: 첫 메시지가 존재하지 않습니다.");
       }
       const result = await this.#emitMessage(
@@ -1874,6 +1877,7 @@ class _CrackChatRoomApi {
         onMessageSent,
       );
       if (!result) {
+        console.log("timeout");
         socketCloser();
         return new Error(
           "지정한 시간 안에 메시지 응답이 완료되지 않았습니다, 실패로 간주합니다.",
@@ -1905,9 +1909,11 @@ class _CrackChatRoomApi {
     socketCloser,
     onMessageSent,
   ) {
+    console.log("Start emit stage");
     return await new Promise(async (resolve, reject) => {
       let isResolved = false;
       const taskId = setTimeout(() => {
+        console.log("TIMEOUT!");
         if (!isResolved) {
           socketCloser();
           isResolved = true;
@@ -1924,12 +1930,16 @@ class _CrackChatRoomApi {
           },
           // @ts-ignore
           async (sendResponse) => {
+            console.log("Response: ");
+            console.log(JSON.stringify(sendResponse));
             if (sendResponse.result === "success") {
               // @ts-ignore
               currentSocket.on(
                 "characterMessageGenerated",
                 // @ts-ignore
                 async (response) => {
+                  console.log("Generate complete");
+                  console.log(JSON.stringify(resolve));
                   socketCloser();
                   if (!isResolved) {
                     isResolved = true;
