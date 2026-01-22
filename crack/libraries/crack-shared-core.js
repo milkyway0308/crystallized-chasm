@@ -1849,11 +1849,10 @@ class _CrackChatRoomApi {
       const currentSocket = socket ?? (await this.connect(chatId));
       console.log(currentSocket);
       const socketCloser = () => {
-        if (currentSocket === socket) {
+        if (!socket) {
           try {
-            console.log("SOCKET CLOSED");
             // @ts-ignore
-            socket?.close();
+            currentSocket?.close();
           } catch (err) {}
         }
       };
