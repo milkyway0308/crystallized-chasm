@@ -1741,7 +1741,7 @@ class _CrackChatRoomApi {
   async deleteMessage(chatId, messageId) {
     const result = await this.#network.authFetch(
       "DELETE",
-      `https://contents-api.wrtn.ai/character-chat/characters/chat/${chatId}/message/${messageId}`,
+      `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}/messages/${messageId}`,
     );
     if (result instanceof Error) {
       return result;
