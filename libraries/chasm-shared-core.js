@@ -51,7 +51,7 @@ function isAttributeEquals(
   element,
   elementToCompare,
   attributeName,
-  compareUndefined = true
+  compareUndefined = true,
 ) {
   if (
     !compareUndefined &&
@@ -73,7 +73,7 @@ class GenericUtil {
   /**
    * 지정한 노드 혹은 요소에 변경 옵저버를 등록합니다.
    * @param {*} observeTarget 변경 감지 대상
-   * @param {*} lambda 실행할 람다
+   * @param {() => void} lambda 실행할 람다
    */
   static attachObserver(observeTarget, lambda) {
     // @ts-ignore
@@ -89,14 +89,30 @@ class GenericUtil {
   }
 
   /**
+   * 지정한 노드 혹은 요소에 URL 변동 감지성 변경 옵저버를 등록합니다.
+   * 이 펑션으로 등록된 옵저버는 이전과 현재 URL이 다를때만 작동합니다.
+   * @param {*} node 변경 감지 대상
+   * @param {() => void} lambda 실행할 람다
+   */
+  static attachHrefObserver(node, lambda) {
+    let oldHref = location.href;
+    this.attachObserver(node, () => {
+      if (oldHref !== location.href) {
+        oldHref = location.href;
+        lambda();
+      }
+    });
+  }
+
+  /**
    * 페이지가 준비되면 제공된 람다 펑션이 실행되도록 설정합니다.
    * @param {() => any} runner 실행될 람다 펑션
    */
   static onPageReady(runner) {
-    "loading" === document.readyState
+    ("loading" === document.readyState
       ? document.addEventListener("DOMContentLoaded", runner)
       : runner(),
-      window.addEventListener("load", runner);
+      window.addEventListener("load", runner));
   }
 
   /**
@@ -128,14 +144,12 @@ class GenericUtil {
   static assert(item) {
     if (item === undefined || item === null) {
       throw new Error(
-        "ASSERTION FAILED; null or undefined object detected at non-null logic"
+        "ASSERTION FAILED; null or undefined object detected at non-null logic",
       );
     }
     return item;
   }
 
-
-  
   /**
    * 값이 non-null인지 반환합니다.
    * @template T
@@ -148,7 +162,6 @@ class GenericUtil {
     }
     return true;
   }
-
 }
 
 /**
@@ -223,7 +236,7 @@ class LogUtil {
       this.log(`디버그 로그가 활성화된 상태입니다.`);
     } else {
       this.log(
-        `디버그 로그를 활성화하려면 콘솔 창에 'document[${this.debugId}] = true'를 입력하세요.`
+        `디버그 로그를 활성화하려면 콘솔 창에 'document[${this.debugId}] = true'를 입력하세요.`,
       );
     }
   }
@@ -240,7 +253,7 @@ class LogUtil {
         `%c${this.prefix}: %cDEBUG: %c` + message,
         this.prefixStyle,
         this.debugTitleStyle,
-        this.debugTextStyle
+        this.debugTextStyle,
       );
     }
     if (extra) {
@@ -259,7 +272,7 @@ class LogUtil {
         `%c${this.prefix}: %cInfo: %c` + message,
         this.prefixStyle,
         this.infoTitleStyle,
-        this.infoTextStyle
+        this.infoTextStyle,
       );
     }
     if (extra) {
@@ -278,7 +291,7 @@ class LogUtil {
         `%c${this.prefix}: %cWarning: %c` + message,
         this.prefixStyle,
         this.warningTitleStyle,
-        this.warningTextStyle
+        this.warningTextStyle,
       );
     }
     if (extra) {
@@ -297,7 +310,7 @@ class LogUtil {
         `%c${this.prefix}: %cError: %c` + message,
         this.prefixStyle,
         this.errorTitleStyle,
-        this.errorTextStyle
+        this.errorTextStyle,
       );
     }
     if (extra) {
@@ -413,7 +426,7 @@ class TimeUtil {
     return format.replace(
       /(?:\\(?=.)|(?<!\\)(?:([yMdf])\1{0,3}|([HhmsTt])\2?|K))/g,
       // @ts-ignore
-      ($0) => replacements[$0]
+      ($0) => replacements[$0],
     );
   }
 }
