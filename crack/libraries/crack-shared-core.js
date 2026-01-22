@@ -1851,6 +1851,7 @@ class _CrackChatRoomApi {
       const socketCloser = () => {
         if (currentSocket === socket) {
           try {
+            console.log("SOCKET CLOSED");
             // @ts-ignore
             socket?.close();
           } catch (err) {}
@@ -1921,6 +1922,7 @@ class _CrackChatRoomApi {
         }
       }, timeout);
       try {
+        console.log("Emit start");
         currentSocket.emit(
           "send",
           {
