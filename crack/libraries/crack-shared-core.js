@@ -715,6 +715,14 @@ class CrackChattingLog {
     this.isPrologue = isPrologue;
     this.reroll = reroll;
   }
+
+  isBot() {
+    return this.role === "assistant";
+  }
+
+  isUser() {
+    return this.role === "user";
+  }
 }
 
 class CrackStorySessionInfo extends ImageMappable {
@@ -1704,8 +1712,89 @@ class _CrackChatRoomApi {
   }
 
   /**
-   *
+   * 메시지 내용을 편집합니다.
+   * @param {string} chatId 채팅방 ID
+   * @param {string} messageId 메시지 ID
+   * @param {string} contents 메시지 내용
+   * @returns {Promise<true | Error>} 성공했을 경우 true, 혹은 발생한 오류
+   */
+  async editMessage(chatId, messageId, contents) {
+    const result = await this.#network.authFetch(
+      "PATCH",
+      `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}/messages/${messageId}`,
+      {
+        message: contents,
+      },
+    );
+    if (result instanceof Error) {
+      return result;
+    }
+    return true;
+  }
+  
+  /**
+   * 메시지를 삭제합니다.
+   * @param {string} chatId 채팅방 ID
+   * @param {string} messageId 메시지 ID
+   * @returns {Promise<true | Error>} 성공했을 경우 true, 혹은 발생한 오류
+   */
+  async deleteMessage(chatId, messageId) {
+    const result = await this.#network.authFetch(
+      "DELETE",
+      `https://contents-api.wrtn.ai/character-chat/characters/chat/${chatId}/message/${messageId}`,
+    );
+    if (result instanceof Error) {
+      return result;
+    }
+    return true;
+  }
+
+  /**
+   * 지정한 채팅의 현재 페르소나 데이터를 가져옵니다.
    * @param {string} chatId
+   * @returns {Promise<?CrackPersona | Error>}
+   */
+  async currentPersona(chatId) {
+    const chatData = await this.roomData(chatId);
+    if (chatData instanceof Error) {
+      return chatData;
+    }
+    const personaMap = await this.#user.currentPersonaMap();
+    if (personaMap instanceof Error) {
+      return personaMap;
+    }
+    return personaMap.get(chatData.chatProfileId ?? "--UNKNOWN--") ?? null;
+  }
+
+  /**
+   * 채팅 모델을 변경합니다.
+   * @param {string} chatId 채팅 ID
+   * @param {string} modelId 모델 ID
+   * @returns {Promise<true | Error>} 성공했을 경우 true, 혹은 오류
+   */
+  async changeChatModel(chatId, modelId) {
+    const result = await this.#network.authFetch(
+      "PATCH",
+      `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}`,
+      { chatModelId: modelId },
+    );
+    if (result instanceof Error) {
+      return result;
+    }
+    return true;
+  }
+
+  /**
+   * socket.io 프레임워크를 채팅방 소켓을 생성해 반환합니다.
+   * 여러개의 메시지를 같은 방에 보내야 할 경우, 소켓 인스턴스를 활용하는 것이 권장됩니다.
+   * 다량의 소켓은 요청 거부가 발생할 수 있습니다.
+   * **이 펑션은 socket.io를 스크립트에 불러옵니다.**
+   *
+   *
+   * @see {@link _SocketIoUtil.prepareIo()} socket.io 자동 임포트
+   * @requires socket.io@>=4.8.1
+   * @param {string} chatId 채팅방 ID
+   *
    */
   async connect(chatId) {
     const socket = (await this.#io.prepareIo())(
@@ -1745,7 +1834,7 @@ class _CrackChatRoomApi {
    * @param {string} message
    * @param {Object} [param] 옵션 파라미터
    * @param {?Object} [param.socket] 방 소켓. undefined일 경우, 새 방을 열고 보낸 후 소켓을 닫습니다.
-   * @param {(userMessageId: CrackChattingLog, botMessageId: CrackChattingLog) => Promise<void> | void} [param.onMessageSent] 봇 메시지가 전송된 후에 트리거될 메시지 핸들러
+   * @param {(userMessage: CrackChattingLog, botMessage: CrackChattingLog) => Promise<void> | void} [param.onMessageSent] 봇 메시지가 전송된 후에 트리거될 메시지 핸들러
    * @param {number} [param.timeout] 몇 ms 뒤에 요청을 실패로 간주할지 설정합니다.
    * @returns {Promise<Error | undefined>} 오류 혹은 undefined
    */
@@ -1756,17 +1845,27 @@ class _CrackChatRoomApi {
   ) {
     try {
       const currentSocket = socket ?? (await this.connect(chatId));
+      const socketCloser = () => {
+        if (currentSocket === socket) {
+          try {
+            // @ts-ignore
+            socket?.close();
+          } catch (err) {}
+        }
+      };
       const lastMessage = await this.fetchLastMessage(chatId);
       if (lastMessage instanceof Error) {
         return lastMessage;
       }
       if (!lastMessage) {
+        socketCloser();
         return new Error("불가능한 상태입니다: 첫 메시지가 존재하지 않습니다.");
       }
       const result = await new Promise(async (resolve, reject) => {
         let isResolved = false;
         const taskId = setTimeout(() => {
           if (!isResolved) {
+            socketCloser();
             isResolved = true;
             resolve(false);
           }
@@ -1786,6 +1885,7 @@ class _CrackChatRoomApi {
                 "characterMessageGenerated",
                 // @ts-ignore
                 async (response) => {
+                  socketCloser();
                   if (!isResolved) {
                     isResolved = true;
                     clearTimeout(taskId);
@@ -1798,12 +1898,14 @@ class _CrackChatRoomApi {
                 },
               );
             } else {
+              socketCloser();
               reject(new Error("socket.io 메시지 전송에 실패하였습니다."));
             }
           },
         );
       });
       if (!result) {
+        socketCloser();
         return new Error(
           "지정한 시간 안에 메시지 응답이 완료되지 않았습니다, 실패로 간주합니다.",
         );
@@ -1826,7 +1928,7 @@ class _CrackChatRoomApi {
    * @param {Object} [param] 옵션 파라미터
    * @param {?Object} [param.socket] 방 소켓. undefined일 경우, 새 방을 열고 보낸 후 소켓을 닫습니다.
    * @param {number} [param.timeout]  몇 ms 뒤에 요청을 실패로 간주할지 설정합니다.
-   * @param {(userMessageId: CrackChattingLog) => Promise<void> | void} [param.onMessageSent] 봇 메시지가 삭제된 후에 트리거될 메시지 핸들러
+   * @param {(userMessage: CrackChattingLog) => Promise<void> | void} [param.onMessageSent] 봇 메시지가 삭제된 후에 트리거될 메시지 핸들러
    */
   async sendUserMessage(
     chatId,
@@ -1847,9 +1949,41 @@ class _CrackChatRoomApi {
   }
 
   /**
+   * socket.io 프레임워크를 사용해 메시지를 보냅니다.
+   * **이 펑션은 socket.io를 스크립트에 불러옵니다. **
+   *
+   * @singleflow 이 태그가 있는 펑션은 동일한 펑션이 아니더라도 2개 이상의 펑션이 동시에 호출되어서는 안됩니다. 모든 결과가 도출된 후에 호출해야 동시성 문제가 발생하지 않습니다.
+   * @see {@link _SocketIoUtil.prepareIo()} socket.io 자동 임포트
+   * @requires socket.io@>=4.8.1
+   * @param {string} chatId 채팅 ID
+   * @param {string} message 유저 메시지
+   * @param {Object} [param] 옵션 파라미터
+   * @param {?Object} [param.socket] 방 소켓. undefined일 경우, 새 방을 열고 보낸 후 소켓을 닫습니다.
+   * @param {number} [param.timeout]  몇 ms 뒤에 요청을 실패로 간주할지 설정합니다.
+   * @param {(botMessage: CrackChattingLog) => Promise<void> | void} [param.onMessageSent] 유저 메시지가 삭제된 후에 트리거될 메시지 핸들러
+   */
+  async sendBotMessage(
+    chatId,
+    message,
+    { socket = undefined, timeout = 100_000, onMessageSent = undefined } = {},
+  ) {
+    return await this.send(chatId, message, {
+      socket: socket,
+      timeout: timeout,
+      onMessageSent: async (user, bot) => {
+        await this.deleteMessage(chatId, user.id);
+        const result = onMessageSent?.(bot);
+        if (result instanceof Promise) {
+          await result;
+        }
+      },
+    });
+  }
+
+  /**
    * socket.io를 통한 메시지 응답을 처리합니다.
    * @param {string} chatId 채팅방 ID
-   * @param {(userMessageId: CrackChattingLog, botMessageId: CrackChattingLog) => Promise<void> | void} [onMessageSent] 봇 메시지가 전송된 후에 트리거될 메시지 핸들러
+   * @param {(userMessage: CrackChattingLog, botMessage: CrackChattingLog) => Promise<void> | void} [onMessageSent] 봇 메시지가 전송된 후에 트리거될 메시지 핸들러
    */
   async #handleResponse(chatId, onMessageSent) {
     if (onMessageSent) {
@@ -1863,37 +1997,6 @@ class _CrackChatRoomApi {
       const result = onMessageSent(message[0], message[1]);
       if (result instanceof Promise) await result;
     }
-  }
-
-  /**
-   * 메시지를 삭제합니다.
-   * @param {string} chatId 채팅방 ID
-   * @param {string} messageId 메시지 ID
-   * @returns {Promise<boolean>} 성공 여부
-   */
-  async deleteMessage(chatId, messageId) {
-    const result = await this.#network.authFetch(
-      "DELETE",
-      `https://contents-api.wrtn.ai/character-chat/characters/chat/${chatId}/message/${messageId}`,
-    );
-    return !(result instanceof Error);
-  }
-
-  /**
-   * 지정한 채팅의 현재 페르소나 데이터를 가져옵니다.
-   * @param {string} chatId
-   * @returns {Promise<?CrackPersona | Error>}
-   */
-  async currentPersona(chatId) {
-    const chatData = await this.roomData(chatId);
-    if (chatData instanceof Error) {
-      return chatData;
-    }
-    const personaMap = await this.#user.currentPersonaMap();
-    if (personaMap instanceof Error) {
-      return personaMap;
-    }
-    return personaMap.get(chatData.chatProfileId ?? "--UNKNOWN--") ?? null;
   }
 }
 
