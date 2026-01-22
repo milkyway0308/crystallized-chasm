@@ -1,19 +1,26 @@
-/// <reference path="../decentralized-modal.js" />
-/// <reference path="../libraries/dexie.js" />
-
 // ==UserScript==
 // @name         Chasm Crystallized DreamDiary (크랙 / 캐즘 꿈일기)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-DDIA-v1.1.5
+// @version      CRYS-DDIA-v1.3.0
 // @description  유저노트 저장 / 불러오기 기능 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/dreamdiary.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/dreamdiary.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@4.2.1/dist/dexie.min.js#sha256-STeEejq7AcFOvsszbzgCDL82AjypbLLjD5O6tUByfuA=
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.13/decentralized-modal.js#sha256-tt5YRTDFPCoQwcSaw4d4QnjTytPbyVNLzM3g8rkdi8Q=
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-toastify-injection@v1.0.0/crack/libraries/toastify-injection.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-shared-core@v1.0.0/crack/libraries/crack-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@chasm-shared-core@v1.0.0/libraries/chasm-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.15/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
+
+// @ts-check
+/// <reference path="../decentralized-modal.js" />
+/// <reference path="../libraries/chasm-shared-core.js" />
+/// <reference path="./libraries/crack-shared-core.js" />
+
+// @ts-ignore
 GM_addStyle(`
     .chasm-ddia-zero-paddings {
         padding: 0px;
@@ -25,7 +32,9 @@ GM_addStyle(`
 `);
 !(async function () {
   const STANDARD_NOTIFICATION_TIME = 3000;
+  // @ts-ignore
   const db = new Dexie("chasm-dream-diary");
+  const logger = new LogUtil("Chasm Crystallized Dreamdiary", false);
   await db.version(1).stores({
     noteStore: `keyName, noteName, boundCharacter, noteContent, savedAt`,
     lastSelected: `boundCharacter, selected`,
@@ -47,197 +56,19 @@ GM_addStyle(`
       this.savedAt = savedAt;
     }
   }
-
-  function formatNumber(number, minDigit = 1, maxdigit = 1) {
-    return number.toLocaleString("en-US", {
-      minimumFractionDigits: minDigit,
-      maximumFractionDigits: maxdigit,
-    });
-  }
-  // =====================================================
-  //                 Toastify Injection
-  // =====================================================
-  /**
-   * 크랙 플랫폼의 Toastify 인젝션을 쉽게 해주는 유틸리티 클래스입니다.
-   */
-  class ToastifyInjector {
-    /**
-     * 마지막으로 등록된 인젝터를 가져오거나, 등록합니다.
-     * @returns {ToastifyInjector} 등록된 인스턴스
-     */
-    static findInjector() {
-      if (document.__toastifyInjector) {
-        return document.__toastifyInjector;
-      }
-      document.__toastifyInjector = new ToastifyInjector();
-      return document.__toastifyInjector;
-    }
-
-    /**
-     * ToastifyInjector을 초기화합니다.
-     */
-    constructor() {
-      this.#init();
-    }
-
-    /**
-     * 삽입된 알림 요소의 트래킹을 진행합니다.
-     */
-    #trackNotification() {
-      const current = new Date().getTime();
-      const toastifies = document.getElementsByClassName("Toastify");
-      if (toastifies.length <= 0) {
-        return;
-      }
-      const rootNode = toastifies[0];
-      if (rootNode.childNodes.length > 0) {
-        if (
-          rootNode.getElementsByClassName("chasm-toastify-track").length !=
-          rootNode.childNodes.length
-        ) {
-          for (const element of Array.from(
-            rootNode.getElementsByClassName("chasm-toastify-track")
-          )) {
-            if (element.hasAttribute("completed")) {
-              element.removeAttribute("completed");
-              element.removeAt = current + 1000;
-            }
-          }
-        }
-      }
-      for (const element of rootNode.getElementsByClassName(
-        "chasm-toastify-track"
-      )) {
-        if (element.expireAt < current && element.hasAttribute("completed")) {
-          element.removeAttribute("completed");
-          element.removeAt = current + 1000;
-        } else if (element.removeAt < current) {
-          element.remove();
-        }
-      }
-    }
-    #init() {
-      GM_addStyle(`
-        .chasm-toastify-track {
-            transform: translateY(-200%);
-            transition: transform 0.4s;
-        }
-
-        .chasm-toastify-track[completed="true"] {
-            transform: translateY(0);
-            transition: transform 0.4s;
-        }
-    `);
-
-      setInterval(this.#trackNotification, 50);
-    }
-
-    /**
-     * 알림 요소를 삽입합니다.
-     * 해당 펑션으로 삽입된 알림은 기존 알림을 강제로 제거합니다.
-     *
-     * 해당 펑션은 크랙 스타일 알림을 생성합니다.
-     * @param {string} message 표시할 메시지
-     * @param {number} expires 유지 시간 (ms)
-     */
-    doToastifyAlert(message, expires = 3000) {
-      const textNode = document.createElement("p");
-      textNode.textContent = message;
-      textNode.style =
-        "color: #FFFFFF; text-align: center; font-size: 16px; line-height: 140%; font-weight: 600; white-space: pre-line;";
-
-      const containerNode = document.createElement("div");
-      containerNode.style =
-        "background-color: rgb(46, 45, 43); padding: 16px; border-radius: 10px; width: 100%; max-width: 95vw; height: 100%;";
-
-      containerNode.append(textNode);
-
-      const wrapperNode = document.createElement("div");
-      wrapperNode.className =
-        "Toastify__toast-container Toastify__toast-container--top-center chasm-toastify-track";
-      wrapperNode.style.cssText =
-        "background: transparent; min-width: 461px; min-height: 0px; height: fit-content; border-radius: 10px; justify-content: center; left: auto; justify-self: center;";
-      wrapperNode.append(containerNode);
-
-      wrapperNode.expireAt = new Date().getTime() + expires;
-
-      const toastifies = document.getElementsByClassName("Toastify");
-      if (toastifies.length <= 0) {
-        return;
-      }
-      if (toastifies.length > 0) {
-        for (const element of Array.from(toastifies[0].childNodes)) {
-          element.remove();
-        }
-      }
-      const rootNode = toastifies[0];
-      rootNode.append(wrapperNode);
-      setTimeout(() => {
-        wrapperNode.setAttribute("completed", "true");
-      });
-    }
-  }
   // =====================================================
   //                      설정
   // =====================================================
-  const settings = {
+  const settings = new LocaleStorageConfig("chasm-crck-ddia-settings", {
+    /** @type {string | undefined} */
     lastPromptName: undefined,
+    /** @type {string | undefined} */
     boundCharacter: undefined,
+    /** @type {string | undefined} */
     lastPromptDisplay: undefined,
+    /** @type {boolean} */
     isCustom: false,
-  };
-
-  // It's good to use IndexedDB, but we have to use LocalStorage to block site
-  // cause of risk from unloaded environment and unexpected behavior
-  function loadSettings() {
-    const loadedSettings = localStorage.getItem("chasm-crck-ddia-settings");
-    if (loadedSettings) {
-      const json = JSON.parse(loadedSettings);
-      for (let key of Object.keys(json)) {
-        // Merge setting for version compatibility support
-        settings[key] = json[key];
-      }
-    }
-  }
-
-  function saveSettings() {
-    log("설정 저장중..");
-    // Yay, no need to filtering anything!
-    localStorage.setItem("chasm-crck-ddia-settings", JSON.stringify(settings));
-    log("설정 저장 완료");
-  }
-
-  // =================================================
-  //                유틸리티성 메서드
-  // =================================================
-  /**
-   * 지정한 노드 혹은 요소에 변경 옵저버를 등록합니다.
-   * @param {*} observeTarget 변경 감지 대상
-   * @param {*} lambda 실행할 람다
-   */
-  function attachObserver(observeTarget, lambda) {
-    const Observer = window.MutationObserver || window.WebKitMutationObserver;
-    if (observeTarget && Observer) {
-      let instance = new Observer(lambda);
-      instance.observe(observeTarget, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-      });
-    }
-  }
-  /**
-   * 콘솔에 지정한 포맷으로 디버그를 출력합니다.
-   * @param {*} message 출력할 메시지
-   */
-  function log(message) {
-    console.log(
-      "%cChasm Crystallized DreamDiary: %cInfo: %c" + message,
-      "color: cyan;",
-      "color: blue;",
-      "color: inherit;"
-    );
-  }
+  });
 
   // =================================================
   //                     로직
@@ -255,17 +86,22 @@ GM_addStyle(`
     return result
       .reverse()
       .map(
-        (data) =>
+        (/** @type {any}*/ data) =>
           new CustomUserNote(
             data.keyName,
             data.noteName,
             data.boundCharacter,
             data.noteContent,
-            data.savedAt
-          )
+            data.savedAt,
+          ),
       );
   }
 
+  /**
+   *
+   * @param {string} character
+   * @returns {Promise<any>}
+   */
   async function getSelected(character) {
     const result = await db.lastSelected
       .where("boundCharacter")
@@ -277,6 +113,11 @@ GM_addStyle(`
     return undefined;
   }
 
+  /**
+   *
+   * @param {string} character
+   * @param {string} key
+   */
   async function setLastSelected(character, key) {
     await db.lastSelected.put({
       boundCharacter: character,
@@ -284,10 +125,19 @@ GM_addStyle(`
     });
   }
 
+  /**
+   *
+   * @param {string} character
+   */
   async function removeLastSelected(character) {
     await db.lastSelected.remove(character);
   }
 
+  /**
+   *
+   * @param {string} keyId
+   * @returns {Promise<CustomUserNote | undefined>}
+   */
   async function getNoteOf(keyId) {
     const data = await db.noteStore.where("keyName").anyOf(keyId).toArray();
     if (data.length <= 0) {
@@ -298,10 +148,15 @@ GM_addStyle(`
       data[0].noteName,
       data[0].boundCharacter,
       data[0].noteContent,
-      data[0].savedAt
+      data[0].savedAt,
     );
   }
 
+  /**
+   *
+   * @param {string} character
+   * @param {string} noteName
+   */
   async function deleteNoteOf(character, noteName) {
     try {
       await db.noteStore.delete(`${character}!+${noteName}`);
@@ -309,6 +164,13 @@ GM_addStyle(`
       console.error(err);
     }
   }
+
+  /**
+   *
+   * @param {string} character
+   * @param {string} noteName
+   * @param {string} contents
+   */
   async function saveNoteOf(character, noteName, contents) {
     try {
       await db.noteStore.put({
@@ -323,16 +185,10 @@ GM_addStyle(`
     }
   }
 
-  async function saveNoteKeyOf(key, contents) {
-    await db.noteStore.put({
-      keyName: key,
-      noteName: noteName,
-      boundCharacter: character,
-      noteContent: contents,
-      savedAt: new Date().getTime(),
-    });
-  }
-
+  /**
+   *
+   * @returns {?Element}
+   */
   function findModal() {
     // 2025-11-23 기준
     const pool = [
@@ -351,31 +207,8 @@ GM_addStyle(`
         return found[0];
       }
     }
-    return undefined;
+    return null;
   }
-
-  
-  function findUserNoteField() {
-    // 2025-11-23 기준
-    const pool = [
-      // 다크 모드 활성화
-      "css-1ljuz6k eh9908w0",
-      // 다크 모드 일반
-      "css-l1gepk",
-      // 라이트 모드 일반
-      "css-ta1jwd",
-      // 라이트 모드 활성화
-      "css-125x1f1",
-    ];
-    for (const key of pool) {
-      const found = document.getElementsByClassName(key);
-      if (found.length > 0) {
-        return found[0];
-      }
-    }
-    return undefined;
-  }
-
   function injectModal() {
     if (document.getElementById("chasm-ddia-note-listing")) {
       return;
@@ -393,12 +226,13 @@ GM_addStyle(`
     const appender = new ComponentAppender(listing);
     const box = appender.constructSelectBox(
       "유저노트 프리셋 [3.0초 길게 눌러 노트 삭제]",
-      settings.lastPromptName ?? "--이름을 지정하세요--",
+      settings.config.lastPromptName ?? "--이름을 지정하세요--",
       "chasm-ddia-settings#nonreachable",
-      true
+      true,
     );
     /** @type {HTMLElement} */
-    const textNode = box.node.parentElement.childNodes[0];
+    // @ts-ignore
+    const textNode = box.node.parentElement.getElementsByTagName("p")[0];
     textNode.style.cssText = "user-select: none !important;";
     textNode.onmousedown = (event) => {
       let pressTime = 30;
@@ -406,30 +240,33 @@ GM_addStyle(`
         if (pressTime-- <= 0) {
           clearInterval(timer);
           textNode.textContent = "유저노트 프리셋 [3.0초 길게 눌러 노트 삭제]";
-          if (settings.isCustom) {
+          if (settings.config.isCustom) {
             ToastifyInjector.findInjector().doToastifyAlert(
               "프롬프트 프리셋을 선택하지 않은 상태에서는 삭제할 수 없어요.",
-              STANDARD_NOTIFICATION_TIME
+              STANDARD_NOTIFICATION_TIME,
             );
-          } else if (!settings.lastPromptName) {
+          } else if (!settings.config.lastPromptName) {
             ToastifyInjector.findInjector().doToastifyAlert(
               "프롬프트 프리셋을 선택하지 않은 상태에서는 삭제할 수 없어요.",
-              STANDARD_NOTIFICATION_TIME
+              STANDARD_NOTIFICATION_TIME,
             );
           } else {
-            deleteNoteOf(settings.boundCharacter, settings.lastPromptName)
+            deleteNoteOf(
+              settings.config.boundCharacter ?? "",
+              settings.config.lastPromptName,
+            )
               .then(() => {
                 refreshSelectBoxElement(
                   modal,
                   box,
                   textArea[0],
-                  characterId
+                  characterId,
                 ).finally(() => {
                   box.setSelected("#custom");
                   box.runSelected();
                   ToastifyInjector.findInjector().doToastifyAlert(
                     "선택한 유저노트를 삭제했어요.\n예기치 못한 오류를 방지하기 위해 현재 선택한 유저노트는 커스텀으로 변경됐어요.",
-                    STANDARD_NOTIFICATION_TIME
+                    STANDARD_NOTIFICATION_TIME,
                   );
                 });
               })
@@ -437,15 +274,15 @@ GM_addStyle(`
                 console.error(err);
                 ToastifyInjector.findInjector().doToastifyAlert(
                   "유저노트를 삭제하는 도중 오류가 발생했어요.\n콘솔에 발생한 오류를 제보해주시면 캐즘 프로젝트의 개선에 도움을 줄 수 있어요.",
-                  STANDARD_NOTIFICATION_TIME
+                  STANDARD_NOTIFICATION_TIME,
                 );
               });
           }
         } else {
-          textNode.textContent = `유저노트 프리셋 [${formatNumber(
+          textNode.textContent = `유저노트 프리셋 [${GenericUtil.formatNumber(
             0.1 * pressTime,
             1,
-            1
+            1,
           )}초 길게 눌러 노트 삭제]`;
         }
       }, 100);
@@ -464,37 +301,40 @@ GM_addStyle(`
         if (pressTime-- <= 0) {
           clearInterval(timer);
           textNode.textContent = "유저노트 프리셋 [3.0초 길게 눌러 노트 삭제]";
-          if (settings.isCustom) {
+          if (settings.config.isCustom) {
             ToastifyInjector.findInjector().doToastifyAlert(
               "프롬프트 프리셋을 선택하지 않은 상태에서는 삭제할 수 없어요.",
-              STANDARD_NOTIFICATION_TIME
+              STANDARD_NOTIFICATION_TIME,
             );
-          } else if (!settings.lastPromptName) {
+          } else if (!settings.config.lastPromptName) {
             ToastifyInjector.findInjector().doToastifyAlert(
               "프롬프트 프리셋을 선택하지 않은 상태에서는 삭제할 수 없어요.",
-              STANDARD_NOTIFICATION_TIME
+              STANDARD_NOTIFICATION_TIME,
             );
           } else {
             if (
               !confirm(
-                "정말로 현재 노트를 삭제할까요?\n모바일 환경은 실수를 방지하기 위해 확인 절차가 존재해요."
+                "정말로 현재 노트를 삭제할까요?\n모바일 환경은 실수를 방지하기 위해 확인 절차가 존재해요.",
               )
             ) {
               return;
             }
-            deleteNoteOf(settings.boundCharacter, settings.lastPromptName)
+            deleteNoteOf(
+              settings.config.boundCharacter ?? "",
+              settings.config.lastPromptName,
+            )
               .then(() => {
                 refreshSelectBoxElement(
                   modal,
                   box,
                   textArea[0],
-                  characterId
+                  characterId,
                 ).finally(() => {
                   box.setSelected("#custom");
                   box.runSelected();
                   ToastifyInjector.findInjector().doToastifyAlert(
                     "선택한 유저노트를 삭제했어요.\n예기치 못한 오류를 방지하기 위해 현재 선택한 유저노트는 커스텀으로 변경됐어요.",
-                    STANDARD_NOTIFICATION_TIME
+                    STANDARD_NOTIFICATION_TIME,
                   );
                 });
               })
@@ -502,15 +342,15 @@ GM_addStyle(`
                 console.error(err);
                 ToastifyInjector.findInjector().doToastifyAlert(
                   "유저노트를 삭제하는 도중 오류가 발생했어요.\n콘솔에 발생한 오류를 제보해주시면 캐즘 프로젝트의 개선에 도움을 줄 수 있어요.",
-                  STANDARD_NOTIFICATION_TIME
+                  STANDARD_NOTIFICATION_TIME,
                 );
               });
           }
         } else {
-          textNode.textContent = `유저노트 프리셋 [${formatNumber(
+          textNode.textContent = `유저노트 프리셋 [${GenericUtil.formatNumber(
             0.1 * pressTime,
             1,
-            1
+            1,
           )}초 길게 눌러 노트 삭제]`;
         }
       }, 100);
@@ -525,11 +365,16 @@ GM_addStyle(`
         textNode.textContent = "유저노트 프리셋 [3.0초 길게 눌러 노트 삭제]";
       };
     };
-    box.node.parentElement.style = "padding: 0px;";
-    box.node.previousSibling.style = "padding: 0px; padding-bottom: 8px;";
+    GenericUtil.refine(box.node.parentElement).style = "padding: 0px;";
+    GenericUtil.refine(box.node.previousSibling).style =
+      "padding: 0px; padding-bottom: 8px;";
 
-    box.node.parentElement.classList.add("chasm-ddia-zero-paddings");
-    box.node.previousElementSibling.classList.add("chasm-ddia-custom-paddings");
+    GenericUtil.refine(box.node.parentElement).classList.add(
+      "chasm-ddia-zero-paddings",
+    );
+    GenericUtil.refine(box.node.previousElementSibling).classList.add(
+      "chasm-ddia-custom-paddings",
+    );
 
     const split = window.location.pathname.substring(1).split("/");
     const characterId = split[1];
@@ -546,17 +391,23 @@ GM_addStyle(`
     const node = appender.constructInputGrid(
       "chasm-ddia-user-note-name",
       "프롬프트 이름 지정",
-      true
+      true,
     );
-    node.parentElement.style.cssText = "display: none;";
+    GenericUtil.refine(node.parentElement).style.cssText = "display: none;";
 
-    node.parentElement.classList.add("chasm-ddia-zero-paddings");
-    node.previousElementSibling.classList.add("chasm-ddia-custom-paddings");
-    node.parentElement.classList.add("decentral-color-container");
+    GenericUtil.refine(node.parentElement).classList.add(
+      "chasm-ddia-zero-paddings",
+    );
+    GenericUtil.refine(node.previousElementSibling).classList.add(
+      "chasm-ddia-custom-paddings",
+    );
+    GenericUtil.refine(node.parentElement).classList.add(
+      "decentral-color-container",
+    );
     const button = modal.getElementsByTagName("button");
     if (button.length > 0) {
       const buttonBefore = button[button.length - 1];
-      const newButton = buttonBefore.cloneNode(true);
+      const newButton = GenericUtil.clone(buttonBefore);
       newButton.id = "chasm-ddia-save";
       newButton.onclick = (event) => {
         event.preventDefault();
@@ -565,14 +416,14 @@ GM_addStyle(`
         const split = window.location.pathname.substring(1).split("/");
         const characterId = split[1];
         const textContent = textArea[0].value;
-        if (settings.isCustom) {
-          const noteId = document.getElementById(
-            "chasm-ddia-user-note-name"
+        if (settings.config.isCustom) {
+          const noteId = GenericUtil.refine(
+            document.getElementById("chasm-ddia-user-note-name"),
           ).value;
           if (noteId.length <= 1) {
             ToastifyInjector.findInjector().doToastifyAlert(
               "커스텀 유저노트는 최소 1자 이상의 이름을 가져야 합니다.",
-              STANDARD_NOTIFICATION_TIME
+              STANDARD_NOTIFICATION_TIME,
             );
             return;
           }
@@ -586,41 +437,50 @@ GM_addStyle(`
                 modal,
                 box,
                 textArea[0],
-                characterId
+                characterId,
               ).then(() => {
                 ToastifyInjector.findInjector().doToastifyAlert(
                   message,
-                  STANDARD_NOTIFICATION_TIME
+                  STANDARD_NOTIFICATION_TIME,
                 );
               });
             })
             .catch((err) => {
               ToastifyInjector.findInjector().doToastifyAlert(
                 "유저노트를 저장하는 도중 오류가 발생했어요.\n콘솔에 발생한 오류를 제보해주시면 캐즘 프로젝트의 개선에 도움을 줄 수 있어요.",
-                STANDARD_NOTIFICATION_TIME
+                STANDARD_NOTIFICATION_TIME,
               );
               console.error(err);
             });
         } else {
           const message =
-            settings.boundCharacter !== "#global"
-              ? `현재 캐릭터와 연결된 유저 노트 \n"${settings.lastPromptName}"\n를 저장했어요.`
-              : `전역 유저 노트 \n"${settings.lastPromptName}"\n를 저장했어요.`;
+            settings.config.boundCharacter !== "#global"
+              ? `현재 캐릭터와 연결된 유저 노트 \n"${settings.config.lastPromptName}"\n를 저장했어요.`
+              : `전역 유저 노트 \n"${settings.config.lastPromptName}"\n를 저장했어요.`;
+          if (
+            !settings.config.boundCharacter ||
+            !settings.config.lastPromptName
+          ) {
+            alert(
+              "컨테이너 오류가 발생했어요.\n지원 채널에 이 오류를 제보해주시면 캐즘 프로젝트의 개선에 도움을 줄 수 있어요.",
+            );
+            return;
+          }
           saveNoteOf(
-            settings.boundCharacter,
-            settings.lastPromptName,
-            textContent
+            settings.config.boundCharacter,
+            settings.config.lastPromptName,
+            textContent,
           )
             .then(() => {
               refreshSelectBoxElement(
                 modal,
                 box,
                 textArea[0],
-                characterId
+                characterId,
               ).then(() => {
                 ToastifyInjector.findInjector().doToastifyAlert(
                   message,
-                  STANDARD_NOTIFICATION_TIME
+                  STANDARD_NOTIFICATION_TIME,
                 );
               });
             })
@@ -628,7 +488,7 @@ GM_addStyle(`
               console.error(err);
               ToastifyInjector.findInjector().doToastifyAlert(
                 "유저노트를 저장하는 도중 오류가 발생했어요.\n콘솔에 발생한 오류를 제보해주시면 캐즘 프로젝트의 개선에 도움을 줄 수 있어요.",
-                STANDARD_NOTIFICATION_TIME
+                STANDARD_NOTIFICATION_TIME,
               );
             });
         }
@@ -645,26 +505,41 @@ GM_addStyle(`
     injectModal();
   }
 
+  /**
+   *
+   * @param {Element} modal
+   * @param {any} box
+   * @param {HTMLTextAreaElement} textArea
+   * @param {string} characterId
+   */
   async function refreshSelectBoxElement(modal, box, textArea, characterId) {
     const array = await findAllNoteOf(characterId);
     box.clear();
     box.addGroup("커스텀");
     box.addOption("커스텀", "#custom", () => {
-      document.getElementById(
-        "chasm-ddia-user-note-name"
+      GenericUtil.refine(
+        document.getElementById("chasm-ddia-user-note-name"),
       ).parentElement.style.cssText = "display: block;";
-      document
-        .getElementById("chasm-ddia-save")
-        .removeAttribute("disabled");
-      settings.isCustom = true;
-      settings.boundCharacter = undefined;
-      settings.lastPromptName = undefined;
+      GenericUtil.refine(
+        document.getElementById("chasm-ddia-save"),
+      ).removeAttribute("disabled");
+      settings.config.isCustom = true;
+      settings.config.boundCharacter = undefined;
+      settings.config.lastPromptName = undefined;
       setLastSelected(characterId, "#custom");
       return true;
     });
     addElements(modal, box, textArea, characterId, array);
   }
 
+  /**
+   *
+   * @param {Element} modal
+   * @param {any} box
+   * @param {HTMLTextAreaElement} textArea
+   * @param {string} characterId
+   * @param {CustomUserNote[]} array
+   */
   function addElements(modal, box, textArea, characterId, array) {
     const global = [];
     const bound = [];
@@ -679,27 +554,27 @@ GM_addStyle(`
       box.addGroup("전역 유저노트");
       for (let item of global) {
         box.addOption(item.name, item.keyId, () => {
-          document.getElementById(
-            "chasm-ddia-user-note-name"
+          GenericUtil.refine(
+            document.getElementById("chasm-ddia-user-note-name"),
           ).parentElement.style.cssText = "display: none;";
-          document
-            .getElementById("chasm-ddia-save")
-            .removeAttribute("disabled");
-          settings.isCustom = false;
-          settings.lastPromptName = item.name;
-          settings.boundCharacter = item.bound;
+          GenericUtil.refine(
+            document.getElementById("chasm-ddia-save"),
+          ).removeAttribute("disabled");
+          settings.config.isCustom = false;
+          settings.config.lastPromptName = item.name;
+          settings.config.boundCharacter = item.bound;
           setLastSelected(characterId, item.keyId);
           getNoteOf(item.keyId)
             .then((note) => {
               if (note) {
                 processNoteApply(note, modal, textArea);
               } else {
-                if (textArea.length > 0) {
-                  textArea[0].value = "";
+                if (textArea.value.length > 0) {
+                  textArea.value = "";
                 }
                 ToastifyInjector.findInjector().doToastifyAlert(
                   "이미 삭제한 유저노트가 불러와졌어요.\n오류를 방지하기 위해 필드는 빈 값으로 유지돼요.",
-                  STANDARD_NOTIFICATION_TIME
+                  STANDARD_NOTIFICATION_TIME,
                 );
               }
             })
@@ -707,7 +582,7 @@ GM_addStyle(`
               console.error(err);
               ToastifyInjector.findInjector().doToastifyAlert(
                 "로컬 저장고에서 유저노트를 가져오는 중 오류가 발생했어요.\n콘솔에 발생한 오류를 제보해주시면 캐즘 프로젝트의 개선에 도움을 줄 수 있어요.",
-                STANDARD_NOTIFICATION_TIME
+                STANDARD_NOTIFICATION_TIME,
               );
             });
           return true;
@@ -718,28 +593,28 @@ GM_addStyle(`
       box.addGroup("캐릭터 유저노트");
       for (let item of bound) {
         box.addOption(item.name, item.keyId, () => {
-          document.getElementById(
-            "chasm-ddia-user-note-name"
-          ).parentElement.style.cssText = "display: none;";
+          GenericUtil.refine(document.getElementById(
+            "chasm-ddia-user-note-name",
+          )).parentElement.style.cssText = "display: none;";
           setLastSelected(characterId, item.keyId);
-          document
-            .getElementById("chasm-ddia-save")
+          GenericUtil.refine(document
+            .getElementById("chasm-ddia-save"))
             .removeAttribute("disabled");
-          settings.isCustom = false;
-          settings.lastPromptName = item.name;
-          settings.boundCharacter = item.bound;
+          settings.config.isCustom = false;
+          settings.config.lastPromptName = item.name;
+          settings.config.boundCharacter = item.bound;
           setLastSelected(characterId, item.keyId);
           getNoteOf(item.keyId)
             .then((note) => {
               if (note) {
                 processNoteApply(note, modal, textArea);
               } else {
-                if (textArea.length > 0) {
+                if (textArea.validationMessage.length > 0) {
                   performTextAreaModification(textArea, "");
                 }
                 ToastifyInjector.findInjector().doToastifyAlert(
                   "이미 삭제한 유저노트가 불러와졌어요.\n오류를 방지하기 위해 필드는 빈 값으로 유지돼요.",
-                  STANDARD_NOTIFICATION_TIME
+                  STANDARD_NOTIFICATION_TIME,
                 );
               }
             })
@@ -747,7 +622,7 @@ GM_addStyle(`
               console.error(err);
               ToastifyInjector.findInjector().doToastifyAlert(
                 "로컬 저장고에서 유저노트를 가져오는 중 오류가 발생했어요.\n콘솔에 발생한 오류를 제보해주시면 캐즘 프로젝트의 개선에 도움을 줄 수 있어요.",
-                STANDARD_NOTIFICATION_TIME
+                STANDARD_NOTIFICATION_TIME,
               );
             });
           return true;
@@ -756,6 +631,12 @@ GM_addStyle(`
     }
   }
 
+  /**
+   * 
+   * @param {CustomUserNote} arr 
+   * @param {any} modal 
+   * @param {HTMLTextAreaElement} textArea 
+   */
   async function processNoteApply(arr, modal, textArea) {
     if (arr.noteContent.length > 500) {
       if (textArea.maxLength <= 500) {
@@ -769,19 +650,19 @@ GM_addStyle(`
               if (result) {
                 ToastifyInjector.findInjector().doToastifyAlert(
                   "불러올 유저노트가 500자를 초과해요.\n걱정하지 마세요, 모듈에서 자동으로 유저노트 확장을 적용했답니다!",
-                  STANDARD_NOTIFICATION_TIME
+                  STANDARD_NOTIFICATION_TIME,
                 );
               } else {
                 ToastifyInjector.findInjector().doToastifyAlert(
                   "불러올 유저노트가 500자를 초과해요.\n모듈에서 자동 처리를 시도했지만, 팝업 UI가 변경되어 완전 자동 처리는 실패했어요.\n이 오류는 결정화 캐즘 팀에 제보하면 빠르게 고칠 수 있어요.",
-                  STANDARD_NOTIFICATION_TIME
+                  STANDARD_NOTIFICATION_TIME,
                 );
               }
             } catch (err) {
               console.error(err);
               ToastifyInjector.findInjector().doToastifyAlert(
                 "불러올 유저노트가 500자를 초과해요.\n모듈에서 자동 처리를 시도했지만, 알 수 없는 오류가 발생하여 완전 자동 처리는 실패했어요.\n이 오류는 결정화 캐즘 팀에 제보하면 빠르게 고칠 수 있어요.",
-                STANDARD_NOTIFICATION_TIME
+                STANDARD_NOTIFICATION_TIME,
               );
             }
           }
@@ -789,7 +670,7 @@ GM_addStyle(`
         if (!changed) {
           ToastifyInjector.findInjector().doToastifyAlert(
             "업데이트로 인해 유저노트 확장 버튼이 바뀌어 자동으로 확장을 적용할 수 없는 상태예요.\n수동으로 버튼을 눌러 2천자로 변경하고, 다시 노트를 불러와주세요.\n이 오류는 결정화 캐즘 팀에 제보하면 빠르게 고칠 수 있어요.",
-            STANDARD_NOTIFICATION_TIME
+            STANDARD_NOTIFICATION_TIME,
           );
         }
       }
@@ -807,19 +688,19 @@ GM_addStyle(`
               if (result) {
                 ToastifyInjector.findInjector().doToastifyAlert(
                   "불러올 유저노트가 500자 이하예요.\n모듈에서 비용 감소를 위해 자동으로 확장을 비활성화했으니 안심하세요!",
-                  STANDARD_NOTIFICATION_TIME
+                  STANDARD_NOTIFICATION_TIME,
                 );
               } else {
                 ToastifyInjector.findInjector().doToastifyAlert(
                   "불러올 유저노트가 500자 이하예요.\n모듈에서 자동 처리를 시도했지만, 팝업 UI가 변경되어 완전 자동 처리는 실패했어요.\n이 오류는 결정화 캐즘 팀에 제보하면 빠르게 고칠 수 있어요.",
-                  STANDARD_NOTIFICATION_TIME
+                  STANDARD_NOTIFICATION_TIME,
                 );
               }
             } catch (err) {
               console.error(err);
               ToastifyInjector.findInjector().doToastifyAlert(
                 "불러올 유저노트가 500자 이하예요.\n모듈에서 자동 처리를 시도했지만, 알 수 없는 오류가 발생하여 완전 자동 처리는 실패했어요.\n이 오류는 결정화 캐즘 팀에 제보하면 빠르게 고칠 수 있어요.",
-                STANDARD_NOTIFICATION_TIME
+                STANDARD_NOTIFICATION_TIME,
               );
             }
           }
@@ -827,7 +708,7 @@ GM_addStyle(`
         if (!changed) {
           ToastifyInjector.findInjector().doToastifyAlert(
             "업데이트로 인해 유저노트 확장 버튼이 바뀌어 자동으로 확장 토글을 적용할 수 없는 상태예요.\n수동으로 버튼을 눌러 500자로 변경하고, 다시 노트를 불러와주세요.\n이 오류는 결정화 캐즘 팀에 제보하면 빠르게 고칠 수 있어요.",
-            STANDARD_NOTIFICATION_TIME
+            STANDARD_NOTIFICATION_TIME,
           );
         }
       }
@@ -867,11 +748,17 @@ GM_addStyle(`
     return false;
   }
 
+  /**
+   * 
+   * @param {HTMLTextAreaElement} area 
+   * @param {string} text 
+   */
   function performTextAreaModification(area, text) {
     area.value = text;
     area.textContent = text;
     for (const key of Object.keys(area)) {
       if (key.startsWith("__reactProps")) {
+        // @ts-ignore
         area[key].onChange({
           target: {
             value: text,
@@ -888,7 +775,7 @@ GM_addStyle(`
 
   function prepare() {
     setup();
-    attachObserver(document, () => {
+    GenericUtil.attachObserver(document, () => {
       setup();
     });
   }
@@ -898,17 +785,18 @@ GM_addStyle(`
     manager.addLicenseDisplay((panel) => {
       panel.addTitleText("결정화 캐즘 꿈일기");
       panel.addText(
-        "- decentralized-modal.js 프레임워크 사용 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)"
+        "- decentralized-modal.js 프레임워크 사용 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)",
       );
     });
   }
 
-  loadSettings();
+  settings.load();
   addMenu();
-  "loading" === document.readyState
+  ("loading" === document.readyState
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
-    window.addEventListener("load", prepare);
+    window.addEventListener("load", prepare));
+
 
   // =================================================
   //                  메뉴 강제 추가
@@ -919,7 +807,7 @@ GM_addStyle(`
       const itemFound = modal.getElementsByTagName("a");
       for (let item of itemFound) {
         if (item.getAttribute("href") === "/setting") {
-          const clonedElement = item.cloneNode(true);
+          const clonedElement = GenericUtil.clone(item);
           clonedElement.id = "chasm-decentral-menu";
           const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
@@ -931,7 +819,7 @@ GM_addStyle(`
               .withLicenseCredential()
               .display(document.body.getAttribute("data-theme") !== "light");
           };
-          item.parentElement.append(clonedElement);
+          item.parentElement?.append(clonedElement);
           break;
         }
       }
@@ -943,7 +831,7 @@ GM_addStyle(`
       const selected = document.getElementsByTagName("a");
       for (const element of selected) {
         if (element.getAttribute("href") === "/my-page") {
-          const clonedElement = element.cloneNode(true);
+          const clonedElement = GenericUtil.clone(element);
           clonedElement.id = "chasm-decentral-menu";
           const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
@@ -955,16 +843,17 @@ GM_addStyle(`
               .withLicenseCredential()
               .display(document.body.getAttribute("data-theme") !== "light");
           };
-          element.parentElement.append(clonedElement);
+          element.parentElement?.append(clonedElement);
         }
       }
     }
   }
 
   function __doModalMenuInit() {
-    if (document.c2ModalInit) return;
-    document.c2ModalInit = true;
-    attachObserver(document, () => {
+    const refined = GenericUtil.refine(document);
+    if (refined.c2ModalInit) return;
+    refined.c2ModalInit = true;
+    GenericUtil.attachObserver(document, () => {
       __updateModalMenu();
     });
   }

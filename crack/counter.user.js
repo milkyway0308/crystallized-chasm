@@ -2,16 +2,25 @@
 // ==UserScript==
 // @name        Chasm Crystallized Counter (결정화 캐즘 계수기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-CNTR-v1.2.12
+// @version     CRYS-CNTR-v1.3.0
 // @description 채팅에 캐릭터 채팅 턴 계수기 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/counter.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/counter.user.js
 // @require      https://cdn.jsdelivr.net/npm/dexie@4.2.1/dist/dexie.min.js#sha256-STeEejq7AcFOvsszbzgCDL82AjypbLLjD5O6tUByfuA=
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.13/decentralized-modal.js#sha256-tt5YRTDFPCoQwcSaw4d4QnjTytPbyVNLzM3g8rkdi8Q=
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-toastify-injection@v1.0.0/crack/libraries/toastify-injection.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-shared-core@v1.0.0/crack/libraries/crack-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@chasm-shared-core@v1.0.0/libraries/chasm-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.15/decentralized-modal.js
 // @grant       GM_addStyle
 // ==/UserScript==
+// @ts-check
+/// <reference path="../decentralized-modal.js" />
+/// <reference path="../libraries/chasm-shared-core.js" />
+/// <reference path="./libraries/crack-shared-core.js" />
+
+// @ts-ignore
 GM_addStyle(`
   .chasm-counter-flex-adjuster {
     display: flex;
@@ -31,180 +40,40 @@ GM_addStyle(`
   }
 `);
 !(async function () {
-  let lastDetectedMessageCount = {};
+  class MessageDetectionState {
+    /**
+     *
+     * @param {boolean} isLoading
+     * @param {number} lastDetected
+     */
+    constructor(isLoading, lastDetected) {
+      this.isLoading = isLoading;
+      this.lastDetected = lastDetected;
+    }
+  }
+  /** @type {Map<string, MessageDetectionState>} */
+  let lastDetectedMessageCount = new Map();
+  // @ts-ignore
   const db = new Dexie("chasm-counter");
   await db.version(1).stores({
     chatStore: `combinedId, chatId, messageId`,
     chatData: `chatId, time`,
   });
-  // =====================================================
-  //                      유틸리티
-  // =====================================================
-  function log(message) {
-    console.log(
-      "%cChasm Crystallized Counter: %cInfo: %c" + message,
-      "color: cyan;",
-      "color: blue;",
-      "color: inherit;"
-    );
-  }
-
-  function logWarning(message) {
-    console.log(
-      "%cChasm Crystallized Counter: %cWarning: %c" + message,
-      "color: cyan;",
-      "color: yellow;",
-      "color: inherit;"
-    );
-  }
-
-  function logError(message) {
-    console.log(
-      "%cChasm Crystallized Counter: %cError: %c" + message,
-      "color: cyan;",
-      "color: red;",
-      "color: inherit;"
-    );
-  }
-
-  /**
-   * 지정한 노드 혹은 요소에 변경 옵저버를 등록합니다.
-   * @param {*} observeTarget 변경 감지 대상
-   * @param {*} lambda 실행할 람다
-   */
-  function attachObserver(observeTarget, lambda) {
-    const Observer = window.MutationObserver || window.WebKitMutationObserver;
-    if (observeTarget && Observer) {
-      let instance = new Observer(lambda);
-      instance.observe(observeTarget, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-      });
-    }
-  }
-
-  /**
-   * 지정한 노드 혹은 요소에 URL 변동 감지성 변경 옵저버를 등록합니다.
-   * 이 펑션으로 등록된 옵저버는 이전과 현재 URL이 다를때만 작동합니다.
-   * @param {*} runIfFirst 첫 초기화시 작동 여부
-   * @param {*} node 변경 감지 대상
-   * @param {*} lambda 실행할 람다
-   */
-  function attachHrefObserver(node, lambda) {
-    let oldHref = location.href;
-    attachObserver(node, () => {
-      if (oldHref !== location.href) {
-        oldHref = location.href;
-        lambda();
-      }
-    });
-  }
 
   // =====================================================
   //                  크랙 종속 유틸리티
   // =====================================================
 
-  /**
-   * 현재 URL이 스토리챗의 URL인지 반환합니다.
-   * @returns 채팅 URL 일치 여부
-   */
-  function isStoryPath() {
-    // 2025-09-17 Path
-    return (
-      /\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname) ||
-      // Legacy Path
-      /\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)
-    );
-  }
-
-  /**
-   * 현재 URL이 캐릭터챗의 URL인지 반환합니다.
-   * @returns 채팅 URL 일치 여부
-   */
-  function isCharacterPath() {
-    return /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname);
-  }
-
-  /**
-   * 현재 크랙의 테마가 다크 모드인지 반환합니다.
-   * @returns 다크 모드가 적용되었는지의 여부
-   */
-  function isDarkMode() {
-    return document.body.getAttribute("data-theme") === "dark";
-  }
-
-  /**
-   * 쿠키에서 액세스 토큰을 추출해 반환합니다.
-   * @returns 액세스 토큰
-   */
-  function extractAccessToken() {
-    const cookies = document.cookie.split(";");
-    for (let cookie of cookies) {
-      const [key, value] = cookie.trim().split("=");
-      if (key === "access_token") return value;
-    }
-    return null;
-  }
-
-  /**
-   * 크랙의 토큰을 인증 수단으로 사용하여 요청을 보냅니다.
-   * @param {string} method 요청 메서드
-   * @param {string} url 요청 URL
-   * @param {any | undefined} body 요청 바디 파라미터
-   * @returns {any | Error} 파싱된 값 혹은 오류
-   */
-  async function authFetch(method, url, body) {
-    try {
-      const param = {
-        method: method,
-        headers: {
-          Authorization: `Bearer ${extractAccessToken()}`,
-          "Content-Type": "application/json",
-        },
-      };
-      if (body) {
-        param.body = JSON.stringify(body);
-      }
-      const result = await fetch(url, param);
-      if (!result.ok)
-        return new Error(
-          `HTTP 요청 실패 (${result.status}) [${await result.json()}]`
-        );
-      return await result.json();
-    } catch (t) {
-      return new Error(`알 수 없는 오류 (${t.message ?? JSON.stringify(t)})`);
-    }
-  }
-
-  async function retryAuthFetch(maxRetry, method, url, body) {
-    let count = 0;
-    let result = undefined;
-    while (count++ < maxRetry) {
-      try {
-        const fetched = authFetch(method, url, body);
-        if (fetched instanceof Error) {
-          result = fetched;
-        } else {
-          return fetched;
-        }
-      } catch (e) {
-        result = e;
-      }
-    }
-    return result;
-  }
-
   function getRenderedMessageCount() {
-    if (isCharacterPath()) {
+    if (CrackUtil.path().isChattingPath()) {
       // 2025-10-04 기준으로 스토리에는 소설형 UI가 존재하지 않음
       return document.getElementsByClassName(
-        isDarkMode() ? "css-f5nv21" : "css-1xhj18k"
+        CrackUtil.theme().isDarkTheme() ? "css-f5nv21" : "css-1xhj18k",
       ).length;
     }
     // 첫번째 클래스가 채팅형 UI, 두번째 클래스가 소설형 UI.
     return (
-      isDarkMode()
+      CrackUtil.theme().isDarkTheme()
         ? getHigherNodes("css-1ifxcjt", "css-15hxmwz")
         : getHigherNodes("css-1ifxcjt", "css-15hxmwz")
     ).length;
@@ -214,67 +83,58 @@ GM_addStyle(`
    * 두개의 클래스를 받아 더 많은 수의 컴포넌트가 존재하는 컴포넌트 배열을 반환합니다.
    * @param {string} clsFirst 첫번째 클래스
    * @param {string} clsSecond 두번쨰 클래스
-   * @returns {HTMLElement[]} 더 많은 수의 컴포넌트 배열
+   * @returns {Element[]} 더 많은 수의 컴포넌트 배열
    */
   function getHigherNodes(clsFirst, clsSecond) {
     const selectedFirst = document.getElementsByClassName(clsFirst);
     const selectedSecond = document.getElementsByClassName(clsSecond);
     return selectedFirst.length > selectedSecond.length
-      ? selectedFirst
-      : selectedSecond;
+      ? Array.from(selectedFirst)
+      : Array.from(selectedSecond);
   }
 
   // =====================================================
   //                      설정
   // =====================================================
-  const settings = {
+  const settings = new LocaleStorageConfig("chasm-cntr-settings", {
     enableStoryCounter: true,
     enableCharacterCounter: true,
-  };
-
-  // It's good to use IndexedDB, but we have to use LocalStorage to block site
-  // cause of risk from unloaded environment and unexpected behavior
-  function loadSettings() {
-    const loadedSettings = localStorage.getItem("chasm-cntr-settings");
-    if (loadedSettings) {
-      const json = JSON.parse(loadedSettings);
-      for (let key of Object.keys(json)) {
-        // Merge setting for version compatibility support
-        settings[key] = json[key];
-      }
-    }
-  }
-
-  function saveSettings() {
-    log("설정 저장중..");
-    // Yay, no need to filtering anything!
-    localStorage.setItem("chasm-cntr-settings", JSON.stringify(settings));
-    log("설정 저장 완료");
-  }
+  });
 
   function isCharacterCounterEnabled() {
-    return settings.enableCharacterCounter && isCharacterPath();
+    return (
+      settings.config.enableCharacterCounter &&
+      CrackUtil.path().isCharacterPath()
+    );
   }
 
   function isStoryCounterEnabled() {
-    return settings.enableStoryCounter && isStoryPath();
+    return settings.config.enableStoryCounter && CrackUtil.path().isStoryPath();
   }
 
   // =====================================================
   //                      로직
   // =====================================================
 
+  /**
+   *
+   * @param {string} chatId
+   * @returns
+   */
   function getChattingLogState(chatId) {
-    let currentLoadingData = lastDetectedMessageCount[chatId];
+    let currentLoadingData = lastDetectedMessageCount.get(chatId);
     if (!currentLoadingData) {
-      currentLoadingData = lastDetectedMessageCount[chatId] = {
-        isLoading: false,
-        lastDetected: -1,
-      };
+      currentLoadingData = new MessageDetectionState(false, -1);
+      lastDetectedMessageCount.set(chatId, currentLoadingData);
     }
     return currentLoadingData;
   }
 
+  /**
+   *
+   * @param {string} chatId
+   * @returns {boolean}
+   */
   function isRenderedMessageChanged(chatId) {
     const state = getChattingLogState(chatId);
     const rendered = getRenderedMessageCount();
@@ -284,34 +144,55 @@ GM_addStyle(`
     return false;
   }
 
+  /**
+   *
+   * @param {string} chatId
+   * @param {number} count
+   */
   function setCachedRenderedMessage(chatId, count) {
     getChattingLogState(chatId).lastDetected = count;
   }
 
+  /**
+   *
+   * @param {string} chatId
+   * @returns {boolean}
+   */
   function isChattingLogLoading(chatId) {
     return getChattingLogState(chatId).isLoading;
   }
 
+  /**
+   *
+   * @param {string} chatId
+   * @param {boolean} loading
+   */
   function setChattingLogLoading(chatId, loading) {
     getChattingLogState(chatId).isLoading = loading;
   }
 
   function invalidateOthers() {
-    if (!isStoryPath() && !isCharacterPath()) {
+    if (!CrackUtil.path().isChattingPath()) {
       for (let key in Object.getOwnPropertyNames(lastDetectedMessageCount)) {
-        delete lastDetectedMessageCount[key];
+        lastDetectedMessageCount.delete(key);
       }
     } else {
       const split = window.location.pathname.substring(1).split("/");
       const chatRoomId = split[3];
       for (let key of Object.keys(lastDetectedMessageCount)) {
         if (chatRoomId !== key) {
-          delete lastDetectedMessageCount[key];
+          lastDetectedMessageCount.delete(key);
         }
       }
     }
   }
 
+  /**
+   *
+   * @param {string} chatId
+   * @param {Element} turnIndicatorElement
+   * @returns
+   */
   async function doFetchMessageCounts(chatId, turnIndicatorElement) {
     try {
       if (!isRenderedMessageChanged(chatId) || isChattingLogLoading(chatId)) {
@@ -319,13 +200,9 @@ GM_addStyle(`
       }
       setCachedRenderedMessage(chatId, getRenderedMessageCount());
       setChattingLogLoading(chatId, true);
-      const count = isStoryPath()
-        ? await fetchMessageCount(chatId, (count) => {
-            turnIndicatorElement.textContent = `${count}턴`;
-          })
-        : await fetchCharacterMessageCount(chatId, (count) => {
-            turnIndicatorElement.textContent = `${count}턴`;
-          });
+      const count = await fetchMessageCount(chatId, (count) => {
+        turnIndicatorElement.textContent = `${count}턴`;
+      });
       turnIndicatorElement.textContent = `${count}턴`;
     } catch (err) {
       if (turnIndicatorElement.textContent !== "오류!") {
@@ -349,6 +226,11 @@ GM_addStyle(`
     );
   }
 
+  /**
+   *
+   * @param {string} chatRoomId
+   * @param {string} messageId
+   */
   async function setMessageCached(chatRoomId, messageId) {
     await db.chatStore.put({
       combinedId: `${chatRoomId}+${messageId}`,
@@ -357,11 +239,20 @@ GM_addStyle(`
     });
   }
 
+  /**
+   *
+   * @param {string} chatRoomId
+   * @returns {Promise<number>}
+   */
   async function getMessageCount(chatRoomId) {
     return await db.chatStore.where("chatId").equals(chatRoomId).count();
   }
 
   // Will update later - Auto delete expired data to reduce internal web storage limit
+  /**
+   *
+   * @param {string} chatRoomId
+   */
   async function setLastAccess(chatRoomId) {
     await db.chatData.put({
       chatId: chatRoomId,
@@ -369,6 +260,10 @@ GM_addStyle(`
     });
   }
 
+  /**
+   *
+   * @param {string} chatRoomId
+   */
   async function setMessageCount(chatRoomId) {
     await db.chatData.put({
       chatId: chatRoomId,
@@ -376,77 +271,23 @@ GM_addStyle(`
     });
   }
 
+  /**
+   *
+   * @param {string} chatId
+   * @param {(count: number) => void} liveReceiver
+   * @returns
+   */
   async function fetchMessageCount(chatId, liveReceiver) {
     await setLastAccess(chatId);
     let chatCounts = await getMessageCount(chatId);
-    let changed = false;
-    let url = `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}/messages?limit=20`;
-    let continueFetch = true;
-    while (continueFetch) {
-      const result = await retryAuthFetch(3, "GET", url);
-      if (!result || result instanceof Error) {
-        throw result ?? new Error("Unknwon error from request");
-      }
-      const dataMessages = result.data.messages;
-      for (let message of dataMessages) {
-        const messageId = message._id;
-        if (message.role === "user") continue;
-        if (!(await isMessageCached(chatId, messageId))) {
-          await setMessageCached(chatId, messageId);
-          changed = true;
-          liveReceiver(++chatCounts);
-          // Let's add some "Modification animation"
-          await new Promise((resolve) => setTimeout(resolve, 2));
-        } else {
-          // Message ID already cached, stop fetching
-          continueFetch = false;
-          break;
-        }
-      }
-      if (result.data.hasNext && result.data.nextCursor) {
-        url = `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}/messages?limit=20&cursor=${result.data.nextCursor}`;
-        // Waiting 50ms to avoid ratelimiting
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      } else {
+    const iterator = CrackUtil.chatRoom().iterateLogs(chatId);
+    for await (let log of iterator) {
+      if (log.isUser()) continue;
+      if (await isMessageCached(chatId, log.id)) {
         break;
-      }
-    }
-    return chatCounts;
-  }
-
-  async function fetchCharacterMessageCount(chatId, liveReceiver) {
-    await setLastAccess(chatId);
-    let chatCounts = await getMessageCount(chatId);
-    let changed = false;
-    let url = `https://crack-api.wrtn.ai/crack-gen/character-chats/${chatId}/messages?limit=40`;
-    let continueFetch = true;
-    while (continueFetch) {
-      const result = await retryAuthFetch(3, "GET", url);
-      if (!result || result instanceof Error) {
-        throw result ?? new Error("Unknwon error from request");
-      }
-      const dataMessages = result.data.messages;
-      for (let message of dataMessages) {
-        const messageId = message._id;
-        if (message.role === "user") continue;
-        if (!(await isMessageCached(chatId, messageId))) {
-          await setMessageCached(chatId, messageId);
-          changed = true;
-          liveReceiver(++chatCounts);
-          // Let's add some "Modification animation"
-          await new Promise((resolve) => setTimeout(resolve, 2));
-        } else {
-          // Message ID already cached, stop fetching
-          continueFetch = false;
-          break;
-        }
-      }
-      if (result.data.hasNext && result.data.nextCursor) {
-        url = `https://crack-api.wrtn.ai/crack-gen/character-chats/${chatId}/messages?limit=40&cursor=${result.data.nextCursor}`;
-        // Waiting 50ms to avoid ratelimiting
-        await new Promise((resolve) => setTimeout(resolve, 50));
       } else {
-        break;
+        await setMessageCached(chatId, log.id);
+        liveReceiver(++chatCounts);
       }
     }
     return chatCounts;
@@ -498,13 +339,13 @@ GM_addStyle(`
     let upperBar = document.getElementById("chasm-shared-chatting-bar");
     if (!upperBar) {
       let parentElement;
-      if (isCharacterPath()) {
+      if (CrackUtil.path().isCharacterPath()) {
         parentElement = document.getElementsByClassName(
-          isDarkMode() ? "css-12u91zd" : "css-12u91zd"
+          CrackUtil.theme().isDarkTheme() ? "css-12u91zd" : "css-12u91zd",
         );
       } else {
         parentElement = document.getElementsByClassName(
-          isDarkMode() ? "css-nqviro" : "css-nqviro"
+          CrackUtil.theme().isDarkTheme() ? "css-nqviro" : "css-nqviro",
         );
       }
       if (!parentElement || parentElement.length <= 0) {
@@ -513,7 +354,7 @@ GM_addStyle(`
       upperBar = document.createElement("div");
       upperBar.id = "chasm-shared-chatting-bar";
       upperBar.className = "chasm-counter-shared-bar";
-      if (isCharacterPath()) {
+      if (CrackUtil.path().isCharacterPath()) {
         parentElement[0].classList.add("chasm-counter-flex-adjuster");
         parentElement[0].insertBefore(upperBar, parentElement[0].childNodes[0]);
       } else {
@@ -532,7 +373,7 @@ GM_addStyle(`
     const chatRoomId = split[3];
     if (document.getElementById("chasm-counter-indicator")) {
       const messageNode = document.getElementById(
-        "chasm-counter-indicator-container"
+        "chasm-counter-indicator-container",
       );
       if (!messageNode) return;
       doFetchMessageCounts(chatRoomId, messageNode);
@@ -571,13 +412,13 @@ GM_addStyle(`
 
   function prepare() {
     setup();
-    attachObserver(document, () => {
+    GenericUtil.attachObserver(document, () => {
       setup();
     });
-    attachHrefObserver(document, () => {
+    GenericUtil.attachHrefObserver(document, () => {
       invalidateOthers();
       const textNode = document.getElementById(
-        "chasm-counter-indicator-container"
+        "chasm-counter-indicator-container",
       );
       if (textNode) {
         textNode.textContent = "--";
@@ -594,24 +435,24 @@ GM_addStyle(`
           "스토리 채팅 계수기",
           "스토리 채팅에서의 계수기 표시를 활성화합니다.",
           {
-            defaultValue: settings.enableStoryCounter,
-            action: (_, value) => {
-              settings.enableStoryCounter = value;
-              saveSettings();
+            defaultValue: settings.config.enableStoryCounter,
+            onChange: (_, value) => {
+              settings.config.enableStoryCounter = value;
+              settings.save();
             },
-          }
+          },
         );
         panel.addSwitchBox(
           "cntr-character",
           "캐릭터 채팅 계수기",
           "캐릭터 채팅에서의 계수기 표시를 활성화합니다.",
           {
-            defaultValue: settings.enableCharacterCounter,
-            action: (_, value) => {
-              settings.enableCharacterCounter = value;
-              saveSettings();
+            defaultValue: settings.config.enableCharacterCounter,
+            onChange: (_, value) => {
+              settings.config.enableCharacterCounter = value;
+              settings.save();
             },
-          }
+          },
         );
       }, "결정화 캐즘 계수기");
     });
@@ -620,28 +461,29 @@ GM_addStyle(`
       panel
         .addText("결정화 캐즘 계수기의 모든 아이콘은 SVGRepo에서 가져왔습니다.")
         .addText(
-          "또한, 일부의 외부 프레임워크를 통해 웹 내부 데이터베이스를 관리하고 있습니다."
+          "또한, 일부의 외부 프레임워크를 통해 웹 내부 데이터베이스를 관리하고 있습니다.",
         )
         .addText(
-          "- 시계 아이콘 (https://www.svgrepo.com/svg/446075/time-history)"
+          "- 시계 아이콘 (https://www.svgrepo.com/svg/446075/time-history)",
         )
         .addText("- dexie.js 프레임워크 (https://dexie.org/)")
         .addText(
-          "- decentralized-modal.js 프레임워크 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)"
+          "- decentralized-modal.js 프레임워크 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)",
         );
     });
   }
 
+  // @ts-ignore
   document.testClear = async () => {
     return await db.chatStore.clear();
   };
 
-  loadSettings();
+  settings.load();
   addMenu();
-  "loading" === document.readyState
+  ("loading" === document.readyState
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
-    window.addEventListener("load", prepare);
+    window.addEventListener("load", prepare));
 
   // =================================================
   //                  메뉴 강제 추가
@@ -652,7 +494,7 @@ GM_addStyle(`
       const itemFound = modal.getElementsByTagName("a");
       for (let item of itemFound) {
         if (item.getAttribute("href") === "/setting") {
-          const clonedElement = item.cloneNode(true);
+          const clonedElement = GenericUtil.clone(item);
           clonedElement.id = "chasm-decentral-menu";
           const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
@@ -664,7 +506,7 @@ GM_addStyle(`
               .withLicenseCredential()
               .display(document.body.getAttribute("data-theme") !== "light");
           };
-          item.parentElement.append(clonedElement);
+          item.parentElement?.append(clonedElement);
           break;
         }
       }
@@ -676,7 +518,7 @@ GM_addStyle(`
       const selected = document.getElementsByTagName("a");
       for (const element of selected) {
         if (element.getAttribute("href") === "/my-page") {
-          const clonedElement = element.cloneNode(true);
+          const clonedElement = GenericUtil.clone(element);
           clonedElement.id = "chasm-decentral-menu";
           const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
@@ -688,16 +530,17 @@ GM_addStyle(`
               .withLicenseCredential()
               .display(document.body.getAttribute("data-theme") !== "light");
           };
-          element.parentElement.append(clonedElement);
+          element.parentElement?.append(clonedElement);
         }
       }
     }
   }
 
   function __doModalMenuInit() {
-    if (document.c2ModalInit) return;
-    document.c2ModalInit = true;
-    attachObserver(document, () => {
+    const refined = GenericUtil.refine(document);
+    if (refined.c2ModalInit) return;
+    refined.c2ModalInit = true;
+    GenericUtil.attachObserver(document, () => {
       __updateModalMenu();
     });
   }

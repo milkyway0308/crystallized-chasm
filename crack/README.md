@@ -31,7 +31,7 @@ Chasm Snack을 기반으로 수정되었으며, 원본 캐즘 버전은 [6월 11
 **결정화 캐즘 프로젝트는 스크립트별로 기능이 분리됩니다.**<br>
 **반드시 모든 스크립트를 설치할 필요는 없습니다. 필요한 기능만 골라 설치하세요.**
 
-## 결정화 캐즘 - 네오-카피(v2.2.7) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/neocopy.user.js) ]<br>
+## 결정화 캐즘 - 네오-카피(v2.3.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/neocopy.user.js) ]<br>
 
 결정화 캐즘 네오-카피는 크랙 캐릭터 제작자를 위한 보조 도구입니다.<br>
 캐릭터의 원본 데이터를 JSON 형태로 추출하거나 개정된 원본 데이터를 붙여넣고,<br>
@@ -50,22 +50,22 @@ Chasm Snack을 기반으로 수정되었으며, 원본 캐즘 버전은 [6월 11
 > ⚠ 세션 아래 표시되는 소모량은 세션 소모량이 아닌 캐릭터 소모량입니다.<br>
 > ⚠ 6월 크래커 업데이트 이전 소모된 슈퍼챗은 크래커 35개로 환산되어 계산됩니다.
 
-## 결정화 캐즘 - 이그나이터 / 점화기 (v1.5.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/ignitor.user.js) ]<br>
+## 결정화 캐즘 - 이그나이터 / 점화기 (v1.6.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/ignitor.user.js) ]<br>
 
 결정화 캐즘 이그나이터는 재작성된 개선된 버너 모듈입니다.
 
 채팅방의 채팅을 외부 LLM에 의탁하여 요약하며, 프롬프트 공유 및 보관이 가능하도록 개선되었습니다.
 
 
-## 결정화 캐즘 - 과포화 (v1.6.3) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/tmi.user.js) ]<br>
+## 결정화 캐즘 - 과포화 (v1.7.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/tmi.user.js) ]<br>
 
 결정화 캐즘 과포화는 채팅의 소모 개수를 과거의 슈퍼챗 개수 표기로 변환하여 소모량 및 잔여량을 더욱 가시적으로 보여줍니다.<br>
 
-## 결정화 캐즘 - 계수기 (v1.2.12) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/counter.user.js) ]<br>
+## 결정화 캐즘 - 계수기 (v1.3.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/counter.user.js) ]<br>
 
 결정화 캐즘 계수기는 채팅 입력 칸 위에 현재 채팅이 진행된 턴 수를 표시해줍니다.<br>
 
-## 결정화 캐즘 - 뮤트 (v1.1.12) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/mute.user.js) ]<br>
+## 결정화 캐즘 - 뮤트 (v1.2.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/mute.user.js) ]<br>
 
 결정화 캐즘 뮤트는 채팅창에서 TTS 버튼을 완전히 삭제해줍니다.<br>
 TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
@@ -73,22 +73,22 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 > ⚠ 결정화 캐즘 뮤트는 안정성을 위해 노드를 제거하지 않고 렌더에서 제거합니다.<br>
 > 이 기능으로 인해 많은 양의 반복 호출이 발생할 수 있으며, 이는 크랙 웹 사이트의 성능 저하를 불러올 수 있습니다.
 
-## 결정화 캐즘 - 절대 영도 (v1.1.12) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/absolutezero.user.js) ]<br>
+## 결정화 캐즘 - 절대 영도 (v1.2.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/absolutezero.user.js) ]<br>
 
 결정화 캐즘 절대영도는 랭킹 화면에서의 GIF / WEBP 재생을 중지하고, 호버하는 대상에만 적용시킵니다.<br>
 
-## 결정화 캐즘 - 국소지진계 (v1.0.2) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/local-seismometer.user.js) ]<br>
+## 결정화 캐즘 - 국소지진계 (v1.1.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/local-seismometer.user.js) ]<br>
 
 결정화 캐즘 국소지진계는 요약 메모리의 변경을 감지하고 알립니다. <br>
 
-## 결정화 캐즘 - 자명종 (v1.0.2) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alarm-clock.user.js) ]<br>
+## 결정화 캐즘 - 자명종 (v1.1.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alarm-clock.user.js) ]<br>
 더 이상의 출석 이벤트 놓침은 그만, 자명종 모듈과 함께 개근상을 노려보세요. <br>
 
-## 결정화 캐즘 - 꿈일기 (v1.1.5) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/dreamdiary.user.js) ]<br>
+## 결정화 캐즘 - 꿈일기 (v1.2.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/dreamdiary.user.js) ]<br>
 
 결정화 캐즘 꿈일기는 유저노트에 목록을 만들어줍니다. <br>
 
-## 결정화 캐즘 - 네뷸라이저 (v1.3.12) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/nebulizer.user.js) ]<br>
+## 결정화 캐즘 - 네뷸라이저 (v1.4.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/nebulizer.user.js) ]<br>
 
 결정화 캐즘 네뷸라이저는 차단된 제작자의 댓글 숨김 및 대량 자동 삭제를 추가해줍니다.<br>
 
@@ -102,18 +102,18 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 덤으로 손도 더 깔끔해집니다. 과학이죠!
 
 
-## 결정화 캐즘 - 동결 건조 (v1.0.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/lyophilization.user.js) ]<br>
+## 결정화 캐즘 - 동결 건조 (v1.1.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/lyophilization.user.js) ]<br>
 
 결정화 캐즘 동결 건조는 채팅방 히스토리 추출 기능을 제공합니다. <br>
 
 
-## 결정화 캐즘 - 복사기 (v1.0.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/copycat.user.js) ]<br>
+## 결정화 캐즘 - 복사기 (v1.1.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/copycat.user.js) ]<br>
 
 결정화 캐즘 복사기는 메시지 및 프롬프트 창을 길게 누르면 메시지를 복사하는 기능을 추가합니다. <br>
 
 앱에서의 입력 UX 경험을 PC로 일부 가져오거나, 웹에서 앱의 입력 조작감을 사용하고 싶으신 경우에 좋습니다.<br>
 
-## 결정화 캐즘 - 차원이동 (v1.4.10) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alternation.user.js) ]<br>
+## 결정화 캐즘 - 차원이동 (v1.5.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alternation.user.js) ]<br>
 
 지금 그대로의 이야기의 또 다른 이야기를 듣고 싶지 않으신가요?<br>
 아니면, 내 실수로 인해 망가질 이 이야기를 위해 선택지를 보류하고 싶으신 경험, 있지 않으신가요?<br><br>
