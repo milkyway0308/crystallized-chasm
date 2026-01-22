@@ -162,6 +162,20 @@ class GenericUtil {
     }
     return true;
   }
+
+  /**
+   * 숫자의 최소 소숫점과 최대 소숫점 자리를 지정해 문자열로 만들어 반환합니다.
+   * @param {number} number 대상 숫자
+   * @param {number} minDigit 최소 소숫점 개수
+   * @param {number} maxdigit 최대 소숫점 개수
+   * @returns {string} 포매팅된 문자열
+   */
+  static formatNumber(number, minDigit = 1, maxdigit = 1) {
+    return number.toLocaleString("en-US", {
+      minimumFractionDigits: minDigit,
+      maximumFractionDigits: maxdigit,
+    });
+  }
 }
 
 /**
@@ -236,7 +250,7 @@ class LogUtil {
       this.log(`디버그 로그가 활성화된 상태입니다.`);
     } else {
       this.log(
-        `디버그 로그를 활성화하려면 콘솔 창에 'document[${this.debugId}] = true'를 입력하세요.`,
+        `디버그 로그를 활성화하려면 콘솔 창에 'document["${this.debugId}"] = true'를 입력하세요.`,
       );
     }
   }
