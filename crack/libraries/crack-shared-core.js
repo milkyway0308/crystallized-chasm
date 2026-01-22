@@ -729,7 +729,12 @@ class CrackChattingLog {
    * @returns {CrackSimplifiedChattingLog} 단순화된 로그
    */
   simplify() {
-    return new CrackSimplifiedChattingLog(this.role, this.content, this.situationImages, this.parameterSnapshots);
+    return new CrackSimplifiedChattingLog(
+      this.role,
+      this.content,
+      this.situationImages,
+      this.parameterSnapshots,
+    );
   }
 
   /**
@@ -1672,6 +1677,11 @@ class _CrackChatRoomApi {
         if (maxCount !== -1 && ++amount >= maxCount) {
           break;
         }
+      }
+      if (result.data.nextCursor) {
+        cursor = result.data.nextCursor;
+      } else {
+        break;
       }
       delay > 0 && (await new Promise((resolve) => setTimeout(resolve, delay)));
     }
