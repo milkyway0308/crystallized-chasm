@@ -2,112 +2,46 @@
 // ==UserScript==
 // @name         Chasm Crystallized Mute (결정화 캐즘 뮤트)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-MUTE-v1.1.12
+// @version      CRYS-MUTE-v1.2.0p
 // @description  TTS 버튼 제거. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/mute.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/mute.user.js
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.13/decentralized-modal.js#sha256-tt5YRTDFPCoQwcSaw4d4QnjTytPbyVNLzM3g8rkdi8Q=
+// @require      https://github.com/milkyway0308/crystallized-chasm/raw/4e25ff24b52aaa00c70d74ab19a13d6617fc59b8/crack/libraries/toastify-injection.js
+// @require      https://github.com/milkyway0308/crystallized-chasm/raw/4e25ff24b52aaa00c70d74ab19a13d6617fc59b8/crack/libraries/crack-shared-core.js
+// @require      https://github.com/milkyway0308/crystallized-chasm/raw/4e25ff24b52aaa00c70d74ab19a13d6617fc59b8/libraries/chasm-shared-core.js
+// @require      https://github.com/milkyway0308/crystallized-chasm/raw/4e25ff24b52aaa00c70d74ab19a13d6617fc59b8/decentralized-modal.js
 // @grant        GM_addStyle
 // ==/UserScript==
+
+// @ts-check
+/// <reference path="../decentralized-modal.js" />
+/// <reference path="../libraries/chasm-shared-core.js" />
+/// <reference path="./libraries/crack-shared-core.js" />
+
+// @ts-ignore
 GM_addStyle(`
   .chasm-mute-disabled {
     display: none !important;
   }  
 `);
 (function () {
-  // =====================================================
-  //                     유틸리티
-  // =====================================================
-
-  function attachObserver(observeTarget, lambda) {
-    const Observer = window.MutationObserver || window.WebKitMutationObserver;
-    if (observeTarget && Observer) {
-      let instance = new Observer(lambda);
-      instance.observe(observeTarget, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-      });
-    }
-  }
-
-  function log(message) {
-    console.log(
-      "%cChasm Crystallized Mute: %cInfo: %c" + message,
-      "color: cyan;",
-      "color: blue;",
-      "color: inherit;"
-    );
-  }
-
-  // =====================================================
-  //                  크랙 종속 유틸리티
-  // =====================================================
-
-  /**
-   * 현재 URL이 스토리챗의 URL인지 반환합니다.
-   * @returns 채팅 URL 일치 여부
-   */
-  function isStoryPath() {
-    // 2025-09-17 Path
-    return (
-      /\/stories\/[a-f0-9]+\/episodes\/[a-f0-9]+/.test(location.pathname) ||
-      // Legacy Path
-      /\/u\/[a-f0-9]+\/c\/[a-f0-9]+/.test(location.pathname)
-    );
-  }
-
-  /**
-   * 현재 URL이 캐릭터챗의 URL인지 반환합니다.
-   * @returns 채팅 URL 일치 여부
-   */
-  function isCharacterPath() {
-    return /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname);
-  }
-
-  /**
-   * 현재 크랙의 테마가 다크 모드인지 반환합니다.
-   * @returns 다크 모드가 적용되었는지의 여부
-   */
-  function isDarkMode() {
-    return document.body.getAttribute("data-theme") === "dark";
-  }
+  const logger = new LogUtil("Chasm Crystallized Mute", false);
   // =====================================================
   //                      설정
   // =====================================================
-  const settings = {
+  const settings = new LocaleStorageConfig("chasm-mute-settings", {
     enableStoryMute: true,
     enableCharacterMute: true,
-  };
-
-  // It's good to use IndexedDB, but we have to use LocalStorage to block site
-  // cause of risk from unloaded environment and unexpected behavior
-  function loadSettings() {
-    const loadedSettings = localStorage.getItem("chasm-mute-settings");
-    if (loadedSettings) {
-      const json = JSON.parse(loadedSettings);
-      for (let key of Object.keys(json)) {
-        // Merge setting for version compatibility support
-        settings[key] = json[key];
-      }
-    }
-  }
-
-  function saveSettings() {
-    log("설정 저장중..");
-    // Yay, no need to filtering anything!
-    localStorage.setItem("chasm-mute-settings", JSON.stringify(settings));
-    log("설정 저장 완료");
-  }
+  });
 
   function isCharacterMuteEnabled() {
-    return settings.enableCharacterMute && isCharacterPath();
+    return settings.config.enableCharacterMute && CrackUtil.path().isCharacterPath();
   }
 
   function isStoryMuteEnabled() {
-    return settings.enableStoryMute && isStoryPath();
+    return settings.config.enableStoryMute && CrackUtil.path().isStoryPath();
   }
 
   // =====================================================
@@ -122,22 +56,20 @@ GM_addStyle(`
     if (__updating) return;
     try {
       __updating = true;
-      const dropdown = document.querySelector("div[data-radix-popper-content-wrapper] div[data-radix-menu-content]");
+      const dropdown = document.querySelector(
+        "div[data-radix-popper-content-wrapper] div[data-radix-menu-content]",
+      );
       if (dropdown && dropdown.childNodes.length > 0) {
         for (let button of dropdown.childNodes) {
           const buttonText = button.childNodes[button.childNodes.length - 1];
-          console.log(buttonText.innerText);
-          if (
-            buttonText &&
-            buttonText.textContent === "목소리 재생"
-          ) {
+          if (buttonText && buttonText.textContent === "목소리 재생") {
             button.remove();
             break;
           }
         }
       }
       const elements = document.querySelectorAll(
-        ".css-n55rwb .css-1bamzls :not(.chasm-mute-disabled)"
+        ".css-n55rwb .css-1bamzls :not(.chasm-mute-disabled)",
       );
       if (!elements || elements.length <= 0) {
         return;
@@ -147,7 +79,7 @@ GM_addStyle(`
           element.classList.add(".chasm-mute-disabled");
           const emptyDiv = document.createElement("div");
           emptyDiv.classList.add("chasm-mute-placeholder");
-          element.parentElement.insertBefore(emptyDiv, element);
+          GenericUtil.refine(element.parentElement).insertBefore(emptyDiv, element);
         }
       }
     } finally {
@@ -159,7 +91,7 @@ GM_addStyle(`
     if (isCharacterMuteEnabled() || isStoryMuteEnabled()) {
       check();
     }
-    attachObserver(document, () => {
+    GenericUtil.attachObserver(document, () => {
       if (isCharacterMuteEnabled() || isStoryMuteEnabled()) {
         check();
       }
@@ -169,11 +101,11 @@ GM_addStyle(`
   // =====================================================
   //                       초기화
   // =====================================================
-  loadSettings();
-  "loading" === document.readyState
+  settings.load();
+  ("loading" === document.readyState
     ? document.addEventListener("DOMContentLoaded", prepare)
     : prepare(),
-    window.addEventListener("load", prepare);
+    window.addEventListener("load", prepare));
 
   // =====================================================
   //                     설정 메뉴
@@ -187,12 +119,12 @@ GM_addStyle(`
           "스토리 TTS 버튼 제거",
           "스토리 작품에서 TTS 버튼을 제거할지의 여부입니다.",
           {
-            defaultValue: settings.enableStoryMute,
-            action: (_, value) => {
-              settings.enableStoryMute = value;
-              saveSettings();
+            defaultValue: settings.config.enableStoryMute,
+            onChange: (_, value) => {
+              settings.config.enableStoryMute = value;
+              settings.save();
             },
-          }
+          },
         );
 
         panel.addSwitchBox(
@@ -200,19 +132,19 @@ GM_addStyle(`
           "캐릭터 TTS 버튼 제거",
           "캐릭터 작품에서 TTS 버튼을 제거할지의 여부입니다.",
           {
-            defaultValue: settings.enableCharacterMute,
-            action: (_, value) => {
-              settings.enableCharacterMute = value;
-              saveSettings();
+            defaultValue: settings.config.enableCharacterMute,
+            onChange: (_, value) => {
+              settings.config.enableCharacterMute = value;
+              settings.save();
             },
-          }
+          },
         );
       }, "결정화 캐즘 뮤트");
     });
     manager.addLicenseDisplay((panel) => {
       panel.addTitleText("결정화 캐즘 뮤트");
       panel.addText(
-        "- decentralized-modal.js 프레임워크 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)"
+        "- decentralized-modal.js 프레임워크 (https://github.com/milkyway0308/crystalized-chasm/decentralized.js)",
       );
     });
   }
@@ -228,7 +160,7 @@ GM_addStyle(`
       const itemFound = modal.getElementsByTagName("a");
       for (let item of itemFound) {
         if (item.getAttribute("href") === "/setting") {
-          const clonedElement = item.cloneNode(true);
+          const clonedElement = GenericUtil.clone(item);
           clonedElement.id = "chasm-decentral-menu";
           const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
@@ -240,7 +172,7 @@ GM_addStyle(`
               .withLicenseCredential()
               .display(document.body.getAttribute("data-theme") !== "light");
           };
-          item.parentElement.append(clonedElement);
+          item.parentElement?.append(clonedElement);
           break;
         }
       }
@@ -252,7 +184,7 @@ GM_addStyle(`
       const selected = document.getElementsByTagName("a");
       for (const element of selected) {
         if (element.getAttribute("href") === "/my-page") {
-          const clonedElement = element.cloneNode(true);
+          const clonedElement = GenericUtil.clone(element);
           clonedElement.id = "chasm-decentral-menu";
           const textElement = clonedElement.getElementsByTagName("span")[0];
           textElement.innerText = "결정화 캐즘";
@@ -264,16 +196,17 @@ GM_addStyle(`
               .withLicenseCredential()
               .display(document.body.getAttribute("data-theme") !== "light");
           };
-          element.parentElement.append(clonedElement);
+          element.parentElement?.append(clonedElement);
         }
       }
     }
   }
 
   function __doModalMenuInit() {
-    if (document.c2ModalInit) return;
-    document.c2ModalInit = true;
-    attachObserver(document, () => {
+    const refined = GenericUtil.refine(document);
+    if (refined.c2ModalInit) return;
+    refined.c2ModalInit = true;
+    GenericUtil.attachObserver(document, () => {
       __updateModalMenu();
     });
   }
