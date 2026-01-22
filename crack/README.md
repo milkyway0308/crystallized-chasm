@@ -57,7 +57,7 @@ Chasm Snack을 기반으로 수정되었으며, 원본 캐즘 버전은 [6월 11
 채팅방의 채팅을 외부 LLM에 의탁하여 요약하며, 프롬프트 공유 및 보관이 가능하도록 개선되었습니다.
 
 
-## 결정화 캐즘 - 과포화 (v1.7.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/tmi.user.js) ]<br>
+## 결정화 캐즘 - 과포화 (v1.7.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/tmi.user.js) ]<br>
 
 결정화 캐즘 과포화는 채팅의 소모 개수를 과거의 슈퍼챗 개수 표기로 변환하여 소모량 및 잔여량을 더욱 가시적으로 보여줍니다.<br>
 
