@@ -2009,6 +2009,8 @@ class _CrackChatRoomApi {
       socket: socket,
       timeout: timeout,
       onMessageSent: async (user, bot) => {
+        console.log(JSON.stringify(user));
+        console.log(await this.findLastUserMessage(chatId));
         await this.deleteMessage(chatId, user.id);
         const result = onMessageSent?.(bot);
         if (result instanceof Promise) {
