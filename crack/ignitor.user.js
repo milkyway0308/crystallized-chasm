@@ -2547,7 +2547,7 @@ GM_addStyle(`
     async fetch(maxCount) {
       if (!this.chatId) return new Error("대상 경로가 아닙니다");
       const items = await CrackUtil.chatRoom().extractLogs(this.chatId, {
-        maxCount: maxCount,
+        maxCount: maxCount > 0 ? maxCount : -1,
       });
       if (items instanceof Error) {
         return items;
