@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Alternation (결정화 캐즘 차원이동)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-ALTR-v1.5.1
+// @version     CRYS-ALTR-v1.5.2
 // @description 채팅 로그 복사 및 새 채팅방으로 포크. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -18,7 +18,7 @@
 /// <reference path="../decentralized-modal.js" />
 /// <reference path="../libraries/chasm-shared-core.js" />
 /// <reference path="./libraries/crack-shared-core.js" />
-
+/// <reference path="./libraries/toastify-injection.js" />
 // @ts-ignore
 GM_addStyle(`
   @keyframes chasm-rotate {
@@ -194,13 +194,12 @@ GM_addStyle(`
     }
     updateDescription("채팅 로그 추출중");
     const extractedChats = await CrackUtil.chatRoom().extractLogs(chatRoomId, {
-      maxCount: Math.max(-1, settings.config.maxGatheringChatLog),
+      maxCount: settings.config.maxGatheringChatLog <= 0 ? -1 : settings.config.maxGatheringChatLog,
       naturalOrder: true,
     });
     if (extractedChats instanceof Error) {
       logger.error("채팅 추출 도중 오류가 발생하였습니다.", extractedChats);
       alert("채팅 추출에 실패하였습니다.");
-
       return;
     }
     if (extractedChats.length === 0 || (extractedChats.length === 1 && extractedChats[0].isPrologue)) {
