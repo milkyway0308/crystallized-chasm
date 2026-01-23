@@ -113,7 +113,7 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 
 앱에서의 입력 UX 경험을 PC로 일부 가져오거나, 웹에서 앱의 입력 조작감을 사용하고 싶으신 경우에 좋습니다.<br>
 
-## 결정화 캐즘 - 차원이동 (v1.5.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alternation.user.js) ]<br>
+## 결정화 캐즘 - 차원이동 (v1.5.1) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alternation.user.js) ]<br>
 
 지금 그대로의 이야기의 또 다른 이야기를 듣고 싶지 않으신가요?<br>
 아니면, 내 실수로 인해 망가질 이 이야기를 위해 선택지를 보류하고 싶으신 경험, 있지 않으신가요?<br><br>
