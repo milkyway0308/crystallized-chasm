@@ -50,7 +50,7 @@ Chasm Snack을 기반으로 수정되었으며, 원본 캐즘 버전은 [6월 11
 > ⚠ 세션 아래 표시되는 소모량은 세션 소모량이 아닌 캐릭터 소모량입니다.<br>
 > ⚠ 6월 크래커 업데이트 이전 소모된 슈퍼챗은 크래커 35개로 환산되어 계산됩니다.
 
-## 결정화 캐즘 - 이그나이터 / 점화기 (v1.6.2) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/ignitor.user.js) ]<br>
+## 결정화 캐즘 - 이그나이터 / 점화기 (v1.6.3) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/ignitor.user.js) ]<br>
 
 결정화 캐즘 이그나이터는 재작성된 개선된 버너 모듈입니다.
 
