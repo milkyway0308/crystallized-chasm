@@ -1,5 +1,5 @@
 //
-// crack-shared-core.js v1.0.0 by Team IGX
+// crack-shared-core.js v1.1.0 by Team IGX
 // crack-shared-core은 TS의 문법 검사와 JSDoc을 통한 브라우저 스크립트 전용 크랙 유틸리티입니다.
 //
 
@@ -141,6 +141,83 @@ class CrackUser {
   }
 }
 
+class CrackNotification {
+  /** @property {string} 알림 ID */
+  id;
+  /** @property {boolean} 읽기 여부 */
+  isRead;
+  /** @property {string} 알림 제목 */
+  pushTitle;
+  /** @property {string} 알림 내용 */
+  pushBody;
+  /** @property {string} 알림 카테고리 */
+  category;
+  /** @property {string} 알림 웹링크 */
+  appLink;
+  /** @property  {string} 알림 웹링크 */
+  webLink;
+  /** @property {string} 썸네일 URL */
+  thumbnail;
+  /** @property {Date} 알림 생성일 */
+  createdAt;
+  /** @property {Date} 알림 갱신일 */
+  updatedAt;
+  /**
+   * @param {string} id 알림 ID
+   * @param {boolean} isRead 읽기 여부
+   * @param {string} pushTitle 알림 제목
+   * @param {string} pushBody 알림 내용
+   * @param {string} category 알림 카테고리
+   * @param {string} appLink 알림 웹링크
+   * @param {string} webLink 알림 웹링크
+   * @param {string} thumbnail 썸네일 URL
+   * @param {Date} createdAt 알림 생성일
+   * @param {Date} updatedAt 알림 갱신일
+   */
+  constructor(
+    id,
+    isRead,
+    pushTitle,
+    pushBody,
+    category,
+    appLink,
+    webLink,
+    thumbnail,
+    createdAt,
+    updatedAt,
+  ) {
+    this.id = id;
+    this.isRead = isRead;
+    this.pushTitle = pushTitle;
+    this.pushBody = pushBody;
+    this.category = category;
+    this.appLink = appLink;
+    this.webLink = webLink;
+    this.thumbnail = thumbnail;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+  }
+
+  /**
+   * JSON 스키마에서 데이터를 정제합니다.
+   * @param {any} container
+   * @returns {CrackNotification} 정제된 데이터
+   */
+  static of(container) {
+    return new CrackNotification(
+      container._id,
+      container.isRead,
+      container.push?.title ?? "",
+      container.push?.body ?? "",
+      container.category,
+      container.appLink,
+      container.webLink,
+      container.thumbnail,
+      new Date(container.createdAt),
+      new Date(container.updatedAt),
+    );
+  }
+}
 class CrackPromptTemplate extends ImageMappable {
   /** @property {string} 템플릿 표기 이름 */
   name;
@@ -2106,6 +2183,77 @@ class _CrackChatRoomApi {
   }
 }
 
+class _CrackNotificationApi {
+  /** @property {_CrackNetworkApi} */
+  #network;
+  /**
+   * @param {_CrackNetworkApi} network
+   */
+  constructor(network) {
+    this.#network = network;
+  }
+
+  /**
+   * 현재 계정의 알림을 받아옵니다.
+   * **알람은 기본값일 경우 최신부터 오래된 순서로 반환됩니다.**
+   * @generator
+   * @param {Object} [param] 옵션 파라미터
+   * @param {number} [param.maxCount=-1] 최대로 가져올 알림 개수. -1로 입력시, 모든 알림을 가져옵니다.
+   * @param {number} [param.delay=20] 각 요청마다 대기할 간격입니다. 이 옵션이 없는 경우, 크랙의 API 서버에서 레이트리밋을 반환할 가능성이 존재합니다.
+   * @param {number} [param.itemPerPage=20] 각 요청마다 가져올 최대 페이지입니다. 특별한 상황이 아닌 경우, 기본 값 사용을 권장합니다. 20개를 초과할 경우, 크랙 API가 작동하지 않을 수 있습니다.
+   * @yields {CrackNotification} 추출된 알림
+   * @returns {AsyncGenerator<CrackNotification, void, void>} 생성된 제너레이터
+   */
+  async *iterator({ maxCount = -1, delay = 20, itemPerPage = 20 } = {}) {
+    let amount = 0;
+    let page = 1;
+    while (maxCount === -1 || amount < maxCount) {
+      const nextUrl = `https://crack-api.wrtn.ai/crack-api/alarm?page=${page++}&limit=${itemPerPage}`;
+      const result = await this.#network.authFetch("GET", nextUrl);
+      if (result instanceof Error) {
+        throw result;
+      }
+
+      for (let message of result.data.messages) {
+        if ((message.content?.length ?? 0) === 0) continue;
+        yield CrackNotification.of(message);
+        if (maxCount !== -1 && ++amount >= maxCount) {
+          break;
+        }
+      }
+      if (!result.hasNext) {
+        break;
+      }
+      delay > 0 && (await new Promise((resolve) => setTimeout(resolve, delay)));
+    }
+  }
+
+  /**
+   * 알람 목록을 추출합니다.
+   * @param {Object} [param] 옵션 파라미터
+   * @param {number} [param.maxCount=-1] 최대로 가져올 알림 개수. -1로 입력시, 모든 알림을 가져옵니다.
+   * @param {number} [param.delay=20] 각 요청마다 대기할 간격입니다. 이 옵션이 없는 경우, 크랙의 API 서버에서 레이트리밋을 반환할 가능성이 존재합니다.
+   * @param {number} [param.itemPerPage=20] 각 요청마다 가져올 최대 페이지입니다. 특별한 상황이 아닌 경우, 기본 값 사용을 권장합니다. 20개를 초과할 경우, 크랙 API가 작동하지 않을 수 있습니다.
+   * @param {boolean} [param.naturalOrder=false] 어느 순서로 알림을 가져올지의 여부입니다. true일 경우, 시간 흐름대로 반환합니다(오래된 알림 -> 최신 알림). false일 경우, 역순으로 반환합니다(최신 메시지 -> 오래된 메시지).
+   * @returns {Promise<CrackNotification[] | Error>} 채팅 로그 목록 혹은 오류
+   */
+  async current({ maxCount = -1, delay = 20, naturalOrder = false } = {}) {
+    /** @type {CrackNotification[]} */
+    const notifications = [];
+    for await (let notification of this.iterator({
+      maxCount: maxCount,
+      delay: delay,
+    })) {
+      if (naturalOrder) {
+        notifications.unshift(notification);
+      } else {
+        notifications.push(notification);
+      }
+    }
+    return notifications;
+  }
+}
+
 /**
  * 크랙 UI 컴포넌트 추출 유틸리티.
  * 이 클래스는 크랙 UI 변경에 따라 문제가 발생할 수 있습니다.
@@ -2174,6 +2322,7 @@ class CrackUtil {
     this.#io,
   );
   static #story = new _CrackStoryApi(this.#generic, this.#user, this.#network);
+  static #notification = new _CrackNotificationApi(this.#network); 
   static #cracker = new _CrackCrackerApi(this.#network);
   static #attend = new _CrackAttendApi(this.#network);
 
@@ -2191,6 +2340,14 @@ class CrackUtil {
    */
   static chatRoom() {
     return this.#room;
+  }
+
+  /**
+   * 크랙 알림 유틸리티를 반환합니다.
+   * @returns {_CrackNotificationApi} 알림 유틸리티
+   */
+  static notification() {
+    return this.#notification;
   }
 
   /**
