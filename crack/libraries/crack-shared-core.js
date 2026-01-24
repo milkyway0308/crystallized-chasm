@@ -2213,10 +2213,8 @@ class _CrackNotificationApi {
       if (result instanceof Error) {
         throw result;
       }
-
-      for (let message of result.data.alarms) {
-        if ((message.content?.length ?? 0) === 0) continue;
-        yield CrackNotification.of(message);
+      for (let notification of result.data.alarms) {
+        yield CrackNotification.of(notification);
         if (maxCount !== -1 && ++amount >= maxCount) {
           break;
         }
