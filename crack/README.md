@@ -102,6 +102,11 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 덤으로 손도 더 깔끔해집니다. 과학이죠!
 
 
+## 결정화 캐즘 - 아코디언 (v1.0.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/accordion.user.js) ]<br>
+
+결정화 캐즘 아코디언은 스토리 및 캐릭터 에디터의 모든 텍스트에이리어 요소에 크기 조절 기능을 추가합니다.<br>
+창 늘리는 재미도 약간 추가됩니다.
+
 ## 결정화 캐즘 - 동결 건조 (v1.1.0) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/lyophilization.user.js) ]<br>
 
 결정화 캐즘 동결 건조는 채팅방 히스토리 추출 기능을 제공합니다. <br>
