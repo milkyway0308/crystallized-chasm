@@ -1,5 +1,5 @@
 //
-// crack-shared-core.js v1.1.2 by Team IGX
+// crack-shared-core.js v1.2.0 by Team IGX
 // crack-shared-core은 TS의 문법 검사와 JSDoc을 통한 브라우저 스크립트 전용 크랙 유틸리티입니다.
 //
 
@@ -116,18 +116,7 @@ class CrackUser {
    * @param {number} follower 팔로워 수
    * @param {number} following 팔로잉 수
    */
-  constructor(
-    id,
-    userId,
-    wrtnUid,
-    nickname,
-    introdution,
-    profileImage,
-    createdAt,
-    updatedAt,
-    follower,
-    following,
-  ) {
+  constructor(id, userId, wrtnUid, nickname, introdution, profileImage, createdAt, updatedAt, follower, following) {
     this.id = id;
     this.userId = userId;
     this.wrtnUid = wrtnUid;
@@ -174,18 +163,7 @@ class CrackNotification {
    * @param {Date} createdAt 알림 생성일
    * @param {Date} updatedAt 알림 갱신일
    */
-  constructor(
-    id,
-    isRead,
-    pushTitle,
-    pushBody,
-    category,
-    appLink,
-    webLink,
-    thumbnail,
-    createdAt,
-    updatedAt,
-  ) {
+  constructor(id, isRead, pushTitle, pushBody, category, appLink, webLink, thumbnail, createdAt, updatedAt) {
     this.id = id;
     this.isRead = isRead;
     this.pushTitle = pushTitle;
@@ -204,18 +182,7 @@ class CrackNotification {
    * @returns {CrackNotification} 정제된 데이터
    */
   static of(container) {
-    return new CrackNotification(
-      container._id,
-      container.isRead,
-      container.push?.title ?? "",
-      container.push?.body ?? "",
-      container.category,
-      container.appLink,
-      container.webLink,
-      container.thumbnail,
-      new Date(container.createdAt),
-      new Date(container.updatedAt),
-    );
+    return new CrackNotification(container._id, container.isRead, container.push?.title ?? "", container.push?.body ?? "", container.category, container.appLink, container.webLink, container.thumbnail, new Date(container.createdAt), new Date(container.updatedAt));
   }
 }
 class CrackPromptTemplate extends ImageMappable {
@@ -240,11 +207,7 @@ class CrackPromptTemplate extends ImageMappable {
    * @returns {CrackPromptTemplate} 정제된 데이터
    */
   static of(container) {
-    return new CrackPromptTemplate(
-      container.name,
-      container.template,
-      container.icon,
-    );
+    return new CrackPromptTemplate(container.name, container.template, container.icon);
   }
 }
 
@@ -300,11 +263,7 @@ class CrackStoryDescription {
    * @returns {CrackStoryDescription} 정제된 데이터
    */
   static of(container) {
-    return new CrackStoryDescription(
-      container.description,
-      container.simpleDescription,
-      container.detailDescription,
-    );
+    return new CrackStoryDescription(container.description, container.simpleDescription, container.detailDescription);
   }
 }
 class CrackMappedImage extends ImageMappable {
@@ -417,20 +376,7 @@ class CrackStoryStatus {
    * @param {boolean} isAdult 언세이프 여부
    * @param {boolean} isForceConverted 운영진에 의해 강제로 변경되었는지의 여부
    */
-  constructor(
-    genre,
-    imageCount,
-    visibility,
-    status,
-    categories,
-    target,
-    chatType,
-    profileImage,
-    createdAt,
-    updatedAt,
-    isAdult,
-    isForceConverted,
-  ) {
+  constructor(genre, imageCount, visibility, status, categories, target, chatType, profileImage, createdAt, updatedAt, isAdult, isForceConverted) {
     this.genre = genre;
     this.categories = categories;
     this.imageCount = imageCount;
@@ -491,14 +437,7 @@ class CrackStoryStartingSet {
    * @param {string[]} replySuggestion 추천 시작 응답
    * @param {string} playGuide 플레이 가이드
    */
-  constructor(
-    id,
-    baseSetId,
-    name,
-    initialMessages,
-    replySuggestion,
-    playGuide,
-  ) {
+  constructor(id, baseSetId, name, initialMessages, replySuggestion, playGuide) {
     this.id = id;
     this.baseSetId = baseSetId;
     this.name = name;
@@ -513,14 +452,7 @@ class CrackStoryStartingSet {
    * @returns {CrackStoryStartingSet} 정제된 데이터
    */
   static of(container) {
-    return new CrackStoryStartingSet(
-      container._id,
-      container.baseSetId,
-      container.name,
-      container.initialMessages,
-      container.replySuggestions,
-      container.playGuide,
-    );
+    return new CrackStoryStartingSet(container._id, container.baseSetId, container.name, container.initialMessages, container.replySuggestions, container.playGuide);
   }
 }
 class CrackComment {
@@ -548,11 +480,7 @@ class CrackComment {
    * @returns {CrackComment} 정제된 데이터
    */
   static of(container) {
-    return new CrackComment(
-      container._id,
-      container.content,
-      UserInfo.of(container.writer),
-    );
+    return new CrackComment(container._id, container.content, UserInfo.of(container.writer));
   }
 }
 
@@ -598,21 +526,7 @@ class CrackStoryInfo {
    * @param {CrackStoryStartingSet[]} startingSets 시작 설정
    * @param {?string} shareUrl 공유 URL
    */
-  constructor(
-    id,
-    initialMessages,
-    crackerModel,
-    model,
-    creator,
-    name,
-    description,
-    statistics,
-    status,
-    template,
-    representiveComment,
-    startingSets,
-    shareUrl,
-  ) {
+  constructor(id, initialMessages, crackerModel, model, creator, name, description, statistics, status, template, representiveComment, startingSets, shareUrl) {
     this.id = id;
     this.initialMessages = initialMessages;
     this.crackerModel = crackerModel;
@@ -646,11 +560,53 @@ class CrackStoryInfo {
       CrackStoryStatus.of(container),
       CrackPromptTemplate.of(container.promptTemplate),
       CrackComment.of(container.representativeComment),
-      Array.from(container.startingSets).map((item) =>
-        CrackStoryStartingSet.of(item),
-      ),
+      Array.from(container.startingSets).map((item) => CrackStoryStartingSet.of(item)),
       container.shareUrl,
     );
+  }
+}
+
+class CrackLongTermMemory {
+  /** @property {string} 장기 기억 ID */
+  id;
+  /** @property {string} 장기 기억 제목 */
+  title;
+  /** @property {string} 장기 기억 내용 */
+  summary;
+  /** @property {string} 장기 기억 뱃지 텍스트 */
+  badge;
+  /** @property {string} 장기 기억 생성자 */
+  createdBy;
+  /** @property {Date} 장기 기억 생성 시간 */
+  createdAt;
+  /** @property {Date} 장기 기억 갱신 시간 */
+  updatedAt;
+  /**
+   * @param {string} id 장기 기억 ID
+   * @param {string} title 장기 기억 제목
+   * @param {string} summary 장기 기억 내용
+   * @param {string} badge 장기 기억 뱃지 텍스트
+   * @param {string} createdBy 장기 기억 생성자 (user,..)
+   * @param {Date} createdAt 장기 기억 생성 시간
+   * @param {Date} updatedAt 장기 기억 갱신 시간
+   */
+  constructor(id, title, summary, badge, createdBy, createdAt, updatedAt) {
+    this.id = id;
+    this.title = title;
+    this.summary = summary;
+    this.badge = badge;
+    this.createdBy = createdBy;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+  }
+
+  /**
+   * JSON 스키마에서 데이터를 정제합니다.
+   * @param {any} container
+   * @returns {CrackLongTermMemory} 정제된 데이터
+   */
+  static of(container) {
+    return new CrackLongTermMemory(container._id, container.title, container.summary, container.badge, container.createdBy, new Date(container.createdAt), new Date(container.updatedAt));
   }
 }
 /**
@@ -688,13 +644,7 @@ class CrackArticleStatistics {
    * @returns {CrackArticleStatistics} 정제된 데이터
    */
   static of(container) {
-    return new CrackArticleStatistics(
-      container.totalMessageCount,
-      container.chatUserCount,
-      container.chatUserCount,
-      container.likeCount,
-      container.commentCount,
-    );
+    return new CrackArticleStatistics(container.totalMessageCount, container.chatUserCount, container.chatUserCount, container.likeCount, container.commentCount);
   }
 }
 
@@ -755,25 +705,7 @@ class CrackChattingLog {
    * @param {boolean} isPrologue 프롤로그 여부
    * @param {boolean} reroll 리롤 여부
    */
-  constructor(
-    id,
-    userId,
-    messageId,
-    role,
-    content,
-    model,
-    turnId,
-    status,
-    recommendList,
-    crackerModel,
-    chatModelId,
-    isContinuallyGeneratable,
-    isContinued,
-    situationImages,
-    parameterSnapshots,
-    isPrologue,
-    reroll,
-  ) {
+  constructor(id, userId, messageId, role, content, model, turnId, status, recommendList, crackerModel, chatModelId, isContinuallyGeneratable, isContinued, situationImages, parameterSnapshots, isPrologue, reroll) {
     this.id = id;
     this.userId = userId;
     this.messageId = messageId;
@@ -806,12 +738,7 @@ class CrackChattingLog {
    * @returns {CrackSimplifiedChattingLog} 단순화된 로그
    */
   simplify() {
-    return new CrackSimplifiedChattingLog(
-      this.role,
-      this.content,
-      this.situationImages,
-      this.parameterSnapshots,
-    );
+    return new CrackSimplifiedChattingLog(this.role, this.content, this.situationImages, this.parameterSnapshots);
   }
 
   /**
@@ -906,15 +833,7 @@ class CrackStorySessionInfo extends ImageMappable {
    * @returns {CrackStorySessionInfo} 정제된 데이터
    */
   static of(container) {
-    return new CrackStorySessionInfo(
-      container._id,
-      container.snapshotId,
-      container.name,
-      container.profileImage,
-      container.statringSetId,
-      container.baseSetId,
-      container.isAdult,
-    );
+    return new CrackStorySessionInfo(container._id, container.snapshotId, container.name, container.profileImage, container.statringSetId, container.baseSetId, container.isAdult);
   }
 }
 
@@ -976,22 +895,7 @@ class CrackChatRoom {
    * @param {?CrackStorySessionInfo} story 현재 방의 스토리 세션 정보
    * @param {?CrackCharacterSessionInfo} character 현재 방의 캐릭터 세션 정보
    */
-  constructor(
-    id,
-    userId,
-    title,
-    lastMessage,
-    model,
-    modelId,
-    hasUserNote,
-    createdAt,
-    updatedAt,
-    isSummaryUpdated,
-    doRecommendNextMessage,
-    chatProfileId,
-    story,
-    character,
-  ) {
+  constructor(id, userId, title, lastMessage, model, modelId, hasUserNote, createdAt, updatedAt, isSummaryUpdated, doRecommendNextMessage, chatProfileId, story, character) {
     this.id = id;
     this.userId = userId;
     this.title = title;
@@ -1028,9 +932,7 @@ class CrackChatRoom {
       container.isAutoRecommendUserNextMessage,
       container.chatProfile?._id,
       container.story ? CrackStorySessionInfo.of(container.story) : null,
-      container.character
-        ? CrackCharacterSessionInfo.of(container.character)
-        : null,
+      container.character ? CrackCharacterSessionInfo.of(container.character) : null,
     );
   }
 }
@@ -1149,14 +1051,7 @@ class UserInfo extends CrackMappedImage {
    * @returns {UserInfo} 정제된 데이터
    */
   static of(container) {
-    return new UserInfo(
-      container.userId,
-      container.nickname,
-      container.wrtnId,
-      container.isCertifiedCreator,
-      container.profileId,
-      container.profileImage,
-    );
+    return new UserInfo(container.userId, container.nickname, container.wrtnId, container.isCertifiedCreator, container.profileId, container.profileImage);
   }
 }
 
@@ -1253,11 +1148,7 @@ class _CrackCookieApi {
    * @returns {string | undefined} 쿠키 값 혹은 undefined
    */
   getCookie(key) {
-    const e = document.cookie.match(
-      new RegExp(
-        `(?:^|; )${key.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1")}=([^;]*)`,
-      ),
-    );
+    const e = document.cookie.match(new RegExp(`(?:^|; )${key.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1")}=([^;]*)`));
     return e ? decodeURIComponent(e[1]) : undefined;
   }
 
@@ -1309,9 +1200,7 @@ class _CrackNetworkApi {
       }
       const result = await fetch(url, param);
       if (!result.ok) {
-        const errorItem = new Error(
-          `HTTP 요청 실패 (${result.status}) [${await result.json()}]`,
-        );
+        const errorItem = new Error(`HTTP 요청 실패 (${result.status}) [${await result.json()}]`);
         Object.assign(errorItem, { code: result.status });
         return errorItem;
       }
@@ -1337,16 +1226,9 @@ class _CrackAttendApi {
    * @returns {Promise<boolean|Error>} 출석 가능 여부, 혹은 오류
    */
   async isAttendable() {
-    const webResult = await this.#network.authFetch(
-      "GET",
-      "https://crack-api.wrtn.ai/crack-cash/attendance",
-    );
+    const webResult = await this.#network.authFetch("GET", "https://crack-api.wrtn.ai/crack-cash/attendance");
     if (webResult instanceof Error) return webResult;
-    if (
-      webResult.data &&
-      webResult.data.attendanceStatus &&
-      webResult.data.attendanceStatus === "NOT_ATTENDED"
-    ) {
+    if (webResult.data && webResult.data.attendanceStatus && webResult.data.attendanceStatus === "NOT_ATTENDED") {
       return true;
     }
     return false;
@@ -1357,10 +1239,7 @@ class _CrackAttendApi {
    * @returns {Promise<boolean>} 출석 성공 여부
    */
   async performAttend() {
-    const result = await this.#network.authFetch(
-      "POST",
-      "https://crack-api.wrtn.ai/crack-cash/attendance",
-    );
+    const result = await this.#network.authFetch("POST", "https://crack-api.wrtn.ai/crack-cash/attendance");
     if (result instanceof Error) {
       return false;
     }
@@ -1393,10 +1272,7 @@ class _CrackCrackerApi {
    * @returns {Promise<number | Error>} 크래커 개수 호은 오류
    */
   async current() {
-    let result = await this.#network.authFetch(
-      "GET",
-      "https://crack-api.wrtn.ai/crack-cash/crackers",
-    );
+    let result = await this.#network.authFetch("GET", "https://crack-api.wrtn.ai/crack-cash/crackers");
     if (result instanceof Error) {
       return result;
     }
@@ -1408,10 +1284,7 @@ class _CrackCrackerApi {
    * @returns {Promise<CrackerModel[] | Error>} 모델 목록 혹은 오류
    */
   async crackerModelList() {
-    const result = await this.#network.authFetch(
-      "GET",
-      "https://crack-api.wrtn.ai/crack-gen/v3/chat-models",
-    );
+    const result = await this.#network.authFetch("GET", "https://crack-api.wrtn.ai/crack-gen/v3/chat-models");
     if (result instanceof Error) {
       return result;
     }
@@ -1421,14 +1294,7 @@ class _CrackCrackerApi {
     /** @type {CrackerModel[]} */
     const array = [];
     for (const model of result.data.models) {
-      array.push(
-        new CrackerModel(
-          model._id,
-          model.name,
-          model.crackerQuantity,
-          model.serviceType,
-        ),
-      );
+      array.push(new CrackerModel(model._id, model.name, model.crackerQuantity, model.serviceType));
     }
     return array;
   }
@@ -1487,31 +1353,15 @@ class _CrackUserApi {
    * @returns {Promise<CrackUser | Error>} 크랙 ID 혹은 API 호출 도중 발생한 오류
    */
   async currentUser() {
-    const result = await this.#network.authFetch(
-      "GET",
-      "https://crack-api.wrtn.ai/crack-api/profiles",
-    );
+    const result = await this.#network.authFetch("GET", "https://crack-api.wrtn.ai/crack-api/profiles");
     if (result instanceof Error) {
       return result;
     }
     const data = result.data;
     if (!data) {
-      return new Error(
-        "크랙에서 잘못된 API 응답을 반환하였습니다; API 스키마가 변경되었을 가능성이 존재합니다.",
-      );
+      return new Error("크랙에서 잘못된 API 응답을 반환하였습니다; API 스키마가 변경되었을 가능성이 존재합니다.");
     }
-    return new CrackUser(
-      data._id,
-      data.userId,
-      data.wrtnUid,
-      data.nickname,
-      data.introdution,
-      data.profileImage?.origin,
-      new Date(data.createdAt),
-      new Date(data.updatedAt),
-      data.follower,
-      data.following,
-    );
+    return new CrackUser(data._id, data.userId, data.wrtnUid, data.nickname, data.introdution, data.profileImage?.origin, new Date(data.createdAt), new Date(data.updatedAt), data.follower, data.following);
   }
 
   /**
@@ -1532,10 +1382,7 @@ class _CrackUserApi {
    * @returns {Promise<CrackPersona[] | Error>} 페르소나 혹은 API 호출 도중 발생한 오류
    */
   async personaList(crackId) {
-    const result = await this.#network.authFetch(
-      "GET",
-      `https://crack-api.wrtn.ai/crack-api/profiles/${crackId}/chat-profiles`,
-    );
+    const result = await this.#network.authFetch("GET", `https://crack-api.wrtn.ai/crack-api/profiles/${crackId}/chat-profiles`);
     if (result instanceof Error || !result.data?.chatProfiles) {
       return result;
     }
@@ -1543,16 +1390,7 @@ class _CrackUserApi {
     /** @type {CrackPersona[]} */
     const array = [];
     for (let item of result.data.chatProfiles) {
-      array.push(
-        new CrackPersona(
-          item._id,
-          item.name,
-          item.isRepresentative,
-          item.profileId,
-          new Date(item.createdAt),
-          new Date(item.updatedAt),
-        ),
-      );
+      array.push(new CrackPersona(item._id, item.name, item.isRepresentative, item.profileId, new Date(item.createdAt), new Date(item.updatedAt)));
     }
     return array;
   }
@@ -1626,32 +1464,20 @@ class _CrackStoryApi {
    * @param {boolean} [autoRecommend] 추천 답변 자동 제안 여부
    * @returns {Promise<CrackChatRoom | Error>} 생성된 방 정보 혹은 오류
    */
-  async createRoom(
-    storyId,
-    baseSetId,
-    profileId,
-    crackerModel = "normalchat",
-    autoRecommend = false,
-  ) {
-    const result = await this.#network.authFetch(
-      "POST",
-      "https://crack-api.wrtn.ai/crack-gen/v3/chats",
-      {
-        storyId: storyId,
-        chatProfileId: profileId,
-        baseSetId: baseSetId,
-        crackerModel: crackerModel,
-        isAutoRecommendUserNextMessage: autoRecommend,
-      },
-    );
+  async createRoom(storyId, baseSetId, profileId, crackerModel = "normalchat", autoRecommend = false) {
+    const result = await this.#network.authFetch("POST", "https://crack-api.wrtn.ai/crack-gen/v3/chats", {
+      storyId: storyId,
+      chatProfileId: profileId,
+      baseSetId: baseSetId,
+      crackerModel: crackerModel,
+      isAutoRecommendUserNextMessage: autoRecommend,
+    });
     if (result instanceof Error) {
       return result;
     }
     const data = result.data;
     if (!data) {
-      return new Error(
-        "크랙 API에서 예상치 못한 스키마가 반환되었습니다. 이는 일시적 오류일 수 있지만, 크랙 API 변경이 원인일 수 있습니다.",
-      );
+      return new Error("크랙 API에서 예상치 못한 스키마가 반환되었습니다. 이는 일시적 오류일 수 있지만, 크랙 API 변경이 원인일 수 있습니다.");
     }
     return CrackChatRoom.of(data);
   }
@@ -1662,10 +1488,7 @@ class _CrackStoryApi {
    * @returns {Promise<CrackStoryInfo | Error>} 정제된 데이터 혹은 오류
    */
   async of(storyId) {
-    const result = await this.#network.authFetch(
-      "GET",
-      `https://crack-api.wrtn.ai/crack-api/stories/${storyId}`,
-    );
+    const result = await this.#network.authFetch("GET", `https://crack-api.wrtn.ai/crack-api/stories/${storyId}`);
     if (result instanceof Error) {
       return result;
     }
@@ -1703,18 +1526,13 @@ class _CrackChatRoomApi {
    * @returns {Promise<CrackChatRoom | Error>}
    */
   async roomData(chatId) {
-    const result = await this.#network.authFetch(
-      "GET",
-      `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}`,
-    );
+    const result = await this.#network.authFetch("GET", `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}`);
     if (result instanceof Error) {
       return result;
     }
     const data = result.data;
     if (!data) {
-      return new Error(
-        "크랙 API에서 예상치 못한 스키마가 반환되었습니다. 이는 일시적 오류일 수 있지만, 크랙 API 변경이 원인일 수 있습니다.",
-      );
+      return new Error("크랙 API에서 예상치 못한 스키마가 반환되었습니다. 이는 일시적 오류일 수 있지만, 크랙 API 변경이 원인일 수 있습니다.");
     }
     return CrackChatRoom.of(data);
   }
@@ -1731,17 +1549,11 @@ class _CrackChatRoomApi {
    * @yields {CrackChattingLog} 추출된 채팅 로그
    * @returns {AsyncGenerator<CrackChattingLog, void, void>} 생성된 제너레이터
    */
-  async *iterateLogs(
-    chatId,
-    { maxCount = -1, delay = 20, itemPerPage = 20 } = {},
-  ) {
+  async *iterateLogs(chatId, { maxCount = -1, delay = 20, itemPerPage = 20 } = {}) {
     let amount = 0;
     let cursor = undefined;
     while (maxCount === -1 || amount < maxCount) {
-      const nextUrl =
-        cursor === undefined
-          ? `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}/messages?limit=${itemPerPage}`
-          : `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}/messages?limit=${itemPerPage}&cursor=${cursor}`;
+      const nextUrl = cursor === undefined ? `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}/messages?limit=${itemPerPage}` : `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}/messages?limit=${itemPerPage}&cursor=${cursor}`;
       const result = await this.#network.authFetch("GET", nextUrl);
       if (result instanceof Error) {
         throw result;
@@ -1771,10 +1583,7 @@ class _CrackChatRoomApi {
    * @param {boolean} [param.naturalOrder] 어느 순서로 메시지를 가져올지의 여부입니다. true일 경우, 시간 흐름대로 반환합니다(오래된 메시지 -> 최신 메시지). false일 경우, 역순으로 반환합니다(최신 메시지 -> 오래된 메시지).
    * @returns {Promise<CrackChattingLog[] | Error>} 채팅 로그 목록 혹은 오류
    */
-  async extractLogs(
-    chatId,
-    { maxCount = -1, delay = 20, naturalOrder = true } = {},
-  ) {
+  async extractLogs(chatId, { maxCount = -1, delay = 20, naturalOrder = true } = {}) {
     /** @type {CrackChattingLog[]} */
     const logs = [];
     for await (let log of this.iterateLogs(chatId, {
@@ -1797,8 +1606,7 @@ class _CrackChatRoomApi {
    */
   async fetchLastMessage(chatId) {
     try {
-      const next = (await this.iterateLogs(chatId, { maxCount: 1 }).next())
-        .value;
+      const next = (await this.iterateLogs(chatId, { maxCount: 1 }).next()).value;
       if (next) return next;
     } catch (error) {
       if (error instanceof Error) return error;
@@ -1850,13 +1658,9 @@ class _CrackChatRoomApi {
    * @returns {Promise<true | Error>} 성공했을 경우 true, 혹은 발생한 오류
    */
   async editMessage(chatId, messageId, contents) {
-    const result = await this.#network.authFetch(
-      "PATCH",
-      `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}/messages/${messageId}`,
-      {
-        message: contents,
-      },
-    );
+    const result = await this.#network.authFetch("PATCH", `https://contents-api.wrtn.ai/character-chat/v3/chats/${chatId}/messages/${messageId}`, {
+      message: contents,
+    });
     if (result instanceof Error) {
       return result;
     }
@@ -1870,10 +1674,7 @@ class _CrackChatRoomApi {
    * @returns {Promise<CrackChattingLog | Error>}
    */
   async getMessage(chatId, messageId) {
-    const result = await this.#network.authFetch(
-      "GET",
-      `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}/messages/${messageId}`,
-    );
+    const result = await this.#network.authFetch("GET", `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}/messages/${messageId}`);
     if (result instanceof Error) {
       return result;
     }
@@ -1887,10 +1688,7 @@ class _CrackChatRoomApi {
    * @returns {Promise<true | Error>} 성공했을 경우 true, 혹은 발생한 오류
    */
   async deleteMessage(chatId, messageId) {
-    const result = await this.#network.authFetch(
-      "DELETE",
-      `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}/messages/${messageId}`,
-    );
+    const result = await this.#network.authFetch("DELETE", `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}/messages/${messageId}`);
     if (result instanceof Error) {
       return result;
     }
@@ -1921,11 +1719,7 @@ class _CrackChatRoomApi {
    * @returns {Promise<true | Error>} 성공했을 경우 true, 혹은 오류
    */
   async changeChatModel(chatId, modelId) {
-    const result = await this.#network.authFetch(
-      "PATCH",
-      `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}`,
-      { chatModelId: modelId },
-    );
+    const result = await this.#network.authFetch("PATCH", `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}`, { chatModelId: modelId });
     if (result instanceof Error) {
       return result;
     }
@@ -1945,19 +1739,16 @@ class _CrackChatRoomApi {
    *
    */
   async connect(chatId) {
-    const socket = (await this.#io.prepareIo())(
-      "https://contents-api.wrtn.ai/v3/chats",
-      {
-        reconnectionDelayMax: 1000,
-        transports: ["websocket"],
-        path: "/character-chat/socket.io",
-        auth: {
-          token: this.#cookie.getCookie("access_token"),
-          refreshToken: this.#cookie.getCookie("refresh_token"),
-          platform: "web",
-        },
+    const socket = (await this.#io.prepareIo())("https://contents-api.wrtn.ai/v3/chats", {
+      reconnectionDelayMax: 1000,
+      transports: ["websocket"],
+      path: "/character-chat/socket.io",
+      auth: {
+        token: this.#cookie.getCookie("access_token"),
+        refreshToken: this.#cookie.getCookie("refresh_token"),
+        platform: "web",
       },
-    );
+    });
     await new Promise(async (resolve, reject) => {
       // @ts-ignore
       socket.emit("enter", { chatId: chatId }, async (response) => {
@@ -1986,11 +1777,7 @@ class _CrackChatRoomApi {
    * @param {number} [param.timeout] 몇 ms 뒤에 요청을 실패로 간주할지 설정합니다.
    * @returns {Promise<Error | undefined>} 오류 혹은 undefined
    */
-  async send(
-    chatId,
-    message,
-    { socket = undefined, onMessageSent = undefined, timeout = 100_000 } = {},
-  ) {
+  async send(chatId, message, { socket = undefined, onMessageSent = undefined, timeout = 100_000 } = {}) {
     try {
       const currentSocket = socket ?? (await this.connect(chatId));
       const socketCloser = () => {
@@ -2009,20 +1796,10 @@ class _CrackChatRoomApi {
         socketCloser();
         return new Error("불가능한 상태입니다: 첫 메시지가 존재하지 않습니다.");
       }
-      const result = await this.#emitMessage(
-        currentSocket,
-        timeout,
-        chatId,
-        message,
-        lastMessage,
-        socketCloser,
-        onMessageSent,
-      );
+      const result = await this.#emitMessage(currentSocket, timeout, chatId, message, lastMessage, socketCloser, onMessageSent);
       if (!result) {
         socketCloser();
-        return new Error(
-          "지정한 시간 안에 메시지 응답이 완료되지 않았습니다, 실패로 간주합니다.",
-        );
+        return new Error("지정한 시간 안에 메시지 응답이 완료되지 않았습니다, 실패로 간주합니다.");
       }
     } catch (error) {
       if (error instanceof Error) return error;
@@ -2041,15 +1818,7 @@ class _CrackChatRoomApi {
    * @param {(userMessage: CrackChattingLog, botMessage: CrackChattingLog) => Promise<void> | void} [onMessageSent] 봇 메시지가 전송된 후에 트리거될 메시지 핸들러
    * @returns {Promise<boolean>} 성공 여부
    */
-  async #emitMessage(
-    currentSocket,
-    timeout,
-    chatId,
-    message,
-    lastMessage,
-    socketCloser,
-    onMessageSent,
-  ) {
+  async #emitMessage(currentSocket, timeout, chatId, message, lastMessage, socketCloser, onMessageSent) {
     return await new Promise(async (resolve, reject) => {
       let isResolved = false;
       const taskId = setTimeout(() => {
@@ -2113,11 +1882,7 @@ class _CrackChatRoomApi {
    * @param {number} [param.timeout]  몇 ms 뒤에 요청을 실패로 간주할지 설정합니다.
    * @param {(userMessage: CrackChattingLog) => Promise<void> | void} [param.onMessageSent] 봇 메시지가 삭제된 후에 트리거될 메시지 핸들러
    */
-  async sendUserMessage(
-    chatId,
-    message,
-    { socket = undefined, timeout = 100_000, onMessageSent = undefined } = {},
-  ) {
+  async sendUserMessage(chatId, message, { socket = undefined, timeout = 100_000, onMessageSent = undefined } = {}) {
     return await this.send(chatId, message, {
       socket: socket,
       timeout: timeout,
@@ -2145,11 +1910,7 @@ class _CrackChatRoomApi {
    * @param {number} [param.timeout]  몇 ms 뒤에 요청을 실패로 간주할지 설정합니다.
    * @param {(botMessage: CrackChattingLog) => Promise<void> | void} [param.onMessageSent] 유저 메시지가 삭제된 후에 트리거될 메시지 핸들러
    */
-  async sendBotMessage(
-    chatId,
-    message,
-    { socket = undefined, timeout = 100_000, onMessageSent = undefined } = {},
-  ) {
+  async sendBotMessage(chatId, message, { socket = undefined, timeout = 100_000, onMessageSent = undefined } = {}) {
     return await this.send(chatId, message, {
       socket: socket,
       timeout: timeout,
@@ -2181,6 +1942,84 @@ class _CrackChatRoomApi {
       if (result instanceof Promise) await result;
     }
   }
+}
+
+class _CrackMemoryApi {
+  /** @property {_CrackGenericUtil} */
+  #generic;
+  /** @property {_CrackNetworkApi} */
+  #network;
+  /**
+   * @param {_CrackGenericUtil} generic
+   * @param {_CrackNetworkApi} network
+   */
+  constructor(generic, network) {
+    this.#generic = generic;
+    this.#network = network;
+  }
+
+  /**
+   * 장기 기억 메모리를 추출합니다.
+   * **이 펑션은 항상 최신 기억부터 오래된 기억까지 역순으로 반환합니다.**
+   * @generator
+   * @param {string} chatId 채팅 로그를 가져올 채팅방 ID입니다.
+   * @param {Object} [param] 옵션 파라미터
+   * @param {number} [param.maxCount=-1] 최대로 가져올 메시지 개수. -1로 입력시, 모든 메시지를 가져옵니다.
+   * @param {number} [param.delay=20] 각 요청마다 대기할 간격입니다. 이 옵션이 없는 경우, 크랙의 API 서버에서 레이트리밋을 반환할 가능성이 존재합니다.
+   * @param {number} [param.itemPerPage=20] 각 요청마다 가져올 최대 페이지입니다. 특별한 상황이 아닌 경우, 기본 값 사용을 권장합니다. 20개를 초과할 경우, 크랙 API가 작동하지 않을 수 있습니다.
+   * @yields {CrackChattingLog} 추출된 채팅 로그
+   * @returns {AsyncGenerator<CrackLongTermMemory, void, void>} 생성된 제너레이터
+   */
+  async *iterateLongTermMemory(chatId, { maxCount = -1, delay = 20, itemPerPage = 20 } = {}) {
+    let amount = 0;
+    let cursor = undefined;
+    while (maxCount === -1 || amount < maxCount) {
+      const nextUrl = cursor === undefined ? `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}/summaries?limit=${itemPerPage}&type=longTerm&orderBy=newest&filter=all` : `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}/summaries?limit=${itemPerPage}&type=longTerm&orderBy=newest&filter=all&cursor=${cursor}`;
+      const result = await this.#network.authFetch("GET", nextUrl);
+      if (result instanceof Error) {
+        throw result;
+      }
+
+      for (let message of result.data.summaries) {
+        yield CrackLongTermMemory.of(message);
+        if (maxCount !== -1 && ++amount >= maxCount) {
+          break;
+        }
+      }
+      if (result.data.nextCursor) {
+        cursor = result.data.nextCursor;
+      } else {
+        break;
+      }
+      delay > 0 && (await new Promise((resolve) => setTimeout(resolve, delay)));
+    }
+  }
+
+  /**
+   * 장기 기억 메모리를 추출합니다.
+   * @param {string} chatId 채팅 로그를 가져올 채팅방 ID입니다.
+   * @param {Object} [param] 옵션 파라미터
+   * @param {number} [param.maxCount] 최대로 가져올 메시지 개수. -1로 입력시, 모든 메시지를 가져옵니다.
+   * @param {number} [param.delay] 각 요청마다 대기할 간격입니다. 이 옵션이 없는 경우, 크랙의 API 서버에서 레이트리밋을 반환할 가능성이 존재합니다.
+   * @param {boolean} [param.naturalOrder] 어느 순서로 메시지를 가져올지의 여부입니다. true일 경우, 시간 흐름대로 반환합니다(오래된 메시지 -> 최신 메시지). false일 경우, 역순으로 반환합니다(최신 메시지 -> 오래된 메시지).
+   * @returns {Promise<CrackLongTermMemory[] | Error>} 채팅 로그 목록 혹은 오류
+   */
+  async extractLogs(chatId, { maxCount = -1, delay = 20, naturalOrder = true } = {}) {
+    /** @type {CrackLongTermMemory[]} */
+    const logs = [];
+    for await (let log of this.iterateLongTermMemory(chatId, {
+      maxCount: maxCount,
+      delay: delay,
+    })) {
+      if (naturalOrder) {
+        logs.unshift(log);
+      } else {
+        logs.push(log);
+      }
+    }
+    return logs;
+  }
+
 }
 
 class _CrackNotificationApi {
@@ -2312,15 +2151,10 @@ class CrackUtil {
   static #network = new _CrackNetworkApi(this.#cookie);
   static #theme = new _CrackThemeApi();
   static #user = new _CrackUserApi(this.#network);
-  static #room = new _CrackChatRoomApi(
-    this.#generic,
-    this.#user,
-    this.#network,
-    this.#cookie,
-    this.#io,
-  );
+  static #room = new _CrackChatRoomApi(this.#generic, this.#user, this.#network, this.#cookie, this.#io);
   static #story = new _CrackStoryApi(this.#generic, this.#user, this.#network);
-  static #notification = new _CrackNotificationApi(this.#network); 
+  static #memory = new _CrackMemoryApi(this.#generic, this.#network);
+  static #notification = new _CrackNotificationApi(this.#network);
   static #cracker = new _CrackCrackerApi(this.#network);
   static #attend = new _CrackAttendApi(this.#network);
 
