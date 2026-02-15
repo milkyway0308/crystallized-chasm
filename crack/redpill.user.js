@@ -16,7 +16,7 @@ GM_addStyle(
     ".red-pill-refresh-button { padding: 0px 12px; border: 1px solid var(--text_disabled); height: 28px; color: var(--text_primary); font-size: 14px; margin-right: 5px; border-radius: 4px; font-weight: 600; }"
 );
 (function () {
-  const VERSION = "v1.4.2";
+  const VERSION = "v1.4.4";
   let isIntegrationMode = false;
   /**
    * 쿠키에서 액세스 토큰을 추출해 반환합니다.
