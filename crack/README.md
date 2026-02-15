@@ -39,7 +39,7 @@ Chasm Snack을 기반으로 수정되었으며, 원본 캐즘 버전은 [6월 11
 > ⚠ 결정화 캐즘 네오-카피는 구버전 카피와 호환되지 않습니다.
 > 결정화 캐즘 네오-카피는 완전히 재작성되어 독립된 캐즘 카피입니다.
 
-## 결정화 캐즘 - 붉은 약 (v1.4.2) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/redpill.user.js) ]<br>
+## 결정화 캐즘 - 붉은 약 (v1.4.4) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/redpill.user.js) ]<br>
 
 혹시 내가 얼마나 돈을 썼는지 보고 내상을 입고 싶지 않으신가요?<br>
 그게 아니라면 내가 어떤 캐릭터를 가장 애정하는지 수치로 알고 싶지 않으신가요?<br>

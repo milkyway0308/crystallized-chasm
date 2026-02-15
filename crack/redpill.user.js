@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized RedPill (결정화 캐즘 붉은약)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-PILL-v1.4.2
+// @version     CRYS-PILL-v1.4.4
 // @description 크랙의 통계 수정 및 데이터 표시 개선. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오.
 // @author      chasm-js, milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -16,7 +16,7 @@ GM_addStyle(
     ".red-pill-refresh-button { padding: 0px 12px; border: 1px solid var(--text_disabled); height: 28px; color: var(--text_primary); font-size: 14px; margin-right: 5px; border-radius: 4px; font-weight: 600; }"
 );
 (function () {
-  const VERSION = "v1.4.2";
+  const VERSION = "v1.4.4";
   let isIntegrationMode = false;
   /**
    * 쿠키에서 액세스 토큰을 추출해 반환합니다.
@@ -1000,7 +1000,7 @@ GM_addStyle(
       if (redPillButtons && redPillButtons.length > 0) {
         return;
       }
-      var menuBar = document.querySelectorAll('.css-1t40r88 div[role="tablist"]');
+      var menuBar = document.querySelectorAll('.css-ohbwsa div[role="tablist"]');
       if (menuBar && menuBar.length > 0) {
         menuBar[0].style.cssText = "max-width: 800px;";
         const newButtonElement = document.createElement("div");
