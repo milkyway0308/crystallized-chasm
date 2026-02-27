@@ -2,14 +2,14 @@
 // ==UserScript==
 // @name         Chasm Crystallized Lyophilization (결정화 캐즘 동결건조)
 // @namespace    https://github.com/milkyway0308/crystallized-chasm/
-// @version      CRYS-LYOP-v1.1.0
+// @version      CRYS-LYOP-v1.1.1
 // @description  채팅방 백업 및 완전한 아카이브화 지원. 이 기능은 원본 채팅 백업 확장 스크립트의 유지보수 버전입니다.
 // @author       milkyway0308
 // @match        https://crack.wrtn.ai/*
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/lyophilization.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/lyophilization.user.js
 // @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-toastify-injection@v1.0.0/crack/libraries/toastify-injection.js
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-shared-core@v1.0.0/crack/libraries/crack-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-shared-core@v1.2.1/crack/libraries/crack-shared-core.js
 // @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@chasm-shared-core@v1.0.0/libraries/chasm-shared-core.js
 // @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.15/decentralized-modal.js
 // @grant        GM_addStyle
@@ -194,9 +194,9 @@
     }
     let appendingTarget = document.getElementById("chasm-lyop-eof");
     if (!appendingTarget) {
-      for (let element of panel.getElementsByTagName("p")) {
+      for (let element of panel.getElementsByTagName("span")) {
         if (element.textContent === "나의 크래커") {
-          const itemElement = GenericUtil.clone(element);
+          const itemElement = GenericUtil.clone(GenericUtil.refine(element));
           itemElement.textContent = "채팅 내역 추출";
           panel.insertBefore(itemElement, element);
           const divier = document.createElement("div");
@@ -211,7 +211,9 @@
     if (!appendingTarget) return;
     /** @type {HTMLElement} */
     // @ts-ignore
-    const button = GenericUtil.clone(panel.childNodes[1]);
+    const topButton = GenericUtil.clone(panel.childNodes[1]);
+    /** @type {HTMLElement} */
+    const button = GenericUtil.refine(topButton.children[0]);
     button.onclick = () => {};
     button.classList.add(id);
     button.addEventListener("click", action);
@@ -224,7 +226,7 @@
     const components = button.getElementsByTagName("span");
     components[components.length - 1].textContent = title;
 
-    panel.insertBefore(button, appendingTarget);
+    panel.insertBefore(topButton, appendingTarget);
   }
   function prepare() {
     setup();
