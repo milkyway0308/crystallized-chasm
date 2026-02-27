@@ -8,7 +8,7 @@
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alternation.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alternation.user.js
 // @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-toastify-injection@v1.0.0/crack/libraries/toastify-injection.js
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-shared-core@v1.0.0/crack/libraries/crack-shared-core.js
+// @require      https://raw.githubusercontent.com/milkyway0308/crystallized-chasm/a7e9817cd97be541266431b1185b6736d836ac0c/crack/libraries/crack-shared-core.js
 // @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@chasm-shared-core@v1.0.0/libraries/chasm-shared-core.js
 // @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.15/decentralized-modal.js
 // @grant        GM_addStyle
@@ -51,10 +51,8 @@ GM_addStyle(`
     line-height: 1;
     transition: color 0.1s ease;
     color: var(--chasm-altr-color);
-    padding-top: 12px;
     user-select: none;
     cursor: pointer;
-    padding-left: .625rem;
   }
 
   .chasm-altr-button[disabled="true"] {
@@ -364,7 +362,8 @@ GM_addStyle(`
     if (!panel) {
       return;
     }
-    const button = GenericUtil.refine(GenericUtil.clone(panel.childNodes[1]));
+    const topButton = GenericUtil.refine(GenericUtil.clone(panel.childNodes[1]));
+    const button = topButton.children[0];
     if (button.childNodes.length > 0) {
       button.childNodes[0].remove();
     }
@@ -430,9 +429,9 @@ GM_addStyle(`
         `차원 이동 준비 완료`;
     });
     // button.childNodes[1].textContent = "평행세계로 이동";
-    for (let element of panel.getElementsByTagName("p")) {
+    for (let element of panel.getElementsByTagName("span")) {
       if (element.textContent === "시작설정") {
-        panel.insertBefore(button, element.previousSibling);
+        panel.insertBefore(topButton, element.previousSibling);
         break;
       }
     }
@@ -440,9 +439,9 @@ GM_addStyle(`
 
   function prepare() {
     setup();
-    GenericUtil.attachObserver(document, () => {
-      setup();
-    });
+    // GenericUtil.attachObserver(document, () => {
+    //   setup();
+    // });
   }
   // =================================================
   //                     메뉴
