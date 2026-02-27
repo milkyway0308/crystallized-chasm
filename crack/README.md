@@ -123,7 +123,7 @@ TTS는 스크립트를 비활성화면 다시 사용할 수 있습니다.
 결정화 캐즘 감시견은 크랙의 알림을 웹 환경에서 감시하고, 표시해줍니다. <br>
 PC 환경에서만 검증되었습니다. 설정에서 OS 푸시를 활성화해야 정상 작동합니다. <br>
 
-## 결정화 캐즘 - 차원이동 (v1.5.3) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alternation.user.js) ]<br>
+## 결정화 캐즘 - 차원이동 (v1.5.4) [ [설치](https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/alternation.user.js) ]<br>
 
 지금 그대로의 이야기의 또 다른 이야기를 듣고 싶지 않으신가요?<br>
 아니면, 내 실수로 인해 망가질 이 이야기를 위해 선택지를 보류하고 싶으신 경험, 있지 않으신가요?<br><br>
