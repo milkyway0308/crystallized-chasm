@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Counter (결정화 캐즘 계수기)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-CNTR-v1.3.1
+// @version     CRYS-CNTR-v1.3.2
 // @description 채팅에 캐릭터 채팅 턴 계수기 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -28,7 +28,6 @@ GM_addStyle(`
   }
   .chasm-counter-shared-bar-wrapper {
     display: flex;
-    justify-content: center;
   }
   .chasm-counter-shared-bar {
     display: flex;
@@ -338,31 +337,26 @@ GM_addStyle(`
   function getTopSharedDivision() {
     let upperBar = document.getElementById("chasm-shared-chatting-bar");
     if (!upperBar) {
-      let parentElement;
-      if (CrackUtil.path().isCharacterPath()) {
-        parentElement = document.getElementsByClassName(
-          CrackUtil.theme().isDarkTheme() ? "css-12u91zd" : "css-12u91zd",
-        );
-      } else {
-        parentElement = document.getElementsByClassName(
-          CrackUtil.theme().isDarkTheme() ? "css-nqviro" : "css-nqviro",
-        );
+      const textElement = document.querySelector('textarea[placeholder="메시지 보내기"]');
+      if (!textElement) {
+        return undefined;
       }
-      if (!parentElement || parentElement.length <= 0) {
+      const parentElement = textElement.parentElement?.parentElement;
+      if (!parentElement) {
         return undefined;
       }
       upperBar = document.createElement("div");
       upperBar.id = "chasm-shared-chatting-bar";
       upperBar.className = "chasm-counter-shared-bar";
       if (CrackUtil.path().isCharacterPath()) {
-        parentElement[0].classList.add("chasm-counter-flex-adjuster");
-        parentElement[0].insertBefore(upperBar, parentElement[0].childNodes[0]);
+        parentElement.classList.add("chasm-counter-flex-adjuster");
+        parentElement.insertBefore(upperBar, parentElement.childNodes[0]);
       } else {
         const wrapper = document.createElement("div");
         wrapper.className = "chasm-counter-shared-bar-wrapper";
         wrapper.appendChild(upperBar);
-        parentElement[0].classList.add("chasm-counter-flex-adjuster");
-        parentElement[0].insertBefore(wrapper, parentElement[0].childNodes[0]);
+        parentElement.classList.add("chasm-counter-flex-adjuster");
+        parentElement.insertBefore(wrapper, parentElement.childNodes[0]);
       }
     }
     return upperBar;
