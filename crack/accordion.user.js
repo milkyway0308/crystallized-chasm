@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name        Chasm Crystallized Accordion (결정화 캐즘 아코디언)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-ACCO-v1.1.0
+// @version     CRYS-ACCO-v1.1.1
 // @description * 여기에 슬픈 아코디언 음악 입력 *
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
 // @downloadURL https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/accordiaon.user.js
 // @updateURL   https://github.com/milkyway0308/crystallized-chasm/raw/refs/heads/main/crack/accordion.user.js
-// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-shared-core@v1.2.0/crack/libraries/crack-shared-core.js
+// @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@crack-shared-core@v1.2.1/crack/libraries/crack-shared-core.js
 // @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@chasm-shared-core@v1.0.0/libraries/chasm-shared-core.js
 // @require      https://cdn.jsdelivr.net/gh/milkyway0308/crystallized-chasm@decentralized-pre-1.0.15/decentralized-modal.js
 // @grant       GM_addStyle
