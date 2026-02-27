@@ -1,5 +1,5 @@
 //
-// crack-shared-core.js v1.2.0 by Team IGX
+// crack-shared-core.js v1.2.1 by Team IGX
 // crack-shared-core은 TS의 문법 검사와 JSDoc을 통한 브라우저 스크립트 전용 크랙 유틸리티입니다.
 //
 
@@ -1974,7 +1974,10 @@ class _CrackMemoryApi {
     let amount = 0;
     let cursor = undefined;
     while (maxCount === -1 || amount < maxCount) {
-      const nextUrl = cursor === undefined ? `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}/summaries?limit=${itemPerPage}&type=longTerm&orderBy=newest&filter=all` : `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}/summaries?limit=${itemPerPage}&type=longTerm&orderBy=newest&filter=all&cursor=${cursor}`;
+      const nextUrl =
+        cursor === undefined
+          ? `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}/summaries?limit=${itemPerPage}&type=longTerm&orderBy=newest&filter=all`
+          : `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}/summaries?limit=${itemPerPage}&type=longTerm&orderBy=newest&filter=all&cursor=${cursor}`;
       const result = await this.#network.authFetch("GET", nextUrl);
       if (result instanceof Error) {
         throw result;
@@ -2019,7 +2022,6 @@ class _CrackMemoryApi {
     }
     return logs;
   }
-
 }
 
 class _CrackNotificationApi {
@@ -2097,14 +2099,26 @@ class _CrackNotificationApi {
  */
 class _CrackComponentApi {
   /**
+   *@type {?Element}
+   */
+  #cached = null;
+  /**
    * 크랙 웹 페이지에서 우측 사이드 패널을 추출합니다.
    * 경로에 따라 사이드바가 존재하지 않을 수 있습니다.
    *
    * @returns {?Element} 추출된 사이드바 요소
    */
   sidePanel() {
-    const node = document.getElementsByClassName("css-c82bbp")[0];
-    return node?.children[0]?.children[0];
+    if (this.#cached) return this.#cached;
+
+    const nodeToFind = document.getElementsByTagName("span");
+    for (const node of nodeToFind) {
+      if (node.textContent === "채팅방 설정") {
+        this.#cached = node.parentElement;
+        break;
+      }
+    }
+    return this.#cached;
   }
 }
 
