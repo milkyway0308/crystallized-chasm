@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Chasm Crystallized Alternation (결정화 캐즘 차원이동)
 // @namespace   https://github.com/milkyway0308/crystallized-chasm
-// @version     CRYS-ALTR-v1.5.4
+// @version     CRYS-ALTR-v1.5.5
 // @description 채팅 로그 복사 및 새 채팅방으로 포크. 이 기능은 결정화 캐즘 오리지널 패치입니다.
 // @author      milkyway0308
 // @match       https://crack.wrtn.ai/*
@@ -360,9 +360,11 @@ GM_addStyle(`
     }
     const panel = CrackUtil.component().sidePanel();
     if (!panel) {
+      console.log("No panel")
       return;
     }
     const topButton = GenericUtil.refine(GenericUtil.clone(panel.childNodes[3]));
+    console.log(topButton);
     const button = topButton.children[0];
     if (button.childNodes.length > 0) {
       button.childNodes[0].remove();
@@ -429,8 +431,10 @@ GM_addStyle(`
         `차원 이동 준비 완료`;
     });
     // button.childNodes[1].textContent = "평행세계로 이동";
-    for (let element of panel.getElementsByTagName("span")) {
-      if (element.textContent === "시작설정") {
+    for (let element of panel.getElementsByTagName("p")) {
+      console.log(element)
+      if (element.textContent === "전체 설정") {
+        console.log("Appended")
         panel.insertBefore(topButton, element.previousSibling);
         break;
       }
