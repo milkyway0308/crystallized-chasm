@@ -53,7 +53,6 @@ let lastChecked = -1;
  * @param doBefore 페이드아웃 적용 직전 실행할 펑션
  */
 function performFadeout(element: Element, doBefore?: () => void) {
-    const test = LZString.compress("");
   element.setAttribute("ac-fade-out", "true");
   setTimeout(() => {
     doBefore?.();
