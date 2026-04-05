@@ -11,6 +11,15 @@ export const CRACK_URL_WILDCARD = "https://crack.wrtn.ai/*" as const satisfies C
 export type BABECHAT_URL_BASE = `https://babechat.ai/${string}` | `https://www.babechat.ai/${string}`;
 export const BABECHAT_URL_WILDCARDS = ["https://babechat.ai/*", "https://www.babechat.ai/*"] as const satisfies readonly BABECHAT_URL_BASE[];
 
+
+// VERSIONING CONSTANTS
+export type VERSION_RULE = `v${number}.${number}.${number}`
+
+export type BASIC_VERSION_RULE = `${string}-${string}-${VERSION_RULE}`
+export type CRACK_VERSION_RULE = `CRCK-${string}-${VERSION_RULE}`;
+export type BABECHAT_VERSION_RULE = `BABE-${string}-${VERSION_RULE}`;
+
+
 // PLATFORM CONSTANTS
 export const PATH_PLATFORM_CRACK = "/crack" as const;
 export const PATH_PLATFORM_BABECHAT = "/babechat" as const;

@@ -1,5 +1,5 @@
 import { build, createServer } from "vite";
-import monkey, { type MonkeyUserScript } from "vite-plugin-monkey";
+import monkey, { cdn, type MonkeyUserScript } from "vite-plugin-monkey";
 import fs from "fs";
 import path from "path";
 
@@ -24,6 +24,7 @@ async function buildScript(entryPath: string, scriptId: string, module: { script
       rollupOptions: {
         input: entryPath,
       },
+      minify: "esbuild",
     },
     plugins: [
       {
@@ -38,7 +39,13 @@ async function buildScript(entryPath: string, scriptId: string, module: { script
       monkey({
         entry: entryPath,
         userscript: module.scriptMeta,
-        build: { fileName: `${scriptId}.user.js` },
+        build: {
+          fileName: `${scriptId}.user.js`,
+          externalGlobals: {
+            dexie: cdn.jsdelivr("Dexie", "dist/dexie.min.js"),
+            "lz-string": cdn.jsdelivr("LZString", "libs/lz-string.min.js"),
+          },
+        },
       }),
     ],
   });
