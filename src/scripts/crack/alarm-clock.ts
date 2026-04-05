@@ -1,7 +1,6 @@
-import LZString from "lz-string";
 import { CRACK_VERSION_RULE } from "../../constants/script-constants";
 import { CrackSdk } from "../../utils/crack/crack-sdk";
-import { lazy } from "../../utils/lazy";
+import { readonlyLazy } from "../../utils/lazy";
 import { LogUtil } from "../../utils/log-utils";
 import { ScriptMetaUtil } from "../../utils/script-meta-util";
 
@@ -44,7 +43,7 @@ function createCloseIcon(): HTMLElement {
 // =====================================================
 //                      상수
 // =====================================================
-const logger = lazy(() => new LogUtil("AlarmClock", false));
+const logger = readonlyLazy(() => new LogUtil("AlarmClock", false));
 let lastChecked = -1;
 
 /**
