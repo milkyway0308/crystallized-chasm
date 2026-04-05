@@ -1,5 +1,5 @@
 import { CRACK_VERSION_RULE } from "../../constants/script-constants";
-import { CrackSdk } from "../../utils/crack/crack-sdk";
+import { CrackSdk } from "../../utils/platforms/crack-sdk";
 import { readonlyLazy } from "../../utils/lazy";
 import { LogUtil } from "../../utils/log-utils";
 import { ScriptMetaUtil } from "../../utils/script-meta-util";

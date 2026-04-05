@@ -54,11 +54,11 @@ async function buildScript(entryPath: string, scriptId: string, module: { script
 async function buildAll() {
   console.log("./crystallized-chasm: Starting build process..");
   const vite = await createServer({ server: { middlewareMode: true } });
-  const files = findTypeScripts("src");
+  const files = findTypeScripts("src/scripts");
   const allBuildStart = performance.now();
   console.log(`./crystallized-chasm: ${files.length} files found, starting module build`);
   for (const file of files) {
-    const entryPath = path.join("src", file);
+    const entryPath = path.join("src/scripts", file);
 
     const module = (await vite.ssrLoadModule(entryPath)) as { scriptMeta?: MonkeyUserScript };
     const scriptId = asPureFileName(file);

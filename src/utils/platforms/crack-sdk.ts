@@ -1,7 +1,7 @@
-import { CrackAttendApi } from "./attend-util";
-import { CrackCookieApi } from "./cookie-util";
-import { CrackNetworkApi } from "./network-util";
-import { CrackThemeApi } from "./theme-util";
+import { CrackAttendApi } from "./crack/attend-util";
+import { CrackCookieApi } from "./crack/cookie-util";
+import { CrackNetworkApi } from "./crack/network-util";
+import { CrackThemeApi } from "./crack/theme-util";
 
 export class CrackSdk {
   static readonly cookieApi = new CrackCookieApi();
