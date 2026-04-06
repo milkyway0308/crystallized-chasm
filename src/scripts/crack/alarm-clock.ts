@@ -5,6 +5,7 @@ import { LogUtil } from "../../utils/log-utils";
 import { ScriptMetaUtil } from "../../utils/script-meta-util";
 import { ModalManager } from "../../utils/decentralized-modal/components/modal-manager";
 import { ObserveUtil } from "../../utils/observe-util";
+import SCRIPT_STYLE from "./css/alarm-clock.scss?inline";
 
 export const scriptMeta = ScriptMetaUtil.construct("crack", "alarm-clock.user.js", undefined, (meta) => {
   meta.name = "Chasm Crystallized AlarmClock";
@@ -271,6 +272,11 @@ function __doModalMenuInit() {
 }
 
 if (typeof document !== "undefined") {
+  if (typeof GM_addStyle !== undefined) {
+    GM_addStyle(SCRIPT_STYLE);
+  }
   ("loading" === document.readyState ? document.addEventListener("DOMContentLoaded", prepare) : prepare(), window.addEventListener("load", prepare));
   __doModalMenuInit();
 }
+
+declare function GM_addStyle(css: string): void;
