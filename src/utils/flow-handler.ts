@@ -1,0 +1,72 @@
+import { Nullable } from "./generic-types";
+
+export type Result<T, E = Error> = { ok: true; data: T } | { ok: false; error: E };
+
+export type FutureResult<T> = Promise<Result<T>>;
+
+export function success<T>(data: T): Result<T> {
+  return { ok: true, data: data };
+}
+
+export function fail<T, E>(error: E): Result<T, E> {
+  return { ok: false, error: error };
+}
+
+export function unwrap<T, E>(result: Result<T, E>): T {
+  if (!result.ok) {
+    throw result.error;
+  }
+  return result.data;
+}
+
+export function deconstruct<T, E>(result: Result<T, E>): T | E {
+  if (!result.ok) {
+    throw result.error;
+  }
+  return result.data;
+}
+
+export function toFlow<T>(t: Nullable<T>): Result<T, Error> {
+  if (t === null) return { ok: false, error: new Error("Value is null") };
+  return { ok: true, data: t };
+}
+
+export function handleFlow(task: () => void) {
+  try {
+    task();
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function asyncHandleFlow(task: () => Promise<void>): Promise<void> {
+  try {
+    await task();
+  } catch (err) {
+    throw err;
+  }
+}
+
+export function handleResult<T>(task: () => Result<T>): Result<T> {
+  try {
+    return task();
+  } catch (err) {
+    return fail(
+      new Error(`Unexpected error occured: ${err instanceof Error ? err.message : JSON.stringify(err)}`, {
+        cause: err,
+      }),
+    );
+  }
+}
+
+export async function asyncHandleResult<T>(task: () => Promise<Result<T>>): Promise<Result<T>> {
+  try {
+    return await task();
+  } catch (err) {
+    return fail(
+      new Error(`Unexpected error occured: ${err instanceof Error ? err.message : JSON.stringify(err)}`, {
+        cause: err,
+      }),
+    );
+  }
+}

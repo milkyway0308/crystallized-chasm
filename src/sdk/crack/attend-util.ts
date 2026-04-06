@@ -1,8 +1,9 @@
+import { asyncHandleResult, Result, success, unwrap } from "../../utils/flow-handler";
 import { CrackNetworkApi } from "./network-util";
 
 export class CrackAttendApi {
   private readonly networkApi: CrackNetworkApi;
-  
+
   constructor(network: CrackNetworkApi) {
     this.networkApi = network;
   }
@@ -11,25 +12,24 @@ export class CrackAttendApi {
    * 출석 가능 여부를 서버에서 받아와 반환합니다.
    * @returns 출석 가능 여부, 혹은 오류
    */
-  async isAttendable(): Promise<boolean | Error> {
-    const webResult = await this.networkApi.authFetch("GET", "https://crack-api.wrtn.ai/crack-cash/attendance");
-    if (webResult instanceof Error) return webResult;
-    if (webResult.data && webResult.data.attendanceStatus && webResult.data.attendanceStatus === "NOT_ATTENDED") {
-      return true;
-    }
-    return false;
+  async isAttendable(): Promise<Result<boolean>> {
+    return asyncHandleResult(async () => {
+      const origin = await this.networkApi.authFetch("GET", "https://crack-api.wrtn.ai/crack-cash/attendance");
+      if (!origin.ok) return origin;
+      const webResult = origin.data;
+
+      return success(webResult.data && webResult.data.attendanceStatus && webResult.data.attendanceStatus === "NOT_ATTENDED");
+    });
   }
 
   /**
    * 출석을 API를 통해 진행합니다.
    * @returns 출석 성공 여부
    */
-  async performAttend(): Promise<boolean> {
+  async performAttend(): Promise<Result<boolean>> {
     const result = await this.networkApi.authFetch("POST", "https://crack-api.wrtn.ai/crack-cash/attendance");
-    if (result instanceof Error) {
-      return false;
-    }
-    return true;
+    if (!result.ok) return result;
+    return success(true);
   }
 
   /**

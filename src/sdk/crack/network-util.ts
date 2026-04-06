@@ -1,4 +1,15 @@
+import { fail, Result, success } from "../../utils/flow-handler";
 import { CrackCookieApi } from "./cookie-util";
+
+export interface HttpError extends Error {
+  code: number;
+}
+
+export interface HttpErrorConstructor {
+  new (message: string, code: number): HttpError;
+}
+
+declare var HttpError: HttpErrorConstructor;
 
 /**
  * 크랙 네트워크 통신용 클래스입니다.
@@ -17,7 +28,7 @@ export class CrackNetworkApi {
    * @param  body 요청 바디 파라미터
    * @returns 파싱된 값 혹은 오류
    */
-  async authFetch(method: string, url: string, body?: any): Promise<(Error & { code: number }) | any> {
+  async authFetch<T = any>(method: string, url: string, body?: any): Promise<Result<T>> {
     try {
       const param: RequestInit = {
         method: method,
@@ -25,22 +36,19 @@ export class CrackNetworkApi {
           Authorization: `Bearer ${this.cookieApi.getAuthToken()}`,
           "Content-Type": "application/json",
         },
-        body: undefined,
       };
       if (body) {
         param.body = JSON.stringify(body);
       }
       const result = await fetch(url, param);
       if (!result.ok) {
-        const errorItem = new Error(`HTTP 요청 실패 (${result.status}) [${await result.json()}]`);
+        const errorItem = new Error();
         Object.assign(errorItem, { code: result.status });
-        return errorItem;
+        return fail(new HttpError(await result.text(), result.status));
       }
-      return await result.json();
+      return success(await result.json() as T);
     } catch (t) {
-      if (t instanceof Error) {
-        return new Error(`알 수 없는 오류 (${t.message ?? JSON.stringify(t)})`);
-      }
+      return fail(new Error(`알 수 없는 오류 (${t instanceof Error ? t.message : JSON.stringify(t)})`, { cause: t }));
     }
   }
 }
