@@ -150,14 +150,14 @@ function findCrackerButton() {
  * 조건이 맞다면 출석 모달 요소를 강제 삽입합니다.
  */
 function findAndInjectElement() {
-  if (document.getElementsByClassName("chasm-alarm-clock-modal").length > 0) {
+  if (document.getElementsByClassName("chasm-alarm-clock").length > 0) {
     return;
   }
   if (!window.matchMedia("(min-width: 768px)").matches) {
     const button = document.getElementsByClassName(CrackSdk.theme().isDarkTheme() ? "css-7238to" : "css-9gj46x");
     if (button.length <= 0) return;
     injectElement(button[0]?.lastElementChild?.lastElementChild!);
-    document.getElementsByClassName("chasm-alarm-clock-modal")[0].setAttribute("mobile", "true");
+    document.getElementsByClassName("chasm-alarm-clock")[0].setAttribute("mobile", "true");
   } else {
     const button = findCrackerButton();
     if (!button) return;
@@ -172,7 +172,7 @@ function findAndInjectElement() {
 function injectElement(parentElement?: Element) {
   if (!parentElement) return;
   const containerElement = document.createElement("div");
-  containerElement.className = "chasm-alarm-clock-modal";
+  containerElement.className = "chasm-alarm-clock";
   const textElement = document.createElement("p");
   textElement.textContent = "출석 체크가 가능해요!";
   const clickableElement = document.createElement("p");
@@ -197,7 +197,7 @@ function injectElement(parentElement?: Element) {
 
 function prepare() {
   window.addEventListener("resize", () => {
-    const modal = document.getElementsByClassName("chasm-alarm-clock-modal");
+    const modal = document.getElementsByClassName("chasm-alarm-clock");
     if (modal.length <= 0) return;
     if (window.matchMedia("(min-width: 768px)").matches) {
       if (modal[0].hasAttribute("mobile")) {
