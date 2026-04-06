@@ -5,7 +5,7 @@ function isDesktop(): boolean {
 function isMobile(): boolean {
   return !isDesktop();
 }
-export const CrackEnvironmentUtil = {
+export const CrackEnvironmentApi = {
   isDesktop,
   isMobile,
 } as const;

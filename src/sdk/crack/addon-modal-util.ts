@@ -52,6 +52,6 @@ function init() {
   });
 }
 
-export const CrackAddonModalUtil = {
+export const CrackAddonModalApi = {
   init,
 } as const;

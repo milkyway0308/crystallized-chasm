@@ -2,24 +2,21 @@ import { CrackAttendApi } from "./crack/attend-util";
 import { CrackComponentApi } from "./crack/component-util";
 import { CrackCookieApi } from "./crack/cookie-util";
 import { CrackCrackerApi } from "./crack/cracker-util";
-import { CrackAddonModalUtil } from "./crack/addon-modal-util";
-import { CrackEnvironmentUtil as CrackEnvironmentApi } from "./crack/environment-util";
+import { CrackAddonModalApi } from "./crack/addon-modal-util";
+import { CrackEnvironmentApi } from "./crack/environment-util";
 import { CrackNetworkApi } from "./crack/network-util";
 import { CrackPathApi } from "./crack/path-util";
 import { CrackThemeApi } from "./crack/theme-util";
 import { ToastifyInjector } from "./crack/toastify-util";
 
 const componentApi = new CrackComponentApi();
-const networkApi = new CrackNetworkApi();
-const attendApi = new CrackAttendApi(networkApi);
-const crackerApi = new CrackCrackerApi(networkApi);
 
 /**
  * 크랙 출석 유틸리티를 반환합니다.
  * @returns 출석 유틸리티
  */
-export function attend(): CrackAttendApi {
-  return attendApi;
+export function attend(): typeof CrackAttendApi {
+  return CrackAttendApi;
 }
 
 /**
@@ -50,8 +47,8 @@ export function cookie(): typeof CrackCookieApi {
  * 크랙 네트워크 유틸리티를 반환합니다.
  * @returns 네트워크 유틸리티
  */
-export function network(): CrackNetworkApi {
-  return networkApi;
+export function network(): typeof CrackNetworkApi {
+  return CrackNetworkApi;
 }
 
 /**
@@ -74,8 +71,8 @@ export function path(): typeof CrackPathApi {
  * 크랙 크래커 유틸리티를 반환합니다.
  * @returns 크래커 유틸리티
  */
-export function cracker(): CrackCrackerApi {
-  return crackerApi;
+export function cracker(): typeof CrackCrackerApi {
+  return CrackCrackerApi;
 }
 
 /**
@@ -86,8 +83,8 @@ export function toastify(): ToastifyInjector {
   return ToastifyInjector.findInjector();
 }
 
-export function addonModal(): typeof CrackAddonModalUtil {
-  return CrackAddonModalUtil;
+export function addonModal(): typeof CrackAddonModalApi {
+  return CrackAddonModalApi;
 }
 
 export * as CrackSdk from "./crack-sdk";
