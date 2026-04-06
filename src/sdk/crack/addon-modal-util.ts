@@ -52,6 +52,10 @@ function init() {
   });
 }
 
+function acquire(): ModalManager {
+  return ModalManager.getOrCreateManager("c2");
+}
 export const CrackAddonModalApi = {
   init,
+  acquire,
 } as const;
