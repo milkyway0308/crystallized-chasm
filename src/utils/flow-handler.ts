@@ -31,19 +31,19 @@ export function toFlow<T>(t: Nullable<T>): Result<T, Error> {
   return { ok: true, data: t };
 }
 
-export function handleFlow(task: () => void) {
+export function handleFlow<T = void>(task: () => T): Result<T> {
   try {
-    task();
+    return success(task());
   } catch (err) {
-    throw err;
+    return fail(err instanceof Error ? err : new Error("Unknown error occured", { cause: err }));
   }
 }
 
-export async function asyncHandleFlow(task: () => Promise<void>): Promise<void> {
+export async function asyncHandleFlow<T = void>(task: () => Promise<T>): Promise<Result<T>> {
   try {
-    await task();
+    return success(await task());
   } catch (err) {
-    throw err;
+    return fail(err instanceof Error ? err : new Error("Unknown error occured", { cause: err }));
   }
 }
 
