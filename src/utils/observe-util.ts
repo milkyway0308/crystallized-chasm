@@ -1,6 +1,6 @@
 import { Runnable } from "./generic-types";
 
-export class ObserverUtil {
+export class ObserveUtil {
   /**
    * 지정한 노드 혹은 요소에 변경 옵저버를 등록합니다.
    * @param observeTarget 변경 감지 대상
