@@ -1,8 +1,10 @@
 import { CRACK_VERSION_RULE } from "../../constants/script-constants";
 import { CrackSdk } from "../../utils/platforms/crack-sdk";
-import { readonlyLazy } from "../../utils/lazy";
+import { readonlyLazy } from "../../utils/lazy-util";
 import { LogUtil } from "../../utils/log-utils";
 import { ScriptMetaUtil } from "../../utils/script-meta-util";
+import { ModalManager } from "../../utils/decentralized-modal/components/modal-manager";
+import { ObserveUtil } from "../../utils/observe-util";
 
 export const scriptMeta = ScriptMetaUtil.construct("crack", "alarm-clock.user.js", undefined, (meta) => {
   meta.name = "Chasm Crystallized AlarmClock";
@@ -211,6 +213,64 @@ function prepare() {
   startLoop();
 }
 
+// =================================================
+//                  메뉴 강제 추가
+// =================================================
+function __updateModalMenu() {
+  const modal = document.getElementById("web-modal");
+  if (modal && !document.getElementById("chasm-decentral-menu")) {
+    const itemFound = modal.getElementsByTagName("a");
+    for (let item of itemFound) {
+      if (item.getAttribute("href") === "/setting") {
+        const clonedElement = item.cloneNode(true) as HTMLElement;
+        clonedElement.id = "chasm-decentral-menu";
+        const textElement = clonedElement.getElementsByTagName("p")[0];
+        textElement.innerText = "결정화 캐즘";
+        clonedElement.setAttribute("href", "javascript: void(0)");
+        clonedElement.onclick = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          ModalManager.getOrCreateManager("c2")
+            .withLicenseCredential()
+            .display(document.body.getAttribute("data-theme") !== "light");
+        };
+        item.parentElement?.append(clonedElement);
+        break;
+      }
+    }
+  } else if (!document.getElementById("chasm-decentral-menu") && !window.matchMedia("(min-width: 768px)").matches) {
+    // Probably it's mobile, lets try scanning
+    const selected = document.getElementsByTagName("a");
+    for (const element of selected) {
+      if (element.getAttribute("href") === "/my-page") {
+        const clonedElement = element.cloneNode(true) as HTMLElement;
+        clonedElement.id = "chasm-decentral-menu";
+        const textElement = clonedElement.getElementsByTagName("p")[0];
+        textElement.innerText = "결정화 캐즘";
+        clonedElement.setAttribute("href", "javascript: void(0)");
+        clonedElement.onclick = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          ModalManager.getOrCreateManager("c2")
+            .withLicenseCredential()
+            .display(document.body.getAttribute("data-theme") !== "light");
+        };
+        element.parentElement?.append(clonedElement);
+      }
+    }
+  }
+}
+
+function __doModalMenuInit() {
+  const refined = document as any;
+  if (refined.c2ModalInit) return;
+  refined.c2ModalInit = true;
+  ObserveUtil.attachObserver(document, () => {
+    __updateModalMenu();
+  });
+}
+
 if (typeof document !== "undefined") {
   ("loading" === document.readyState ? document.addEventListener("DOMContentLoaded", prepare) : prepare(), window.addEventListener("load", prepare));
+  __doModalMenuInit();
 }
