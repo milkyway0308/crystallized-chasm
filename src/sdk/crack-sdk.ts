@@ -8,6 +8,7 @@ import { CrackNetworkApi } from "./crack/network-util";
 import { CrackPathApi } from "./crack/path-util";
 import { CrackThemeApi } from "./crack/theme-util";
 import { ToastifyInjector } from "./crack/toastify-util";
+import { CrackSessionApi } from "./crack/session-util";
 
 const componentApi = new CrackComponentApi();
 
@@ -76,6 +77,14 @@ export function cracker(): typeof CrackCrackerApi {
 }
 
 /**
+ * 크랙 세션(채팅방) 유틸리티를 반환합니다.
+ * @returns 세션 유틸리티
+ */
+export function session(): typeof CrackSessionApi {
+  return CrackSessionApi;
+}
+
+/**
  * 크랙 Toastify 관련 유틸리티를 반환합니다.
  * @returns Toastify 유틸리티
  */
@@ -86,5 +95,6 @@ export function toastify(): ToastifyInjector {
 export function addonModal(): typeof CrackAddonModalApi {
   return CrackAddonModalApi;
 }
+
 
 export * as CrackSdk from "./crack-sdk";
