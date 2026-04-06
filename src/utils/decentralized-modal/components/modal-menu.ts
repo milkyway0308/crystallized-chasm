@@ -1,5 +1,5 @@
 import { AsyncConsumer, AsyncRunnable, Consumer, Nullable, Runnable } from "../../generic-types";
-import { DecentrallizedModal } from "./decentralized-modal";
+import { ModalContainer } from "./modal-container";
 
 export type MenuPair = {
   name: string;
@@ -9,7 +9,7 @@ export type MenuPair = {
 export class ModalMenu {
   private subMenus = new Map<string, ModalMenu>();
 
-  private readonly action: AsyncConsumer<DecentrallizedModal>;
+  private readonly action: AsyncConsumer<ModalContainer>;
 
   private activator?: AsyncRunnable = undefined;
 
@@ -19,7 +19,7 @@ export class ModalMenu {
    * 새 모달 메뉴를 생성합니다.
    * @param action 모달 메뉴 클릭 / 호출시 실행될 펑션
    */
-  constructor(action: AsyncConsumer<DecentrallizedModal>) {
+  constructor(action: AsyncConsumer<ModalContainer>) {
     this.action = action;
   }
 
@@ -27,7 +27,7 @@ export class ModalMenu {
    * 메뉴 표시가 진행될 경우, 해당 펑션이 호출됩니다.
    * @param modal 모달
    */
-  async onDisplay(modal: DecentrallizedModal) {
+  async onDisplay(modal: ModalContainer) {
     await this.action(modal);
     if (this.activator) await this.activator();
     if (this.activiatorMobile) await this.activiatorMobile();
@@ -39,7 +39,7 @@ export class ModalMenu {
    * @param menuAction 서브메뉴 선택시 실행할 람다
    * @returns 현재 메뉴
    */
-  createSubMenu(name: string, action: Consumer<DecentrallizedModal>): MenuPair {
+  createSubMenu(name: string, action: Consumer<ModalContainer>): MenuPair {
     let menuItem = this.subMenus.get(name);
     if (!menuItem) {
       menuItem = new ModalMenu(action);

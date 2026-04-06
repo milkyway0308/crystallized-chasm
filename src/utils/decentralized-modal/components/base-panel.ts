@@ -1,12 +1,12 @@
 import { HTMLComponentConvertable } from "../types";
-import { DecentrallizedModal } from "./decentralized-modal";
+import { ModalContainer } from "./modal-container";
 import { ModalMenu } from "./modal-menu";
 
 export abstract class BaseMenuPanel implements HTMLComponentConvertable {
-  protected readonly modal: DecentrallizedModal;
+  protected readonly modal: ModalContainer;
   readonly menus: Map<string, ModalMenu>;
   protected selectedMenu: string[];
-  constructor(modal: DecentrallizedModal, menus: Map<string, ModalMenu>, selectedMenu: string[]) {
+  constructor(modal: ModalContainer, menus: Map<string, ModalMenu>, selectedMenu: string[]) {
     /** @type {Map<string, ModalMenu>} */
     this.menus = menus;
     this.modal = modal;

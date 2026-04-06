@@ -1,7 +1,7 @@
 import { AsyncConsumer, AttachedDocument } from "../../generic-types";
 import ModalStyle from "../styles/main.scss?inline";
 import { ContentPanel } from "./content-panel";
-import { DecentrallizedModal } from "./decentralized-modal";
+import { ModalContainer } from "./modal-container";
 import { ModalMenu } from "./modal-menu";
 import { DECENTRAL_VERSION } from "../constants";
 declare function GM_addStyle(css: string): void;
@@ -61,7 +61,7 @@ export class ModalManager {
    */
   constructor(name: string) {
     this.name = name;
-    this.modal = new DecentrallizedModal(name, this.#closer);
+    this.modal = new ModalContainer(name, this.#closer);
   }
 
   /**
@@ -120,7 +120,7 @@ export class ModalManager {
    * 현재 열린 모달을 반환합니다.
    * @returns 열린 모달
    */
-  getOpened(): DecentrallizedModal {
+  getOpened(): ModalContainer {
     return this.modal;
   }
 
@@ -137,7 +137,7 @@ export class ModalManager {
    * @param menuAction 메뉴 클릭시, 수행할 작업
    * @returns 생성된 메뉴 인스턴스
    */
-  async createMenu(menuName: string, menuAction: AsyncConsumer<DecentrallizedModal>): Promise<ModalMenu> {
+  async createMenu(menuName: string, menuAction: AsyncConsumer<ModalContainer>): Promise<ModalMenu> {
     return await this.modal.createMenu(menuName, menuAction);
   }
 

@@ -6,10 +6,10 @@ import { MenuPanel } from "./menu-panel";
 import { MobileMenuPanel } from "./mobile-menu-panel";
 import { ModalMenu } from "./modal-menu";
 
-export class DecentrallizedModal {
+export class ModalContainer {
   #selectedMenu: string[] = [];
 
-  #preOpenHandler: Consumer<DecentrallizedModal>[] = [];
+  #preOpenHandler: Consumer<ModalContainer>[] = [];
 
   #menuItems = new Map<string, ModalMenu>();
 
@@ -42,7 +42,7 @@ export class DecentrallizedModal {
    * @param menuAction 메뉴 선택시 실행될 람다
    * @returns 생성된 메뉴
    */
-  async createMenu(menuName: string, menuAction: AsyncConsumer<DecentrallizedModal>) {
+  async createMenu(menuName: string, menuAction: AsyncConsumer<ModalContainer>) {
     let menuItem = this.#menuItems.get(menuName);
     if (!menuItem) {
       menuItem = new ModalMenu(menuAction);
@@ -88,7 +88,7 @@ export class DecentrallizedModal {
    * 사전 표시 핸들러는 모달의 표시 직전에 호출됩니다.
    * @param handler 사전 표시 핸들러
    */
-  withPreOpenHandler(handler: Consumer<DecentrallizedModal>) {
+  withPreOpenHandler(handler: Consumer<ModalContainer>) {
     this.#preOpenHandler.push(handler);
   }
 

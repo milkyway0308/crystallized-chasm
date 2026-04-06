@@ -1,18 +1,18 @@
 import { Processor, Skippable } from "../../generic-types";
 import { NodeUtil } from "../../node-util";
 import { BaseMenuPanel } from "./base-panel";
-import { DecentrallizedModal } from "./decentralized-modal";
+import { ModalContainer } from "./modal-container";
 import { ModalMenu } from "./modal-menu";
 
 export class MenuPanel extends BaseMenuPanel {
   #menu?: HTMLElement;
   /**
    *
-   * @param {DecentrallizedModal} modal
+   * @param {ModalContainer} modal
    * @param {Map<string, ModalMenu>} menus
    * @param {string[]} selectedMenu
    */
-  constructor(modal: DecentrallizedModal, menus: Map<string, ModalMenu>, selectedMenu: string[]) {
+  constructor(modal: ModalContainer, menus: Map<string, ModalMenu>, selectedMenu: string[]) {
     super(modal, menus, selectedMenu);
     this.#menu = undefined;
   }
