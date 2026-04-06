@@ -3,8 +3,6 @@ import { CrackSdk } from "../../sdk/crack-sdk";
 import { readonlyLazy } from "../../utils/lazy-util";
 import { LogUtil } from "../../utils/log-utils";
 import { ScriptMetaUtil } from "../../utils/script-meta-util";
-import { ModalManager } from "../../utils/decentralized-modal/components/modal-manager";
-import { ObserveUtil } from "../../utils/observe-util";
 import SCRIPT_STYLE from "./css/alarm-clock.scss?inline";
 import { NodeUtil } from "../../utils/node-util";
 import { NodeLocator } from "../../utils/node-locator-util";
@@ -193,61 +191,13 @@ function prepare() {
 // =================================================
 //                  메뉴 강제 추가
 // =================================================
-function __tryInjectMenuItem(element: HTMLAnchorElement, targetHref: string): boolean {
-  if (element.getAttribute("href") === targetHref) {
-    const clonedElement = element.cloneNode(true) as HTMLElement;
-    clonedElement.id = "chasm-decentral-menu";
-    const textElement = clonedElement.getElementsByTagName("span")[0];
-    textElement.innerText = "결정화 캐즘";
-    clonedElement.setAttribute("href", "javascript: void(0)");
-    clonedElement.onclick = (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      ModalManager.getOrCreateManager("c2")
-        .withLicenseCredential()
-        .display(document.body.getAttribute("data-theme") !== "light");
-    };
-    element.parentElement?.append(clonedElement);
-    return true;
-  }
-  return false;
-}
-
-function __updateModalMenu() {
-  if (NodeLocator.getElement("#chasm-decentral-menu")) return;
-  if (CrackSdk.environment().isMobile()) {
-    for (const element of NodeLocator.getElements<HTMLAnchorElement>("a")) {
-      if (__tryInjectMenuItem(element, "/my-page")) break;
-    }
-  } else {
-    NodeLocator.onElement<HTMLDivElement>("#web-modal", true, () => {
-      for (const element of NodeLocator.getElements<HTMLAnchorElement>("a")) {
-        if (__tryInjectMenuItem(element, "/setting")) break;
-      }
-    });
-  }
-}
-
-let delayer: ReturnType<typeof setTimeout> | null = null;
-
-function __doModalMenuInit() {
-  const refined = document as any;
-  if (refined.c2ModalInit) return;
-  refined.c2ModalInit = true;
-  ObserveUtil.attachObserver(document, () => {
-    if (delayer) clearTimeout(delayer);
-    delayer = setTimeout(() => {
-      __updateModalMenu();
-    }, 50);
-  });
-}
 
 if (typeof document !== "undefined") {
   if (typeof GM_addStyle !== undefined) {
     GM_addStyle(SCRIPT_STYLE);
   }
   ("loading" === document.readyState ? document.addEventListener("DOMContentLoaded", prepare) : prepare(), window.addEventListener("load", prepare));
-  __doModalMenuInit();
+  CrackSdk.addonModal().init();
 }
 
 declare function GM_addStyle(css: string): void;

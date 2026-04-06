@@ -23,6 +23,9 @@ async function buildScript(entryPath: string, scriptId: string, module: { script
       emptyOutDir: false,
       rollupOptions: {
         input: entryPath,
+        treeshake: {
+          moduleSideEffects: false,
+        }
       },
       minify: "esbuild",
     },

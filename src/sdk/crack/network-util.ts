@@ -15,12 +15,6 @@ declare var HttpError: HttpErrorConstructor;
  * 크랙 네트워크 통신용 클래스입니다.
  */
 export class CrackNetworkApi {
-  private readonly cookieApi: CrackCookieApi;
-
-  constructor(cookie: CrackCookieApi) {
-    this.cookieApi = cookie;
-  }
-
   /**
    * 크랙의 토큰을 인증 수단으로 사용하여 요청을 보냅니다.
    * @param  method 요청 메서드
@@ -33,7 +27,7 @@ export class CrackNetworkApi {
       const param: RequestInit = {
         method: method,
         headers: {
-          Authorization: `Bearer ${this.cookieApi.getAuthToken()}`,
+          Authorization: `Bearer ${CrackCookieApi.getAuthToken()}`,
           "Content-Type": "application/json",
         },
       };
@@ -46,7 +40,7 @@ export class CrackNetworkApi {
         Object.assign(errorItem, { code: result.status });
         return fail(new HttpError(await result.text(), result.status));
       }
-      return success(await result.json() as T);
+      return success((await result.json()) as T);
     } catch (t) {
       return fail(new Error(`알 수 없는 오류 (${t instanceof Error ? t.message : JSON.stringify(t)})`, { cause: t }));
     }
