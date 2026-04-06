@@ -6,6 +6,8 @@ import { ScriptMetaUtil } from "../../utils/script-meta-util";
 import { ModalManager } from "../../utils/decentralized-modal/components/modal-manager";
 import { ObserveUtil } from "../../utils/observe-util";
 import SCRIPT_STYLE from "./css/alarm-clock.scss?inline";
+import { NodeUtil } from "../../utils/node-util";
+import { NodeLocator } from "../../utils/node-locator-util";
 
 export const scriptMeta = ScriptMetaUtil.construct("crack", "alarm-clock.user.js", undefined, (meta) => {
   meta.name = "Chasm Crystallized AlarmClock";
@@ -49,17 +51,14 @@ function createCloseIcon(): HTMLElement {
 const logger = readonlyLazy(() => new LogUtil("AlarmClock", false));
 let lastChecked = -1;
 
-/**
- * 대상 요소에 페이드아웃을 적용합니다.
- * @param element 적용할 요소
- * @param doBefore 페이드아웃 적용 직전 실행할 펑션
- */
-function performFadeout(element: Element, doBefore?: () => void) {
-  element.setAttribute("ac-fade-out", "true");
-  setTimeout(() => {
-    doBefore?.();
-    element.remove();
-  }, 500);
+function performFadeout(element: Element): Promise<void> {
+  return new Promise((resolve) => {
+    element.setAttribute("ac-fade-out", "true");
+    setTimeout(() => {
+      element.remove();
+      resolve();
+    }, 500);
+  });
 }
 
 // =====================================================
@@ -82,8 +81,8 @@ async function checkAttend() {
   if (!CrackSdk.attend().isAttendableTime()) return;
   if (new Date().getDate() !== lastChecked) {
     const isAttendable = await CrackSdk.attend().isAttendable();
-    if (isAttendable instanceof Error) return;
-    if (isAttendable) {
+    if (!isAttendable.ok) return;
+    if (isAttendable.data) {
       findAndInjectElement();
       logger.log("출석이 가능합니다. 모달을 추가합니다.");
     }
@@ -96,72 +95,43 @@ async function checkAttend() {
  * 출석을 진행합니다.
  * @param container 출석 모달 요소 최상위 엘리먼트
  */
-function doAttend(container: HTMLElement) {
-  const childElements = container.children;
-  for (let i = 0; i < childElements.length - 1; i++) {
-    performFadeout(childElements[i]);
-  }
-  setTimeout(() => {
-    container.setAttribute("loader", "true");
-  }, 400);
-  performFadeout(childElements[childElements.length - 1], () => {
-    const loader = createLoadingIcon();
-    container.append(loader);
-    CrackSdk.attend()
-      .performAttend()
-      .then((result) => {
-        if (result) {
-          performFadeout(loader, () => {
-            const check = createCheckIcon();
-            container.append(check);
-            setTimeout(() => {
-              performFadeout(container);
-            }, 2000);
-          });
-        } else {
-          performFadeout(loader, () => {
-            const check = createCloseIcon();
-            container.append(check);
-            setTimeout(() => {
-              performFadeout(container);
-            }, 1500);
-          });
-        }
-      });
-  });
+async function doAttend(container: HTMLElement) {
+  const childElements = Array.from(container.children);
+  childElements.slice(0, -1).forEach((el) => performFadeout(el));
+  setTimeout(() => container.setAttribute("loader", "true"), 400);
+  await performFadeout(childElements[childElements.length - 1]);
+
+  const loader = createLoadingIcon();
+  container.append(loader);
+  const attendResult = await CrackSdk.attend().performAttend();
+
+  await performFadeout(loader);
+  const resultIcon = attendResult.ok ? createCheckIcon() : createCloseIcon();
+  container.append(resultIcon);
+  setTimeout(() => performFadeout(container), attendResult.ok ? 2000 : 1500);
 }
 
 // =====================================================
 //                    UI 인젝션
 // =====================================================
-
-function findCrackerButton() {
-  const topContainerElement = document.getElementsByClassName(CrackSdk.theme().isDarkTheme() ? "css-7238to" : "css-9gj46x");
-  if (topContainerElement.length <= 0) return;
-  const hyperLinkElement = topContainerElement[0].getElementsByTagName("a");
-  for (let button of hyperLinkElement) {
-    if (button.getAttribute("href") === "/cracker") {
-      return button;
-    }
-  }
-  return undefined;
-}
 /**
  * 조건이 맞다면 출석 모달 요소를 강제 삽입합니다.
  */
 function findAndInjectElement() {
-  if (document.getElementsByClassName("chasm-alarm-clock").length > 0) {
-    return;
-  }
-  if (!window.matchMedia("(min-width: 768px)").matches) {
-    const button = document.getElementsByClassName(CrackSdk.theme().isDarkTheme() ? "css-7238to" : "css-9gj46x");
-    if (button.length <= 0) return;
-    injectElement(button[0]?.lastElementChild?.lastElementChild!);
-    document.getElementsByClassName("chasm-alarm-clock")[0].setAttribute("mobile", "true");
+  if (NodeLocator.getElement(".chasm-alarm-clock")) return;
+  if (CrackSdk.environment().isMobile()) {
+    NodeLocator.onElement(CrackSdk.theme().isDarkTheme() ? ".css-7238to" : ".css-9gj46x", true, (element) => {
+      injectElement(element.lastElementChild!.lastElementChild!);
+      NodeLocator.onElement("#chasm-alarm-clock", true, (alarmDialog) => {
+        alarmDialog.setAttribute("mobile", "true");
+      });
+    });
   } else {
-    const button = findCrackerButton();
-    if (!button) return;
-    injectElement(button);
+    NodeLocator.onElement(CrackSdk.theme().isDarkTheme() ? ".css-7238to" : ".css-9gj46x", true, (element) => {
+      NodeLocator.onElement("a[href='/cracker']", true, (button) => {
+        injectElement(button);
+      });
+    });
   }
 }
 
@@ -171,23 +141,29 @@ function findAndInjectElement() {
  */
 function injectElement(parentElement?: Element) {
   if (!parentElement) return;
-  const containerElement = document.createElement("div");
-  containerElement.className = "chasm-alarm-clock";
-  const textElement = document.createElement("p");
-  textElement.textContent = "출석 체크가 가능해요!";
-  const clickableElement = document.createElement("p");
-  clickableElement.textContent = ">> 지금 바로 출석하기 <<";
-  clickableElement.className = "chasm-alarm-clock-active";
-  clickableElement.onclick = () => {
-    doAttend(containerElement);
-  };
-  containerElement.append(textElement);
-  containerElement.append(clickableElement);
-  containerElement.onclick = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-  };
-  containerElement.setAttribute("ac-fade-in", "true");
+  const containerElement = NodeUtil.setupNode("div", {
+    cls: "chasm-alarm-clock",
+    onInit: (node) => {
+      node.setAttribute("ac-fade-in", "true");
+      node.onclick = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      };
+    },
+  });
+  const textElement = NodeUtil.setupParagraphNode({
+    text: "출석 체크가 가능해요!",
+  });
+  const clickableElement = NodeUtil.setupParagraphNode({
+    text: ">> 지금 바로 출석하기 <<",
+    onInit: (node) => {
+      node.className = "chasm-alarm-clock-active";
+      node.onclick = () => {
+        doAttend(containerElement);
+      };
+    },
+  });
+  containerElement.append(textElement, clickableElement);
   parentElement.append(containerElement);
 }
 
@@ -199,7 +175,7 @@ function prepare() {
   window.addEventListener("resize", () => {
     const modal = document.getElementsByClassName("chasm-alarm-clock");
     if (modal.length <= 0) return;
-    if (window.matchMedia("(min-width: 768px)").matches) {
+    if (CrackSdk.environment().isDesktop()) {
       if (modal[0].hasAttribute("mobile")) {
         modal[0].remove();
         findAndInjectElement();
@@ -217,57 +193,52 @@ function prepare() {
 // =================================================
 //                  메뉴 강제 추가
 // =================================================
+function __tryInjectMenuItem(element: HTMLAnchorElement, targetHref: string): boolean {
+  if (element.getAttribute("href") === targetHref) {
+    const clonedElement = element.cloneNode(true) as HTMLElement;
+    clonedElement.id = "chasm-decentral-menu";
+    const textElement = clonedElement.getElementsByTagName("span")[0];
+    textElement.innerText = "결정화 캐즘";
+    clonedElement.setAttribute("href", "javascript: void(0)");
+    clonedElement.onclick = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      ModalManager.getOrCreateManager("c2")
+        .withLicenseCredential()
+        .display(document.body.getAttribute("data-theme") !== "light");
+    };
+    element.parentElement?.append(clonedElement);
+    return true;
+  }
+  return false;
+}
+
 function __updateModalMenu() {
-  const modal = document.getElementById("web-modal");
-  if (modal && !document.getElementById("chasm-decentral-menu")) {
-    const itemFound = modal.getElementsByTagName("a");
-    for (let item of itemFound) {
-      if (item.getAttribute("href") === "/setting") {
-        const clonedElement = item.cloneNode(true) as HTMLElement;
-        clonedElement.id = "chasm-decentral-menu";
-        const textElement = clonedElement.getElementsByTagName("p")[0];
-        textElement.innerText = "결정화 캐즘";
-        clonedElement.setAttribute("href", "javascript: void(0)");
-        clonedElement.onclick = (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          ModalManager.getOrCreateManager("c2")
-            .withLicenseCredential()
-            .display(document.body.getAttribute("data-theme") !== "light");
-        };
-        item.parentElement?.append(clonedElement);
-        break;
-      }
+  if (NodeLocator.getElement("#chasm-decentral-menu")) return;
+  if (CrackSdk.environment().isMobile()) {
+    for (const element of NodeLocator.getElements<HTMLAnchorElement>("a")) {
+      if (__tryInjectMenuItem(element, "/my-page")) break;
     }
-  } else if (!document.getElementById("chasm-decentral-menu") && !window.matchMedia("(min-width: 768px)").matches) {
-    // Probably it's mobile, lets try scanning
-    const selected = document.getElementsByTagName("a");
-    for (const element of selected) {
-      if (element.getAttribute("href") === "/my-page") {
-        const clonedElement = element.cloneNode(true) as HTMLElement;
-        clonedElement.id = "chasm-decentral-menu";
-        const textElement = clonedElement.getElementsByTagName("p")[0];
-        textElement.innerText = "결정화 캐즘";
-        clonedElement.setAttribute("href", "javascript: void(0)");
-        clonedElement.onclick = (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          ModalManager.getOrCreateManager("c2")
-            .withLicenseCredential()
-            .display(document.body.getAttribute("data-theme") !== "light");
-        };
-        element.parentElement?.append(clonedElement);
+  } else {
+    NodeLocator.onElement<HTMLDivElement>("#web-modal", true, () => {
+      for (const element of NodeLocator.getElements<HTMLAnchorElement>("a")) {
+        if (__tryInjectMenuItem(element, "/setting")) break;
       }
-    }
+    });
   }
 }
+
+let delayer: ReturnType<typeof setTimeout> | null = null;
 
 function __doModalMenuInit() {
   const refined = document as any;
   if (refined.c2ModalInit) return;
   refined.c2ModalInit = true;
   ObserveUtil.attachObserver(document, () => {
-    __updateModalMenu();
+    if (delayer) clearTimeout(delayer);
+    delayer = setTimeout(() => {
+      __updateModalMenu();
+    }, 50);
   });
 }
 
