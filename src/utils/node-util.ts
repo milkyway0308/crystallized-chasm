@@ -1,12 +1,12 @@
 import { Nullable } from "./generic-types";
 
 export interface AnnotatedContent<Main extends HTMLElement, Suffix extends HTMLElement> {
-  main?: Main;
-  suffix?: Suffix;
+  title: Nullable<Main>;
+  suffix: Nullable<Suffix>;
 }
 
 export interface ComplexedAnnotatedContent<Parent extends HTMLElement, Main extends HTMLElement, Suffix extends HTMLElement> extends AnnotatedContent<Main, Suffix> {
-  parent: Parent;
+  root: Parent;
 }
 
 export interface NodeCreateOption {
@@ -100,13 +100,13 @@ export class NodeUtil {
               const suffix = NodeUtil.setupNode("div", { cls: "decentral-element-title-suffix" });
               elementTitle.append(title[0]);
               elementTitle.append(suffix);
-              return { main: title[1], suffix: suffix, parent: node } as ComplexedAnnotatedContent<HTMLDivElement, HTMLParagraphElement, HTMLDivElement>;
+              return { title: title[1], suffix: suffix, root: node } as ComplexedAnnotatedContent<HTMLDivElement, HTMLParagraphElement, HTMLDivElement>;
             },
           });
-          appendNodes.main && node.append(appendNodes.main);
+          appendNodes.title && node.append(appendNodes.title);
           result = lambda?.(appendNodes) ?? appendNodes;
         } else {
-          const appendNodes = { parent: node };
+          const appendNodes = { root: node, title: null, suffix: null } satisfies ComplexedAnnotatedContent<HTMLDivElement, HTMLParagraphElement, HTMLDivElement>;
           result = lambda?.(appendNodes) ?? appendNodes;
         }
         return result;
