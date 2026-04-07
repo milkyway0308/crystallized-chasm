@@ -9,8 +9,10 @@ import { NodeLocator } from "../../utils/node-locator-util";
 import { BrowserInitUtil } from "../../utils/init-util";
 
 export const scriptMeta = ScriptMetaUtil.construct("crack", "alarm-clock.user.js", undefined, (meta) => {
-  meta.name = "Chasm Crystallized AlarmClock";
+  meta.name = "Chasm Crystallized AlarmClock (결정화 캐즘 자명종)";
   meta.version = "CRCK-ALRM-v2.0.0" satisfies CRACK_VERSION_RULE;
+  meta.author = "milkyway0308";
+  meta.description = "일일 출석 알림 및 즉시 출석 버튼 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.";
 });
 
 // =================================================
@@ -188,7 +190,6 @@ function prepare() {
   });
   startLoop();
 }
-
 
 BrowserInitUtil.init(() => {
   BrowserInitUtil.onPagePrepare(prepare);
