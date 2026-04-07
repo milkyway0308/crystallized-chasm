@@ -3,7 +3,7 @@
 // @namespace    https://github.com/milkyway0308
 // @version      CRCK-SANI-v2.0.0
 // @author       milkyway0308
-// @defaulticon  모바일 앱 권유 팝업 제거. 손도 깔끔!
+// @description  모바일 앱 권유 팝업 제거. 손도 깔끔!
 // @downloadURL  https://github.com/milkyway0308/crystallized-chasm/dist/crack/sanitizer.user.js
 // @updateURL    https://github.com/milkyway0308/crystallized-chasm/dist/crack/sanitizer.user.js
 // @match        https://crack.wrtn.ai/*
