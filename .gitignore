@@ -93,7 +93,9 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
-dist
+
+# Chasm Crystallized script compile output
+# dist
 
 # Gatsby files
 .cache/
