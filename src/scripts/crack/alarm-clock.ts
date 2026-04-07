@@ -6,6 +6,7 @@ import { ScriptMetaUtil } from "../../utils/script-meta-util";
 import SCRIPT_STYLE from "./css/alarm-clock.scss?inline";
 import { NodeUtil } from "../../utils/node-util";
 import { NodeLocator } from "../../utils/node-locator-util";
+import { BrowserInitUtil } from "../../utils/init-util";
 
 export const scriptMeta = ScriptMetaUtil.construct("crack", "alarm-clock.user.js", undefined, (meta) => {
   meta.name = "Chasm Crystallized AlarmClock";
@@ -188,16 +189,9 @@ function prepare() {
   startLoop();
 }
 
-// =================================================
-//                  메뉴 강제 추가
-// =================================================
 
-if (typeof document !== "undefined") {
-  if (typeof GM_addStyle !== undefined) {
-    GM_addStyle(SCRIPT_STYLE);
-  }
-  ("loading" === document.readyState ? document.addEventListener("DOMContentLoaded", prepare) : prepare(), window.addEventListener("load", prepare));
+BrowserInitUtil.init(() => {
+  BrowserInitUtil.onPagePrepare(prepare);
+  BrowserInitUtil.callGMAddStyle(SCRIPT_STYLE);
   CrackSdk.addonModal().init();
-}
-
-declare function GM_addStyle(css: string): void;
+});

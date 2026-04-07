@@ -1,5 +1,6 @@
 import { CRACK_VERSION_RULE } from "../../constants/script-constants";
 import { CrackSdk } from "../../sdk/crack-sdk";
+import { BrowserInitUtil } from "../../utils/init-util";
 import { LocaleStorageConfig } from "../../utils/local-storage-config";
 import { ScriptMetaUtil } from "../../utils/script-meta-util";
 
@@ -81,14 +82,14 @@ function findValidPointerElement(element: Element): (() => Promise<string | unde
   let base: Element | null = element;
   while (base) {
     if (base.hasAttribute("data-message-group-id")) {
-      const split = window.location.pathname.substring(1).split("/");
-      const chatRoomId = split[3];
+      const chatId = CrackSdk.path().chatRoom();
+      if (!chatId) return;
       const messageId = base.getAttribute("data-message-group-id");
       return async () => {
         if (!messageId) {
           return "크랙의 업데이트로 인해 메시지 가져오기가 비활성화되었어요.\n지원 채널에 제보해주시면 빠르게 수정될 예정이예요.";
         }
-        const message = await CrackSdk.session().getMessage(chatRoomId, messageId);
+        const message = await CrackSdk.sessionFetcher().getMessage(chatId, messageId);
         if (!message.ok) {
           return "오류로 인해 메시지를 복사하지 못했어요.";
         } else {
@@ -154,9 +155,8 @@ function prepare() {
   setInterval(monitor, 100);
 }
 
-if (typeof document !== "undefined") {
+BrowserInitUtil.init(() => {
   settings.load();
-
   addMenu();
-  ("loading" === document.readyState ? document.addEventListener("DOMContentLoaded", prepare) : prepare(), window.addEventListener("load", prepare));
-}
+  BrowserInitUtil.onPagePrepare(prepare);
+});
