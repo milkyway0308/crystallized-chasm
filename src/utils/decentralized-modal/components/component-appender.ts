@@ -437,10 +437,11 @@ export class ComponentAppender {
    * @returns 생성된 필드
    */
   constructBoxedField(title: string, description: string, { onInit }: ComplexComponentOption<HTMLDivElement, HTMLDivElement> = {}): HTMLDivElement {
-    const root = NodeUtil.createLongSemiFlatGridElement(null, (grid) => {
-      const item = NodeUtil.setupNode("div", {
+    const [root, inputNode] = NodeUtil.createLongSemiFlatGridElement(null, (grid) => {
+      const [boxNode, inputNode] = NodeUtil.setupNode("div", {
         cls: "decentral-boxed-field",
         onInit: (boxNode) => {
+          const textContainerNode = NodeUtil.setupNode("div", { cls: "element-text-container" });
           const titleNode = NodeUtil.setupNode("p", {
             cls: "element-title",
             text: title,
@@ -455,15 +456,16 @@ export class ComponentAppender {
               onInit?.(container, boxNode);
             },
           });
-          boxNode.append(titleNode, descriptionNode, inputNode);
+          textContainerNode.append(titleNode, descriptionNode);
+          boxNode.append(textContainerNode, inputNode);
           return [boxNode, inputNode];
         },
       });
-      grid.root.append(item[0]);
-      return [grid.root, item[1]];
+      grid.root.append(boxNode);
+      return [grid.root, inputNode];
     });
-    this.parentElement.append(root[0]);
-    return root[1];
+    this.parentElement.append(root);
+    return inputNode;
   }
 
   /**
