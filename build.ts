@@ -1,4 +1,5 @@
 import { build, createServer } from "vite";
+
 import monkey, { cdn, type MonkeyUserScript } from "vite-plugin-monkey";
 import fs from "fs";
 import path from "path";
@@ -15,9 +16,10 @@ function asPureFileName(file: string): string {
   return normalized.substring(0, dotIndex === -1 ? normalized.length : dotIndex);
 }
 
-async function buildScript(entryPath: string, scriptId: string, module: { scriptMeta: MonkeyUserScript }) {
+async function buildScript(entryPath: string, scriptId: string, module: { scriptMeta: MonkeyUserScript }): Promise<number> {
   await build({
     configFile: false,
+    logLevel: "silent",
     build: {
       outDir: "dist",
       emptyOutDir: false,
@@ -25,7 +27,7 @@ async function buildScript(entryPath: string, scriptId: string, module: { script
         input: entryPath,
         treeshake: {
           moduleSideEffects: false,
-        }
+        },
       },
       minify: "esbuild",
     },
@@ -52,7 +54,25 @@ async function buildScript(entryPath: string, scriptId: string, module: { script
       }),
     ],
   });
+  const expectedFilePath = path.resolve(`dist/${scriptId}.user.js`);
+  if (fs.existsSync(expectedFilePath)) {
+    return fs.statSync(expectedFilePath).size;
+  }
+  return -1;
 }
+
+// Yes, not my code, and I like it.
+// https://web.archive.org/web/20120507054320/http://codeaid.net/javascript/convert-size-in-bytes-to-human-readable-format-(javascript)
+function formatBytes(bytes: number, decimals: number = 2) {
+    if (!+bytes) return '0 byte'
+
+    const k = 1024
+    const dm = decimals < 0 ? 0 : decimals
+    const sizes = [' byte', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))}${sizes[i]}`
+}
+
 
 async function buildAll() {
   console.log("./crystallized-chasm: Starting build process..");
@@ -71,8 +91,12 @@ async function buildAll() {
     }
     const buildStart = performance.now();
     console.log(`./crystallized-chasm (${scriptId}): Building script..`);
-    await buildScript(entryPath, scriptId, module as { scriptMeta: MonkeyUserScript });
-    console.log(`./crystallized-chasm (${scriptId}): Script build completed in ${Math.round(performance.now() - buildStart)}ms`);
+    const fileSize = await buildScript(entryPath, scriptId, module as { scriptMeta: MonkeyUserScript });
+    if (fileSize === -1) {
+      console.log(`./crystallized-chasm (${scriptId}): Script build failed in ${Math.round(performance.now() - buildStart)}ms`);
+    } else {
+      console.log(`./crystallized-chasm (${scriptId}): Script build completed in ${Math.round(performance.now() - buildStart)}ms (${formatBytes(fileSize)})`);
+    }
   }
 
   await vite.close();
