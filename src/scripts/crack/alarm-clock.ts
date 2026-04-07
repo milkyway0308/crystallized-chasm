@@ -193,5 +193,4 @@ function prepare() {
 BrowserInitUtil.init(() => {
   BrowserInitUtil.onPagePrepare(prepare);
   BrowserInitUtil.callGMAddStyle(SCRIPT_STYLE);
-  CrackSdk.addonModal().init();
 });
