@@ -84,6 +84,7 @@ function findValidPointerElement(element: Element): (() => Promise<string | unde
     if (base.hasAttribute("data-message-group-id")) {
       const chatId = CrackSdk.path().chatRoom();
       if (!chatId) return;
+
       const messageId = base.getAttribute("data-message-group-id");
       return async () => {
         if (!messageId) {
@@ -93,10 +94,10 @@ function findValidPointerElement(element: Element): (() => Promise<string | unde
         if (!message.ok) {
           return "오류로 인해 메시지를 복사하지 못했어요.";
         } else {
-          if (message.data.isBot() && settings.config.copyBotMessage) {
-            await navigator.clipboard.writeText(message.data.content);
-          } else if (message.data.isUser() && settings.config.copyUserMessage) {
-            await navigator.clipboard.writeText(message.data.content);
+          if (message.value.isBot() && settings.config.copyBotMessage) {
+            await navigator.clipboard.writeText(message.value.content);
+          } else if (message.value.isUser() && settings.config.copyUserMessage) {
+            await navigator.clipboard.writeText(message.value.content);
           } else {
             return undefined;
           }

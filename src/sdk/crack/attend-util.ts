@@ -10,7 +10,7 @@ async function isAttendable(): Promise<Result<boolean>> {
   return asyncHandleResult(async () => {
     const origin = await CrackNetworkApi.authFetch("GET", "https://crack-api.wrtn.ai/crack-cash/attendance");
     if (!origin.ok) return origin;
-    const webResult = origin.data;
+    const webResult = origin.value;
 
     return success(webResult.data && webResult.data.attendanceStatus && webResult.data.attendanceStatus === "NOT_ATTENDED");
   });

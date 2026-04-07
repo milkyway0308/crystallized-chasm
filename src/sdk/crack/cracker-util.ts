@@ -49,7 +49,7 @@ async function crackerModelList(): FutureResult<CrackerModel[]> {
   if (!origin.ok) {
     return origin;
   }
-  const rawModels: any[] = origin.data?.models ?? [];
+  const rawModels: any[] = origin.value?.models ?? [];
   return success(rawModels.map((model) => new CrackerModel(model._id, model.name, model.crackerQuantity, model.serviceType)));
 }
 
@@ -60,7 +60,7 @@ async function crackerModelList(): FutureResult<CrackerModel[]> {
 async function crackerModelMap(): FutureResult<Map<string, CrackerModel>> {
   const array = await crackerModelList();
   if (!array.ok) return array;
-  return success(new Map(array.data.map((model) => [model.name, model])));
+  return success(new Map(array.value.map((model) => [model.name, model])));
 }
 
 /**
@@ -71,7 +71,7 @@ async function crackerModelMap(): FutureResult<Map<string, CrackerModel>> {
 async function crackerModel(name: string): FutureResult<Nullable<CrackerModel>> {
   const result = await crackerModelMap();
   if (!result.ok) return result;
-  return success(result.data.get(name) ?? null);
+  return success(result.value.get(name) ?? null);
 }
 
 export const CrackCrackerApi = {

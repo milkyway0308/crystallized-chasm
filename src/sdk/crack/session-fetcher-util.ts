@@ -32,7 +32,7 @@ export type ChatExportBulkOption = {
 async function getMessage(chatId: string, messageId: string): FutureResult<CrackChattingLog> {
   const result = await CrackNetworkApi.authFetch("GET", `https://crack-api.wrtn.ai/crack-gen/v3/chats/${chatId}/messages/${messageId}`);
   if (!result.ok) return result;
-  return success(CrackChattingLog.of(result.data));
+  return success(CrackChattingLog.of(result.value.data));
 }
 
 /**
@@ -45,7 +45,7 @@ async function getSession(chatId: string): FutureResult<CrackChatSession> {
   if (!result.ok) {
     return result;
   }
-  return success(CrackChatSession.of(result.data));
+  return success(CrackChatSession.of(result.value.data));
 }
 
 /**
@@ -67,15 +67,15 @@ async function* iterateLogs(chatId: string, { max = -1, delay = 20, itemPerPage 
       yield result;
       break;
     }
-    for (let message of result.data.messages) {
+    for (let message of result.value.messages) {
       if ((message.content?.length ?? 0) === 0) continue;
       yield success(CrackChattingLog.of(message));
       if (max !== -1 && ++amount >= max) {
         break;
       }
     }
-    if (result.data.nextCursor) {
-      cursor = result.data.nextCursor;
+    if (result.value.nextCursor) {
+      cursor = result.value.nextCursor;
     } else {
       break;
     }
@@ -102,7 +102,7 @@ async function extractLogs(chatId: string, options: ChatExportBulkOption = {}): 
       if (allowFastFail) return log;
       break;
     }
-    logs.push(log.data);
+    logs.push(log.value);
   }
   if (naturalOrder) {
     logs.reverse();
@@ -117,7 +117,7 @@ async function extractLogs(chatId: string, options: ChatExportBulkOption = {}): 
  */
 async function fetchLastMessage(chatId: string): FutureResult<Nullable<CrackChattingLog>> {
   const next = await iterateLogs(chatId, { max: 1 }).next();
-  return next.value ? (next.value.ok ? success(next.value.data ?? null) : next.value) : success(null);
+  return next.value ? (next.value.ok ? success(next.value.value ?? null) : next.value) : success(null);
 }
 /**
  * 지정된 채팅의 마지막 메시지를 역할에 맞춰 찾아 가져옵니다.
@@ -128,8 +128,8 @@ async function fetchLastMessage(chatId: string): FutureResult<Nullable<CrackChat
 async function findLastMessageId(chatId: string, requireRole: string = "assistant"): FutureResult<Nullable<CrackChattingLog>> {
   for await (let item of iterateLogs(chatId)) {
     if (!item.ok) return item;
-    if (item.data.role === requireRole) {
-      return success(item.data);
+    if (item.value.role === requireRole) {
+      return success(item.value);
     }
   }
   return success(null);

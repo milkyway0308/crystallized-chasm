@@ -81,7 +81,7 @@ async function checkAttend() {
   if (new Date().getDate() !== lastChecked) {
     const isAttendable = await CrackSdk.attend().isAttendable();
     if (!isAttendable.ok) return;
-    if (isAttendable.data) {
+    if (isAttendable.value) {
       findAndInjectElement();
       logger.log("출석이 가능합니다. 모달을 추가합니다.");
     }

@@ -1,11 +1,11 @@
 import { Nullable } from "./generic-types";
 
-export type Result<T, E = Error> = { ok: true; data: T } | { ok: false; error: E };
+export type Result<T, E = Error> = { ok: true; value: T } | { ok: false; error: E };
 
 export type FutureResult<T> = Promise<Result<T>>;
 
 export function success<T>(data: T): Result<T> {
-  return { ok: true, data: data };
+  return { ok: true, value: data };
 }
 
 export function fail<T, E>(error: E): Result<T, E> {
@@ -16,19 +16,19 @@ export function unwrap<T, E>(result: Result<T, E>): T {
   if (!result.ok) {
     throw result.error;
   }
-  return result.data;
+  return result.value;
 }
 
 export function deconstruct<T, E>(result: Result<T, E>): T | E {
   if (!result.ok) {
     throw result.error;
   }
-  return result.data;
+  return result.value;
 }
 
 export function toFlow<T>(t: Nullable<T>): Result<T, Error> {
   if (t === null) return { ok: false, error: new Error("Value is null") };
-  return { ok: true, data: t };
+  return { ok: true, value: t };
 }
 
 export function handleFlow<T = void>(task: () => T): Result<T> {
