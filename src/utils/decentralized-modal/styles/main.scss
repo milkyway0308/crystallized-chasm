@@ -1,6 +1,6 @@
 /*
-     * 변수 선언부 
-     */
+ * 변수 선언부 
+ */
 .decentral-color-container {
   --decentral-text: #000000;
   --decentral-text-inverted: #ffffff;
@@ -42,10 +42,10 @@
 }
 
 /*
-     * 모달 컨테이너 선언
-     * 원본 페이지
-     * └ **모달 컨테이너** 
-     */
+ * 모달 컨테이너 선언
+ * 원본 페이지
+ * └ **모달 컨테이너** 
+ */
 .decentral-modal-container {
   display: flex;
   flex-direction: column;
@@ -77,11 +77,11 @@
 }
 
 /*
-     * 모달 베이스 선언
-     * 원본 페이지
-     * └ 모달 컨테이너
-     *   └ **모달 베이스** 
-     */
+ * 모달 베이스 선언
+ * 원본 페이지
+ * └ 모달 컨테이너
+ *   └ **모달 베이스** 
+ */
 .decentral-modal {
   display: flex;
   flex-direction: row;
@@ -98,12 +98,12 @@
 }
 
 /*
-     * 모달 헤더(제목) 선언
-     * 원본 페이지
-     * └ 모달 컨테이너
-     *   └ 모달 베이스
-     *     └ **모달 헤더**
-     */
+ * 모달 헤더(제목) 선언
+ * 원본 페이지
+ * └ 모달 컨테이너
+ *   └ 모달 베이스
+ *     └ **모달 헤더**
+ */
 /* 모달 헤더 아이콘 */
 .decentral-modal-title-icon {
   width: 32px;
@@ -135,12 +135,12 @@
 }
 
 /*
-     * 모달 좌측 PC / 태블릿 메뉴 컨테이너 선언
-     * 원본 페이지
-     * └ 모달 컨테이너
-     *   └ 모달 베이스
-     *     └ **모달 메뉴**
-     */
+ * 모달 좌측 PC / 태블릿 메뉴 컨테이너 선언
+ * 원본 페이지
+ * └ 모달 컨테이너
+ *   └ 모달 베이스
+ *     └ **모달 메뉴**
+ */
 /* 모달 메뉴 컨테이너 */
 .decentral-menu-container {
   border-right: 1px solid var(--decentral-border);
@@ -230,12 +230,12 @@
 }
 
 /*
-     * 모바일 메뉴 컨테이너 선언
-     * 원본 페이지
-     * └ 모달 컨테이너
-     *   └ 모달 베이스
-     *     └ **모바일 모달 메뉴**
-     */
+ * 모바일 메뉴 컨테이너 선언
+ * 원본 페이지
+ * └ 모달 컨테이너
+ *   └ 모달 베이스
+ *     └ **모바일 모달 메뉴**
+ */
 /* 모바일 모달 메뉴 컨테이너 */
 .decentral-mobile-menu-container {
   display: none;
@@ -330,12 +330,12 @@
 }
 
 /*
-     * 모달 우측 컨텐츠 선언
-     * 원본 페이지
-     * └ 모달 컨테이너
-     *   └ 모달 베이스
-     *     └ 모달 컨텐츠
-     */
+ * 모달 우측 컨텐츠 선언
+ * 원본 페이지
+ * └ 모달 컨테이너
+ *   └ 모달 베이스
+ *     └ 모달 컨텐츠
+ */
 /* 스크롤 한계 적용을 위한 컨텐츠 그리드 래퍼 */
 .decentral-grid-container {
   display: flex;
@@ -444,8 +444,8 @@
 }
 
 /*
-     * 범용 클래스 선언 
-     */
+ * 범용 클래스 선언 
+ */
 /* Weight 1 기반 가변 수직 컨테이너 */
 .decentral-vertical-container {
   flex: 1;
@@ -455,8 +455,8 @@
 }
 
 /*
-     * 체크박스-스위치 선언 
-     */
+ * 체크박스-스위치 선언 
+ */
 /* 스위치 최상단 컨테이너 */
 .decentral-boxed-field {
   display: flex;
@@ -605,8 +605,8 @@
 }
 
 /*
-     * input 기반 1단 텍스트필드 선언 
-     */
+ * input 기반 1단 텍스트필드 선언 
+ */
 .decentral-text-field {
   background-color: var(--decentral-text-background);
   border: 1px solid var(--decentral-text-border);
@@ -618,8 +618,8 @@
 }
 
 /*
-     * textarea 기반 다단식 텍스트에리어 선언 
-     */
+ * textarea 기반 다단식 텍스트에리어 선언 
+ */
 /* 수정 가능한 일반 textarea */
 .decentral-text-area {
   background-color: var(--decentral-text-background);
@@ -632,8 +632,8 @@
 }
 
 /* 
-     * 데이터 표시용 수정 불가능 textarea
-     */
+ * 데이터 표시용 수정 불가능 textarea
+ */
 .decentral-logging-area {
   background-color: var(--decentral-text-background);
   border: 1px solid var(--decentral-text-border);
@@ -674,8 +674,8 @@
 }
 
 /**
-     * 커스텀 셀렉트박스 드롭다운 
-     */
+ * 커스텀 셀렉트박스 드롭다운 
+ */
 .decentral-select {
   width: 100%;
   border-radius: 3px;
@@ -758,8 +758,8 @@
 }
 
 /**
-     *  모바일 레이아웃 대응 
-     */
+ *  모바일 레이아웃 대응 
+ */
 .decentral-mobile-menu-button {
   display: none;
 }
@@ -816,8 +816,8 @@
   }
 }
 /**
-     *  연동 전용
-     */
+ *  연동 전용
+ */
 /* 스크롤 제거 */
 .decentral-disable-scroll-flag {
   overflow: hidden !important;
