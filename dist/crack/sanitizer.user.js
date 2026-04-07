@@ -1,0 +1,18 @@
+// ==UserScript==
+// @name         Chasm Crystallized Sanitizer (결정화 캐즘 손소독제)
+// @namespace    https://github.com/milkyway0308
+// @version      CRCK-SANI-v2.0.0
+// @author       milkyway0308
+// @defaulticon  모바일 앱 권유 팝업 제거. 손도 깔끔!
+// @downloadURL  https://github.com/milkyway0308/crystallized-chasm/dist/crack/sanitizer.user.js
+// @updateURL    https://github.com/milkyway0308/crystallized-chasm/dist/crack/sanitizer.user.js
+// @match        https://crack.wrtn.ai/*
+// @grant        GM_addStyle
+// ==/UserScript==
+
+(function () {
+	'use strict';
+
+	function l(n){return document.querySelector(n)}function c(n){return Array.from(document.querySelectorAll(n))}function a(n,e,t){const i=l(n);return e?i?t(i):null:t(i)}function d(n,e,t){const i=c(n);return e?i.length>0?t(i):null:t(i)}const f={getElement:l,getElements:c,onElement:a,onElements:d};class u{static attachObserver(e,t){const i=window.MutationObserver||window.WebKitMutationObserver;e&&i&&new i(t).observe(e,{childList:true,subtree:true,attributes:true});}static attachHrefObserver(e,t){let i=location.href;this.attachObserver(e,()=>{i!==location.href&&(i=location.href,t());});}static onPageReady(e){document.readyState==="loading"?document.addEventListener("DOMContentLoaded",e):e(),window.addEventListener("load",e);}}function s(){return window.matchMedia("(min-width: 768px)").matches}function y(){return !s()}const h={isDesktop:s,isMobile:y};function g(){return h}class r{static init(e){typeof document<"u"&&e();}static onPagePrepare(e){let t=false;const i=()=>{t||(t=true,e());};document.readyState==="loading"?document.addEventListener("DOMContentLoaded",i):i(),window.addEventListener("load",i);}static callGMAddStyle(e){return typeof GM_addStyle<"u"?(GM_addStyle(e),true):false}}function S(n){let e=null;return new Proxy({},{get(t,i){e===null&&(e=n());const o=e[i];return typeof o=="function"?o.bind(e):o},set(t,i,o){throw new Error("Cannot redefine readonly variable")}})}class b{prefix;debugId;prefixStyle;debugTitleStyle;infoTitleStyle;warningTitleStyle;errorTitleStyle;debugTextStyle;infoTextStyle;warningTextStyle;errorTextStyle;constructor(e,t){this.prefix=e,this.debugId=`cDynamicDebug_${crypto.randomUUID().toString()}`,this.prefixStyle="color: cyan;",this.debugTitleStyle="color: gray;",this.infoTitleStyle="color: blue;",this.warningTitleStyle="color: yellow;",this.errorTitleStyle="color: red;",this.debugTextStyle="color: gray;",this.infoTextStyle="color: inherit;",this.warningTextStyle="color: inherit;",this.errorTextStyle="color: inherit;",t?this.log("디버그 로그가 활성화된 상태입니다."):this.log(`디버그 로그를 활성화하려면 콘솔 창에 'document["${this.debugId}"] = true'를 입력하세요.`);}debug(e,t){e&&console.debug(`%c${this.prefix}: %cDEBUG: %c`+e,this.prefixStyle,this.debugTitleStyle,this.debugTextStyle),t&&console.log(t);}log(e,t){e&&console.log(`%c${this.prefix}: %cInfo: %c`+e,this.prefixStyle,this.infoTitleStyle,this.infoTextStyle),t&&console.log(t);}warn(e,t){e&&console.log(`%c${this.prefix}: %cWarning: %c`+e,this.prefixStyle,this.warningTitleStyle,this.warningTextStyle),t&&console.log(t);}error(e,t){e&&console.log(`%c${this.prefix}: %cError: %c`+e,this.prefixStyle,this.errorTitleStyle,this.errorTextStyle),t&&console.log(t);}}const x=S(()=>new b("Sanitizer",false));function m(){if(g().isMobile()){let n=0;for(let e of f.getElements('div[height="64"]')){if(++n>=5)return;for(let t of e.getElementsByTagName("button"))if(t.textContent==="다운로드"){t.nextSibling?.click(),x.log("모바일 권유 배너 1개를 제거하였습니다.");return}}}}r.init(()=>{r.onPagePrepare(()=>{u.attachObserver(document.body,m);});});
+
+})();
