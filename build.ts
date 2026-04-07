@@ -64,15 +64,13 @@ async function buildScript(entryPath: string, scriptId: string, module: { script
 // Yes, not my code, and I like it.
 // https://web.archive.org/web/20120507054320/http://codeaid.net/javascript/convert-size-in-bytes-to-human-readable-format-(javascript)
 function formatBytes(bytes: number, decimals: number = 2) {
-    if (!+bytes) return '0 byte'
-
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = [' byte', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))}${sizes[i]}`
+  if (!+bytes) return "0 byte";
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = [" byte", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))}${sizes[i]}`;
 }
-
 
 async function buildAll() {
   console.log("./crystallized-chasm: Starting build process..");
