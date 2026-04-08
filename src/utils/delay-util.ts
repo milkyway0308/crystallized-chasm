@@ -7,6 +7,5 @@ export class Debouncer {
   runDebouncer(delay: number) {
     if (this.lastTaskId) clearTimeout(this.lastTaskId);
     this.lastTaskId = setTimeout(this.runner, delay);
-
   }
 }
