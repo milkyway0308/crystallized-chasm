@@ -1,7 +1,6 @@
 function isDarkTheme() {
   return document.body.getAttribute("data-theme") === "dark";
 }
-
 function isLightTheme() {
   return !isDarkTheme();
 }

@@ -30,6 +30,22 @@ function isCharacterPath(): boolean {
 }
 
 /**
+ * 현재 URL이 ARPG 채팅의 일부인지 반환합니다.
+ * @returns 채팅 URL 일치 여부
+ */
+function isARPGPath(): boolean {
+  return /\/arpg\/[a-f0-9]+\/[a-f0-9]+\/play/.test(location.pathname);
+}
+
+/**
+ * 현재 URL이 ARPG 채팅 빌더의 일부인지 반환합니다.
+ * @returns 채팅 URL 일치 여부
+ */
+function isARPGBuilderPath() : boolean {
+  return /\/arpg\/[a-f0-9]+\/builder/.test(location.pathname);
+}
+
+/**
  * 현재 URL이 크랙 채팅 URL인지 반환합니다.
  * @returns 채팅 URL 일치 여부
  */
@@ -68,6 +84,8 @@ export const CrackPathApi = {
   isStoryPath,
   isCharacterPath,
   isChattingPath,
+  isARPGPath,
+  isARPGBuilderPath,
   character,
   chatRoom,
 } as const;
