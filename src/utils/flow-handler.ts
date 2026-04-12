@@ -1,4 +1,4 @@
-import { Nullable } from "./generic-types";
+import { ExpandedVoid, Nullable } from "./generic-types";
 
 export type Result<T, E = Error> = { ok: true; value: T } | { ok: false; error: E };
 
@@ -69,4 +69,15 @@ export async function asyncHandleResult<T>(task: () => Promise<Result<T>>): Prom
       }),
     );
   }
+}
+
+export function configure<T>(item: T, lambda: (item: T) => void): T {
+  lambda(item);
+  return item;
+}
+
+
+export async function configureAsync<T>(item: T, lambda: (item: T) => Promise<void>): Promise<T> {
+  await lambda(item);
+  return item;
 }

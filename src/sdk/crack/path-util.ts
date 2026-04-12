@@ -29,6 +29,15 @@ function isCharacterPath(): boolean {
   return /\/characters\/[a-f0-9]+\/chats\/[a-f0-9]+/.test(location.pathname);
 }
 
+
+/**
+ * 현재 URL이 스토리챗 빌더의 URL인지 반환합니다.
+ * @returns 채팅 URL 일치 여부
+ */
+function isStoryBuilderPath() {
+  return /^\/builder\/story(\/.*)?$/.test(location.pathname);
+}
+
 /**
  * 현재 URL이 ARPG 채팅의 일부인지 반환합니다.
  * @returns 채팅 URL 일치 여부
@@ -80,6 +89,7 @@ function chatRoom(): Nullable<string> {
 }
 
 export const CrackPathApi = {
+  isStoryBuilderPath,
   isDashboardPath,
   isStoryPath,
   isCharacterPath,

@@ -41,4 +41,12 @@ export class ObserveUtil {
   static onPageReady(runner: Runnable) {
     ("loading" === document.readyState ? document.addEventListener("DOMContentLoaded", runner) : runner(), window.addEventListener("load", runner));
   }
+
+  static attachResizeObserver(observerTarget: Element, lambda: Runnable): Runnable {
+    const observer = new ResizeObserver(lambda);
+    observer.observe(observerTarget);
+    return () => {
+      observer.unobserve(observerTarget);
+    };
+  }
 }
