@@ -40,15 +40,14 @@ async function* iterator({ max = -1, delay = 20, itemPerPage = 20 }: Notificatio
       yield result;
       break;
     }
-    for (let message of result.value.messages) {
-      if ((message.content?.length ?? 0) === 0) continue;
-      yield success(CrackNotification.of(message));
+    for (let alarm of result.value.data.alarms) {
+      yield success(CrackNotification.of(alarm));
       if (max !== -1 && ++amount >= max) {
         break;
       }
     }
-    if (result.value.nextCursor) {
-      cursor = result.value.nextCursor;
+    if (result.value.data.nextCursor) {
+      cursor = result.value.data.nextCursor;
     } else {
       break;
     }
