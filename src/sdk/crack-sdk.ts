@@ -8,8 +8,8 @@ import { CrackNetworkApi } from "./crack/network-util";
 import { CrackPathApi } from "./crack/path-util";
 import { CrackThemeApi } from "./crack/theme-util";
 import { ToastifyInjector } from "./crack/toastify-util";
-import { CrackSessionApi } from "./crack/session-util";
 import { CrackSessionFetcherApi } from "./crack/session-fetcher-util";
+import { CrackNotificationApi } from "./crack/notification-util";
 
 const componentApi = new CrackComponentApi();
 
@@ -85,6 +85,13 @@ export function sessionFetcher(): typeof CrackSessionFetcherApi {
   return CrackSessionFetcherApi;
 }
 
+/**
+ * 크랙 알림 유틸리티를 반환합니다.
+ * @returns 알림 유틸리티
+ */
+export function notification(): typeof CrackNotificationApi {
+  return CrackNotificationApi;
+}
 
 /**
  * 크랙 Toastify 관련 유틸리티를 반환합니다.
