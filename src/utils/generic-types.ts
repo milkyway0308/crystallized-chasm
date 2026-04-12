@@ -17,6 +17,6 @@ export type AsyncTriConsumer<F, S, T> = (first: F, second: S, third: T) => Expan
 export type Processor<I, O> = (input: I) => O
 export type AsyncProcessor<I, O> = (input: I) => Promise<O>
 
-
 export type Nullable<T> = T | null;
+export type Undeclarable<T> = T | null | undefined;
 export type Skippable<T> = T | undefined | void;

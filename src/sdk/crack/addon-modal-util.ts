@@ -24,14 +24,14 @@ function tryInjectMenuItem(element: HTMLAnchorElement, targetHref: string): bool
 }
 
 function __updateModalMenu() {
-  if (NodeLocator.getElement("#chasm-decentral-menu")) return;
+  if (NodeLocator.get("#chasm-decentral-menu")) return;
   if (CrackSdk.environment().isMobile()) {
-    for (const element of NodeLocator.getElements<HTMLAnchorElement>("a")) {
+    for (const element of NodeLocator.getAll<HTMLAnchorElement>("a")) {
       if (tryInjectMenuItem(element, "/my-page")) break;
     }
   } else {
-    NodeLocator.onElement<HTMLDivElement>("#web-modal", true, () => {
-      for (const element of NodeLocator.getElements<HTMLAnchorElement>("a")) {
+    NodeLocator.on<HTMLDivElement>("#web-modal", true, () => {
+      for (const element of NodeLocator.getAll<HTMLAnchorElement>("a")) {
         if (tryInjectMenuItem(element, "/setting")) break;
       }
     });

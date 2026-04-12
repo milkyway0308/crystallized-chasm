@@ -21,6 +21,13 @@ export interface SetupNodeOption<T extends HTMLElement, R = void> extends NodeCr
 
 export type GridParameter = ComplexedAnnotatedContent<HTMLDivElement, HTMLParagraphElement, HTMLDivElement>;
 
+export type AttributeCompareOption = {
+  ignoreNull: boolean;
+  name: string;
+  first: HTMLElement;
+  second: HTMLElement;
+};
+
 export class NodeUtil {
   /**
    * 파라미터를 기준으로 새 HTML 요소를 만들어 반환합니다.
@@ -161,5 +168,47 @@ export class NodeUtil {
    */
   static createLongSemiFlatGridElement<R = void>(titleText: Nullable<string>, lambda?: (setup: GridParameter) => R): R extends void ? GridParameter : R {
     return this.createGenericGridElement("decentral-grid-element-long-semi-flat", titleText, lambda);
+  }
+
+  /**
+   * 대상의 HTMLElement로 캐스팅된 자식 노드를 반환합니다.
+   * 자식 노드는 HTMLElement라는 보장이 없으나, 널체크를 통한 이터레이팅 목적으로는 적합합니다.
+   */
+  static childs(element: Node): Iterable<HTMLElement> {
+    return element.childNodes as Iterable<HTMLElement>;
+  }
+
+  static attrEq(ignoreNull: boolean = true, name: string, first: HTMLElement, second: HTMLElement): boolean {
+    if (ignoreNull && (!first.hasAttribute(name) || !second.hasAttribute(name))) return false;
+    return first.getAttribute(name) === second.getAttribute(name);
+  }
+
+  static addCls(element: HTMLElement, ...clss: string[]) {
+    for (const cls of clss) {
+      element.classList.add(cls);
+    }
+  }
+
+  static delCls(element: HTMLElement, ...clss: string[]) {
+    for (const cls of clss) {
+      element.classList.remove(cls);
+    }
+  }
+
+  static hasCls(element: HTMLElement, ...clss: string[]) {
+    for (const cls of clss) {
+      if (!element.classList.contains(cls)) return false;
+    }
+    return true;
+  }
+
+  static delAttr(element: HTMLElement, ...attrs: string[]) {
+    for (const attr of attrs) {
+      element.removeAttribute(attr);
+    }
+  }
+
+  static isNodeSelected(e: HTMLElement) {
+    return (e.parentElement?.querySelectorAll(":hover")?.length ?? 0) > 0;
   }
 }
