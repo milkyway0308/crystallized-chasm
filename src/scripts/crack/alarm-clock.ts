@@ -3,10 +3,10 @@ import { CrackSdk } from "../../sdk/crack-sdk";
 import { readonlyLazy } from "../../utils/lazy-util";
 import { LogUtil } from "../../utils/log-utils";
 import { ScriptMetaUtil } from "../../utils/script-meta-util";
-import SCRIPT_STYLE from "./css/alarm-clock.scss?inline";
 import { NodeUtil } from "../../utils/node-util";
 import { NodeLocator } from "../../utils/node-locator-util";
 import { BrowserInitUtil } from "../../utils/init-util";
+import SCRIPT_STYLE from "./css/alarm-clock.scss?inline";
 
 export const scriptMeta = ScriptMetaUtil.construct("crack", "alarm-clock.user.js", undefined, (meta) => {
   meta.name = "Chasm Crystallized AlarmClock (결정화 캐즘 자명종)";
@@ -119,17 +119,17 @@ async function doAttend(container: HTMLElement) {
  * 조건이 맞다면 출석 모달 요소를 강제 삽입합니다.
  */
 function findAndInjectElement() {
-  if (NodeLocator.getElement(".chasm-alarm-clock")) return;
+  if (NodeLocator.get(".chasm-alarm-clock")) return;
   if (CrackSdk.environment().isMobile()) {
-    NodeLocator.onElement(CrackSdk.theme().isDarkTheme() ? ".css-7238to" : ".css-9gj46x", true, (element) => {
+    NodeLocator.on(CrackSdk.theme().isDarkTheme() ? ".css-7238to" : ".css-9gj46x", true, (element) => {
       injectElement(element.lastElementChild!.lastElementChild!);
-      NodeLocator.onElement("#chasm-alarm-clock", true, (alarmDialog) => {
+      NodeLocator.on("#chasm-alarm-clock", true, (alarmDialog) => {
         alarmDialog.setAttribute("mobile", "true");
       });
     });
   } else {
-    NodeLocator.onElement(CrackSdk.theme().isDarkTheme() ? ".css-7238to" : ".css-9gj46x", true, (element) => {
-      NodeLocator.onElement("a[href='/cracker']", true, (button) => {
+    NodeLocator.on(CrackSdk.theme().isDarkTheme() ? ".css-7238to" : ".css-9gj46x", true, (element) => {
+      NodeLocator.on("a[href='/cracker']", true, (button) => {
         injectElement(button);
       });
     });

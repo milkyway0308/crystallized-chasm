@@ -27,7 +27,7 @@ const logger = readonlyLazy(() => new LogUtil("Sanitizer", false));
 function monitor() {
   if (CrackSdk.environment().isMobile()) {
     let scannerIndex = 0;
-    for (let element of NodeLocator.getElements<HTMLDivElement>('div[height="64"]')) {
+    for (let element of NodeLocator.getAll<HTMLDivElement>('div[height="64"]')) {
       if (++scannerIndex >= 5) return;
       for (let button of element.getElementsByTagName("button")) {
         if (button.textContent === "다운로드") {
