@@ -1,6 +1,7 @@
 import { CRACK_VERSION_RULE } from "../../constants/script-constants";
 import { CrackSdk } from "../../sdk/crack-sdk";
 import { BrowserInitUtil } from "../../utils/init-util";
+import { readonlyLazy } from "../../utils/lazy-util";
 import { LocaleStorageConfig } from "../../utils/local-storage-config";
 import { LogUtil } from "../../utils/log-utils";
 import { ScriptMetaUtil } from "../../utils/script-meta-util";
@@ -13,14 +14,17 @@ export const scriptMeta = ScriptMetaUtil.construct("crack", "watchdog.user.js", 
 });
 
 const LAST_NOTIFICATION_ID = "chasm-wdog-last-noti";
-const logger = new LogUtil("Chasm Crystallized WatchDog", false);
+const logger = readonlyLazy(() => new LogUtil("Chasm Crystallized WatchDog", false));
 // https://pixabay.com/sound-effects/film-special-effects-bell-ring-390294/
-const audio = new Audio("https://assets.igx.kr/audio/bell-ring.mp3");
-const settings = new LocaleStorageConfig("chasm-wdog-config", {
-  enableBellRing: true,
-  enableOSAlert: false,
-  maxAlarmTime: 8,
-});
+const audio = readonlyLazy(() => new Audio("https://assets.igx.kr/audio/bell-ring.mp3"));
+const settings = readonlyLazy(
+  () =>
+    new LocaleStorageConfig("chasm-wdog-config", {
+      enableBellRing: true,
+      enableOSAlert: false,
+      maxAlarmTime: 8,
+    }),
+);
 
 async function track() {
   const items = await CrackSdk.notification().current({ max: 1, allowFastFail: true });
@@ -96,10 +100,6 @@ function addMenu() {
     panel.addText("- 벨 음향 이펙트 (https://pixabay.com/sound-effects/film-special-effects-bell-ring-390294/)");
   });
 }
-settings.load();
-addMenu();
-track();
-
 // =================================================
 //                    초기화
 // =================================================
@@ -107,6 +107,7 @@ track();
 BrowserInitUtil.init(() => {
   settings.load();
   addMenu();
+  track();
   BrowserInitUtil.onPagePrepare(() => {
     setInterval(async () => {
       track();
