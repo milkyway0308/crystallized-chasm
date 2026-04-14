@@ -67,7 +67,7 @@ async function* iterateLogs(chatId: string, { max = -1, delay = 20, itemPerPage 
       yield result;
       break;
     }
-    for (let message of result.value.messages) {
+    for (let message of result.value.data.messages) {
       if ((message.content?.length ?? 0) === 0) continue;
       yield success(CrackChattingLog.of(message));
       if (max !== -1 && ++amount >= max) {
