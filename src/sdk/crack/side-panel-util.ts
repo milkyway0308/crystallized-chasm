@@ -135,7 +135,6 @@ export class SidePanelManager {
     });
 
     const created = new SidePanelCategory(categoryName, header);
-
     if (beforeTitle) {
       const target = this.categoryMap.get(beforeTitle);
       if (!target) throw new Error(`Target category '${beforeTitle}' does not exist.`);
