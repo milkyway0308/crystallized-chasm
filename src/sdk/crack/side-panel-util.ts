@@ -133,7 +133,6 @@ export class SidePanelManager {
       cls: "typo-text-md_leading-none_medium p-2 text-text_tertiary",
       text: categoryName,
     });
-
     const created = new SidePanelCategory(categoryName, header);
     if (beforeTitle) {
       const target = this.categoryMap.get(beforeTitle);
