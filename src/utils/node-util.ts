@@ -170,6 +170,15 @@ export class NodeUtil {
     return this.createGenericGridElement("decentral-grid-element-long-semi-flat", titleText, lambda);
   }
 
+  
+  /**
+   * HTML 기반 요소를 복사해 반환합니다.
+   * 반환된 요소는 항상 입력된 요소와 동일한 타입을 갖습니다.
+   */
+  static clone<T extends Element>(target: T): T {
+    return target.cloneNode(true) as T; 
+  }
+
   /**
    * 대상의 HTMLElement로 캐스팅된 자식 노드를 반환합니다.
    * 자식 노드는 HTMLElement라는 보장이 없으나, 널체크를 통한 이터레이팅 목적으로는 적합합니다.
