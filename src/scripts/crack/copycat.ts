@@ -9,7 +9,6 @@ export const scriptMeta = ScriptMetaUtil.construct("crack", "copycat.user.js", u
   meta.version = "CRCK-CCAT-v2.0.0" satisfies CRACK_VERSION_RULE;
   meta.author = "milkyway0308";
   meta.defaulticon = "웹에 롱클릭 복사 추가. 이 기능은 결정화 캐즘 오리지널 패치입니다.";
-
 });
 
 // =====================================================
