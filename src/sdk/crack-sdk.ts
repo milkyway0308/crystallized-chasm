@@ -11,8 +11,6 @@ import { ToastifyInjector } from "./crack/toastify-util";
 import { CrackSessionFetcherApi } from "./crack/session-fetcher-util";
 import { CrackNotificationApi } from "./crack/notification-util";
 
-const componentApi = new CrackComponentApi();
-
 /**
  * 크랙 출석 유틸리티를 반환합니다.
  * @returns 출석 유틸리티
@@ -33,8 +31,8 @@ export function environment(): typeof CrackEnvironmentApi {
  * 크랙 페이지 컴포넌트 유틸리티를 반환합니다.
  * @returns 컴포넌트 유틸리티
  */
-export function component(): CrackComponentApi {
-  return componentApi;
+export function component(): typeof CrackComponentApi {
+  return CrackComponentApi;
 }
 
 /**
