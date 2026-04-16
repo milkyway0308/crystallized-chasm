@@ -1,5 +1,5 @@
-import { Nullable } from "../../utils/generic-types";
-import { NodeUtil } from "../../utils/node-util";
+import { Nullable } from "../../../utils/generic-types";
+import { NodeUtil } from "../../../utils/node-util";
 
 export class SidePanelButton {
   constructor(public readonly element: Element) {}
