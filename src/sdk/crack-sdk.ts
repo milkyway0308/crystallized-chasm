@@ -10,6 +10,7 @@ import { CrackThemeApi } from "./crack/theme-util";
 import { ToastifyInjector } from "./crack/toastify-util";
 import { CrackSessionFetcherApi } from "./crack/session-fetcher-util";
 import { CrackNotificationApi } from "./crack/notification-util";
+import { CrackStoryApi } from "./crack/story-util";
 
 /**
  * 크랙 출석 유틸리티를 반환합니다.
@@ -31,7 +32,7 @@ export function environment(): typeof CrackEnvironmentApi {
  * 크랙 페이지 컴포넌트 유틸리티를 반환합니다.
  * @returns 컴포넌트 유틸리티
  */
-export function component(): typeof CrackComponentApi {
+export function pageComponent(): typeof CrackComponentApi {
   return CrackComponentApi;
 }
 
@@ -92,6 +93,14 @@ export function notification(): typeof CrackNotificationApi {
 }
 
 /**
+ * 크랙 스토리 유틸리티를 반환합니다.
+ * @returns 스토리 유틸리티
+ */
+export function story(): typeof CrackStoryApi {
+  return CrackStoryApi;
+}
+
+/**
  * 크랙 Toastify 관련 유틸리티를 반환합니다.
  * @returns Toastify 유틸리티
  */
@@ -102,6 +111,5 @@ export function toastify(): ToastifyInjector {
 export function addonModal(): typeof CrackAddonModalApi {
   return CrackAddonModalApi;
 }
-
 
 export * as CrackSdk from "./crack-sdk";
