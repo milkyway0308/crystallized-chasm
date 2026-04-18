@@ -3,7 +3,7 @@ import { Legacy, Nullable, Undeclarable } from "../../../utils/generic-types";
 import { UpdatableTimestamp } from "../../core/types/generic-types";
 import { CrackOriginalState } from "./types-crack-original";
 import { CrackCreatorInfo } from "./types-creator";
-import { CrackImageMappable } from "./types-generic";
+import { CrackImageMappable, CrackVisibility } from "./types-generic";
 import { CrackGenre } from "./types-genre";
 import { CrackIdPair } from "./types-id-set";
 import { CrackKeywordBook } from "./types-keyword-book";
@@ -11,6 +11,55 @@ import { CrackPromptTemplate } from "./types-prompt-template";
 import { CrackSituationImage } from "./types-situation-image";
 import { CrackStartingSet } from "./types-starting-set";
 
+export class WritableStoryInfo {
+  constructor(
+    public chatExamples: string[],
+    public chatModelId: string,
+    public chatType: string,
+    public mainPrompt: string,
+    public crackerModel: string,
+    public description: string,
+    public detailDescription: string,
+    public genreId: string,
+    public isCommentBlocked: boolean,
+    public isMovingPortraitImage: boolean,
+    public model: string,
+    public name: string,
+    public portraitImageUrl: string,
+    public promptTemplate: string,
+    public simpleDescription: string,
+    public sets: CrackStartingSet[],
+    public storyDetails: string,
+    public tags: string[],
+    public target: string,
+    public visibility: CrackVisibility,
+  ) {}
+
+  stringify() {
+    return JSON.stringify({
+      chatExamples: this.chatExamples,
+      chatModelId: this.chatModelId,
+      chatType: this.chatType,
+      customPrompt: this.mainPrompt,
+      defaultCrackerModel: this.crackerModel,
+      description: this.description,
+      detailDescription: this.detailDescription,
+      genreId: this.genreId,
+      isCommentBlocked: this.isCommentBlocked,
+      isMovingPortraitImage: this.isMovingPortraitImage,
+      model: this.model,
+      name: this.name,
+      portraitImageUrl: this.portraitImageUrl,
+      promptTemplate: this.promptTemplate,
+      simpleDescription: this.simpleDescription,
+      startingSets: this.sets,
+      storyDetails: this.storyDetails,
+      tags: this.tags,
+      target: this.target,
+      visibility: this.visibility.originName,
+    });
+  }
+}
 export class ReadonlyDetailedStoryInfo {
   constructor(
     /** 작품 ID */
@@ -85,7 +134,7 @@ export class ReadonlyDetailedStoryInfo {
     /** 스토리 상세 정보 */
     public readonly storyDetails: Undeclarable<string>,
     /** 프롬프트 상세 정보 */
-    public readonly customPrompt: Undeclarable<string>,
+    public readonly customPrompt: string,
     /** 채팅 예제? */
     public readonly chatExamples: string[],
     /** 시작 설정 목록 */
@@ -107,7 +156,7 @@ export class ReadonlyDetailedStoryInfo {
     /** 구 API 사용 스냅샷 ID */
     public readonly snapshotId: Legacy<Undeclarable<string>>,
     /** 구 API 사용 현재 모델 */
-    public readonly model: Legacy<Undeclarable<string>>,
+    public readonly model: string,
     /** 구 API 사용 작품 카테고리 */
     public readonly categories: Legacy<string[]>,
 
@@ -117,9 +166,34 @@ export class ReadonlyDetailedStoryInfo {
     /** 구 API 사용 공개 전환 시간 */
     public readonly firstPublicAt: Legacy<Undeclarable<string>>,
 
-    /** 구 API 사용 장르 ID */
-    public readonly genreId: Legacy<Undeclarable<string>>,
+    /** 장르 ID */
+    public readonly genreId: string,
   ) {}
+
+  asWritable(): WritableStoryInfo {
+    return new WritableStoryInfo(
+      this.chatExamples,
+      this.chatModelId,
+      this.chatType,
+      this.customPrompt,
+      this.defaultCrackerModel,
+      this.description,
+      this.detailDescription,
+      this.genreId,
+      this.isCommentBlocked,
+      this.profileImage.image("gif") ? true : false,
+      this.model,
+      this.title,
+      this.portraitImage?.image("origin") ?? this.profileImage?.image("origin") ?? "about:blank",
+      this.promptTemplate.name,
+      this.simpleDescription,
+      this.startingSets,
+      this.storyDetails ?? "",
+      this.tags,
+      this.target,
+      CrackVisibility.of(this.visibility),
+    );
+  }
 
   static from(data: any): ReadonlyDetailedStoryInfo {
     return new ReadonlyDetailedStoryInfo(
@@ -128,7 +202,7 @@ export class ReadonlyDetailedStoryInfo {
       MissingComponentError.ensureNumber("Crack Story Deserialization", "totalMessageCount", data),
       MissingComponentError.ensureString("Crack Story Deserialization", "defaultCrackerModel", data),
       MissingComponentError.ensureString("Crack Story Deserialization", "chatModelId", data),
-      CrackCreatorInfo.from(data),
+      CrackCreatorInfo.from(data.creator),
       MissingComponentError.ensureString("Crack Story Deserialization", "name", data),
       MissingComponentError.ensureString("Crack Story Deserialization", "description", data),
       MissingComponentError.ensureString("Crack Story Deserialization", "simpleDescription", data, false) ?? "",
@@ -154,8 +228,8 @@ export class ReadonlyDetailedStoryInfo {
       MissingComponentError.ensureString("Crack Story Deserialization", "target", data),
       MissingComponentError.ensureString("Crack Story Deserialization", "chatType", data),
       MissingComponentError.ensureString("Crack Story Deserialization", "storyDetails", data, false),
-      MissingComponentError.ensureString("Crack Story Deserialization", "customPrompt", data, false),
-      MissingComponentError.ensureArray<string>("Crack Story Deserialization", "chatExample", data),
+      MissingComponentError.ensureString("Crack Story Deserialization", "customPrompt", data, false) ?? "",
+      MissingComponentError.ensureArray<string>("Crack Story Deserialization", "chatExamples", data),
       MissingComponentError.ensureArray<any>("Crack Story Deserialization", "startingSets", data).map((it) => CrackStartingSet.from(it)),
       CrackOriginalState.from(data["original"]),
       MissingComponentError.ensureBool("Crack Story Deserialization", "isCommentBlocked", data),
@@ -163,13 +237,12 @@ export class ReadonlyDetailedStoryInfo {
       MissingComponentError.ensureArray<string>("Crack Story Deserialization", "replySuggestions", data),
       MissingComponentError.ensureArray<any>("Crack Story Deserialization", "situationImages", data).map((it) => CrackSituationImage.from(it)),
       MissingComponentError.ensureString("Crack Story Deserialization", "snapshotId", data, false),
-      MissingComponentError.ensureString("Crack Story Deserialization", "model", data, false),
-
+      MissingComponentError.ensureString("Crack Story Deserialization", "model", data),
       MissingComponentError.ensureArray<string>("Crack Story Deserialization", "categories", data),
       MissingComponentError.ensureArray<any>("Crack Story Deserialization", "keywordBook", data).map((it) => CrackKeywordBook.from(it)),
 
       MissingComponentError.ensureString("Crack Story Deserialization", "firstPublicAt", data, false),
-      MissingComponentError.ensureString("Crack Story Deserialization", "genreId", data, false),
+      MissingComponentError.ensureString("Crack Story Deserialization", "genreId", data),
     );
   }
 }
