@@ -28,7 +28,7 @@ async function authFetch<T = any>(method: string, url: string, body?: any): Prom
       },
     };
     if (body) {
-      param.body = JSON.stringify(body);
+      param.body = typeof body === "string" ? body : JSON.stringify(body);
     }
     const result = await fetch(url, param);
     if (!result.ok) {
