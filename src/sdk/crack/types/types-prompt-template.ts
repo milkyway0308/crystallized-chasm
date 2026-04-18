@@ -4,7 +4,7 @@ import { CrackImageMappable } from "./types-generic";
 export class CrackPromptTemplate {
   constructor(
     public readonly name: string,
-    public readonly template: string,
+    public readonly templateId: string,
     public readonly icon: CrackImageMappable,
   ) {}
 

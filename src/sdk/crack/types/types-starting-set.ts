@@ -31,11 +31,24 @@ export class CrackStartingSet {
       MissingComponentError.ensureString("Crack Starting Set Deserialization", "baseSetId", data),
       MissingComponentError.ensureString("Crack Starting Set Deserialization", "name", data),
       MissingComponentError.ensureArray<string>("Crack Starting Set Deserialization", "initialMessages", data),
-      MissingComponentError.ensureString("Crack Starting Set Deserialization", "situationPrompt", data),
+      MissingComponentError.ensureString("Crack Starting Set Deserialization", "situationPrompt", data, false) ?? "",
       MissingComponentError.ensureArray<string>("Crack Starting Set Deserialization", "replySuggestions", data),
       MissingComponentError.ensureArray<any>("Crack Starting Set Deserialization", "situationImages", data).map((it) => CrackSituationImage.from(it)),
       MissingComponentError.ensureArray<any>("Crack Starting Set Deserialization", "keywordBook", data).map((it) => CrackKeywordBook.from(it)),
       MissingComponentError.ensureArray<any>("Crack Starting Set Deserialization", "parameters", data).map((it) => CrackParameter.from(it)),
     );
+  }
+
+  uglify(includeId: boolean): any {
+    return {
+      setId: includeId ? this.setId : undefined,
+      name: this.name,
+      initialMessages: this.initialMessages,
+      situationPrompt: this.situationPrompt,
+      replySuggestions: this.replySuggestions,
+      situationImages: this.situationImages,
+      keywordBooks: this.keywordBooks,
+      parameters: this.parameters,
+    };
   }
 }

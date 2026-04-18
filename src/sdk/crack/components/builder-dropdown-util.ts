@@ -1,8 +1,11 @@
 import { Consumer, ExpandedVoid, Nullable } from "../../../utils/generic-types";
 import { NodeLocator } from "../../../utils/node-locator-util";
 import { NodeUtil } from "../../../utils/node-util";
+import { ObserveUtil } from "../../../utils/observe-util";
 
 const managerCache = new WeakMap<HTMLElement, ArticleListingMenuManager>();
+
+let isObserverAttached = false;
 
 class ArticleListingMenuItem {
   constructor(public readonly element: HTMLElement) {}
@@ -21,17 +24,17 @@ class ArticleListingDropdownElement {
 }
 
 class ArticleListingDropdown extends ArticleListingMenuItem {
-  private dropdownElements: ArticleListingDropdownElement[] =[];
+  private dropdownElements: ArticleListingDropdownElement[] = [];
 
   constructor(element: HTMLElement) {
     super(element);
     this.overrideClick((event) => {
       event.preventDefault();
       event.stopPropagation();
-      this.removeExistingDropdown();
+      removeExistingDropdown();
       this.clearDropdownContainer();
       this.addItems();
-      this.repositionDropdown(element); 
+      this.repositionDropdown(element);
     });
   }
 
@@ -57,7 +60,7 @@ class ArticleListingDropdown extends ArticleListingMenuItem {
               subNode.id = "chasm-copy-dropdowns";
             },
           });
-          
+
           const borderElement = NodeUtil.setupNode("div", {
             onInit(subNode) {
               subNode.id = "chasm-copy-partial-border";
@@ -71,13 +74,6 @@ class ArticleListingDropdown extends ArticleListingMenuItem {
       });
     }
     return document.getElementById("chasm-copy-dropdowns") as HTMLElement;
-  }
-
-  private removeExistingDropdown() {
-    for (const menuNode of Array.from(document.getElementsByClassName("chasm-copy-menu"))) {
-      menuNode.removeAttribute("chasm-dropdown-enabled");
-    }
-    document.getElementById("chasm-copy-dropdown-container")?.remove();
   }
 
   private repositionDropdown(targetElement: HTMLElement) {
@@ -117,12 +113,16 @@ class ArticleListingDropdown extends ArticleListingMenuItem {
 const ATTRIBUTE_MODIFIED_CONTAINER = `crack-sdk-modified`;
 
 class ArticleListingMenuManager {
-  private menuItems: ArticleListingMenuItem[] =[];
+  private menuItems: ArticleListingMenuItem[] = [];
   private expectedContainer = acquireMenuContainer();
 
   constructor() {
     if (!this.expectedContainer) return;
     this.refresh();
+    if (!isObserverAttached) {
+      isObserverAttached = true;
+      this.attachLifecycleObserver();
+    }
   }
 
   hasModified(key?: string) {
@@ -131,7 +131,7 @@ class ArticleListingMenuManager {
   }
 
   refresh() {
-    this.menuItems =[];
+    this.menuItems = [];
     if (this.expectedContainer) {
       const firstChild = this.expectedContainer.childNodes[0];
       if (firstChild) {
@@ -140,6 +140,19 @@ class ArticleListingMenuManager {
         }
       }
     }
+  }
+
+  attachLifecycleObserver() {
+    ObserveUtil.attachObserver(document, () => {
+      if (!/^\/my(\/.*)?$/.test(location.pathname)) {
+        return;
+      }
+      const menu = acquireMenuContainer();
+      if (!menu) {
+        removeExistingDropdown();
+        return;
+      }
+    });
   }
 
   markModified(key?: string) {
@@ -152,9 +165,9 @@ class ArticleListingMenuManager {
     if (this.menuItems.length > 0) {
       item = NodeUtil.clone(this.menuItems[0].element);
     } else {
-      item = document.createElement("div"); 
+      item = document.createElement("div");
     }
-    
+
     item.textContent = text;
     item.onclick = null;
     item.classList.add("chasm-copy-button-primary");
@@ -167,10 +180,10 @@ class ArticleListingMenuManager {
 
     const item = this.createBaseItem(text);
     item.addEventListener("click", (event) => {
-        event.stopPropagation();
-        onAction()
+      event.stopPropagation();
+      onAction();
     });
-    
+
     this.menuItems.push(new ArticleListingMenuItem(item));
     this.expectedContainer?.childNodes[0]?.appendChild(item);
     return this;
@@ -183,11 +196,18 @@ class ArticleListingMenuManager {
     const item = this.createBaseItem(text);
     const dropdown = new ArticleListingDropdown(item);
     dropdownSetting(dropdown);
-    
+
     this.menuItems.push(dropdown);
     this.expectedContainer?.childNodes[0]?.appendChild(dropdown.element);
     return this;
   }
+}
+
+function removeExistingDropdown() {
+  for (const menuNode of Array.from(document.getElementsByClassName("chasm-copy-menu"))) {
+    menuNode.removeAttribute("chasm-dropdown-enabled");
+  }
+  document.getElementById("chasm-copy-dropdown-container")?.remove();
 }
 
 function acquireMenuContainer(): HTMLDivElement | null {

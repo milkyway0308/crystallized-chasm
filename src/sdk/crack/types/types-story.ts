@@ -1,5 +1,5 @@
 import { MissingComponentError } from "../../../utils/error-utils";
-import { Legacy, Nullable, Undeclarable } from "../../../utils/generic-types";
+import { Consumer, Legacy, Nullable, Undeclarable } from "../../../utils/generic-types";
 import { UpdatableTimestamp } from "../../core/types/generic-types";
 import { CrackOriginalState } from "./types-crack-original";
 import { CrackCreatorInfo } from "./types-creator";
@@ -35,7 +35,7 @@ export class WritableStoryInfo {
     public visibility: CrackVisibility,
   ) {}
 
-  stringify() {
+  stringify(includeId: boolean, storyId?: Nullable<string>, isAdult?: Nullable<boolean>) {
     return JSON.stringify({
       chatExamples: this.chatExamples,
       chatModelId: this.chatModelId,
@@ -52,12 +52,19 @@ export class WritableStoryInfo {
       portraitImageUrl: this.portraitImageUrl,
       promptTemplate: this.promptTemplate,
       simpleDescription: this.simpleDescription,
-      startingSets: this.sets,
+      startingSets: this.sets.map((it) => it.uglify(includeId)),
       storyDetails: this.storyDetails,
       tags: this.tags,
       target: this.target,
       visibility: this.visibility.originName,
+      storyId: storyId === null ? undefined : storyId,
+      isAdult: isAdult === null ? undefined : isAdult,
     });
+  }
+
+  modify(worker: Consumer<WritableStoryInfo>): WritableStoryInfo {
+    worker(this);
+    return this;
   }
 }
 export class ReadonlyDetailedStoryInfo {
@@ -185,7 +192,7 @@ export class ReadonlyDetailedStoryInfo {
       this.model,
       this.title,
       this.portraitImage?.image("origin") ?? this.profileImage?.image("origin") ?? "about:blank",
-      this.promptTemplate.name,
+      this.promptTemplate.templateId,
       this.simpleDescription,
       this.startingSets,
       this.storyDetails ?? "",
