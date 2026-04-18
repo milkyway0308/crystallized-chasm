@@ -12,7 +12,7 @@ export class MissingComponentError extends Error {
     if (checkUndefined && json[component] === undefined) {
       throw new MissingComponentError(`데이터를 분해하는 중 오류가 발생하였습니다 : 진행 절차 ${step}, 문제 발생 요소 ${component} (존재하지 않음)`);
     }
-    if (typeof json[component] !== "string") {
+    if (json[component] !== undefined && typeof json[component] !== "string") {
       throw new MissingComponentError(`데이터를 분해하는 중 오류가 발생하였습니다 : 진행 절차 ${step}, 문제 발생 요소 ${component} (타입 불일치 / 원본 ${typeof json[component]}, 필요 string)`);
     }
     return json[component];
@@ -25,7 +25,7 @@ export class MissingComponentError extends Error {
     if (checkUndefined && json[component] === undefined) {
       throw new MissingComponentError(`데이터를 분해하는 중 오류가 발생하였습니다 : 진행 절차 ${step}, 문제 발생 요소 ${component} (존재하지 않음)`);
     }
-    if (typeof json[component] !== "boolean") {
+    if (json[component] !== undefined && typeof json[component] !== "boolean") {
       throw new MissingComponentError(`데이터를 분해하는 중 오류가 발생하였습니다 : 진행 절차 ${step}, 문제 발생 요소 ${component} (타입 불일치 / 원본 ${typeof json[component]}, 필요 boolean)`);
     }
     return json[component];
@@ -52,7 +52,7 @@ export class MissingComponentError extends Error {
     if (checkUndefined && json[component] === undefined) {
       throw new MissingComponentError(`데이터를 분해하는 중 오류가 발생하였습니다 : 진행 절차 ${step}, 문제 발생 요소 ${component} (존재하지 않음)`);
     }
-    if (!Array.isArray(json[component])) {
+    if (json[component] !== undefined && !Array.isArray(json[component])) {
       throw new MissingComponentError(`데이터를 분해하는 중 오류가 발생하였습니다 : 진행 절차 ${step}, 문제 발생 요소 ${component} (타입 불일치 / 원본 ${typeof json[component]}, 필요 array)`);
     }
     return json[component];
