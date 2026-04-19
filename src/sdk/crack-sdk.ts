@@ -11,6 +11,7 @@ import { ToastifyInjector } from "./crack/toastify-util";
 import { CrackSessionFetcherApi } from "./crack/session-fetcher-util";
 import { CrackNotificationApi } from "./crack/notification-util";
 import { CrackStoryApi } from "./crack/story-util";
+import { CrackSummaryApi } from "./crack/summary-util";
 
 /**
  * 크랙 출석 유틸리티를 반환합니다.
@@ -98,6 +99,15 @@ export function notification(): typeof CrackNotificationApi {
  */
 export function story(): typeof CrackStoryApi {
   return CrackStoryApi;
+}
+
+
+/**
+ * 크랙 장기기억 관련 유틸리티를 반환합니다.
+ * @returns 스토리 유틸리티
+ */
+export function summary(): typeof CrackSummaryApi {
+  return CrackSummaryApi;
 }
 
 /**
