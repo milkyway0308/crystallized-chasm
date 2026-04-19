@@ -1,10 +1,10 @@
 import { Nullable, Undeclarable } from "./generic-types";
 
-function by<T extends Element = HTMLElement>(origin: Undeclarable<HTMLElement>, selector: string): Nullable<T> {
+function by<T extends Element = HTMLElement>(origin: Undeclarable<Element>, selector: string): Nullable<T> {
   return origin ? origin.querySelector<T>(selector) : null;
 }
 
-function byAll<T extends Element = HTMLElement>(origin: Undeclarable<HTMLElement>, selector: string): T[] {
+function byAll<T extends Element = HTMLElement>(origin: Undeclarable<Element>, selector: string): T[] {
   return origin ? Array.from(origin.querySelectorAll<T>(selector)) : [];
 }
 
