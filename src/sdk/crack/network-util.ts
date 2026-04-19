@@ -1,15 +1,12 @@
 import { fail, Result, success } from "../../utils/flow-handler";
 import { CrackCookieApi } from "./cookie-util";
 
-export interface HttpError extends Error {
-  code: number;
+export class HttpError extends Error {
+  constructor(message: string, public readonly code: number) {
+    super(message);
+    this.code = code;
+  }
 }
-
-export interface HttpErrorConstructor {
-  new (message: string, code: number): HttpError;
-}
-
-declare var HttpError: HttpErrorConstructor;
 
 /**
  * 크랙의 토큰을 인증 수단으로 사용하여 요청을 보냅니다.
@@ -32,8 +29,6 @@ async function authFetch<T = any>(method: string, url: string, body?: any): Prom
     }
     const result = await fetch(url, param);
     if (!result.ok) {
-      const errorItem = new Error();
-      Object.assign(errorItem, { code: result.status });
       return fail(new HttpError(await result.text(), result.status));
     }
     return success((await result.json()) as T);
