@@ -1,4 +1,4 @@
-import { AsyncRunnable, Nullable, Runnable, Undeclarable } from "./generic-types";
+import { AsyncRunnable, Nullable, Runnable } from "./generic-types";
 
 /**
  * BackOff 클래스용 예외입니다.
