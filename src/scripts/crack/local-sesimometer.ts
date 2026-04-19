@@ -7,6 +7,8 @@ import { ScriptMetaUtil } from "../../utils/script-meta-util";
 import { CRACK_VERSION_RULE } from "../../constants/script-constants";
 import { BrowserInitUtil } from "../../utils/init-util";
 import { BackoffFriendlyError, DelayUtil } from "../../utils/delay-util";
+import { Nullable } from "../../utils/generic-types";
+import { HttpError } from "../../sdk/crack/network-util";
 
 export const scriptMeta = ScriptMetaUtil.construct("crack", "local-seismometer.user.js", undefined, (meta) => {
   meta.name = "Chasm Crystallized Local Sesimometer (캐즘 국소지진계)";
@@ -16,6 +18,7 @@ export const scriptMeta = ScriptMetaUtil.construct("crack", "local-seismometer.u
 });
 
 const logger = readonlyLazy(() => new LogUtil("Chasm Crystallized Local Sesimometer", false));
+let lastTokenUsed: Nullable<string> = null;
 
 interface LocalSesimometerTable {
   roomId: string;
@@ -37,16 +40,21 @@ const db = readonlyLazy(() =>
 
 async function check() {
   const sessionId = CrackSdk.path().chatRoom();
-  if (!sessionId) return;
+  if (!sessionId || CrackSdk.cookie().getAuthToken() === lastTokenUsed) return;
   const fetched = await CrackSdk.summary().extractLongTerm(sessionId);
   if (!fetched.ok) {
-    logger.log("인증 토큰 만료로 인해 요청에 실패하여 요약 메모리 감시 태스크를 뒤로 미룹니다.");
+    if (fetched.error instanceof HttpError && fetched.error.code === 401) {
+      lastTokenUsed = CrackSdk.cookie().getAuthToken();
+      logger.log("인증 토큰 만료로 인해 요청에 실패하여 다음 토큰 교체까지 요약 메모리 감시 태스크를 뒤로 미룹니다.");
+      return;
+    } else {
+      logger.log("크랙 API에서 알 수 없는 오류가 발생하여 요약 메모리 감시 태스크를 뒤로 미룹니다.");
+    }
     throw new BackoffFriendlyError();
   }
   if (fetched.value.length <= 0) {
     return;
   }
-
   const result = await db.cache.where("roomId").anyOf(sessionId).toArray();
   if (result.length > 0) {
     if (result[0].summaryId === fetched.value[0].id) {
