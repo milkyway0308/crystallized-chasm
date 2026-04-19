@@ -56,10 +56,11 @@ export class SidePanelCategory {
     return this;
   }
 
-  appendNormalButton(iconSvg: string, buttonText: string, onClick: () => void): SidePanelCategory {
+  appendNormalButton(buttonId: string, iconSvg: string, buttonText: string, onClick: () => void): SidePanelCategory {
     const template = NodeUtil.setupNode("div", {
       cls: "px-2.5 h-4 box-content py-[18px]",
     });
+    template.id = buttonId;
 
     const actualButton = NodeUtil.setupNode("div", {
       cls: "w-full flex h-4 items-center justify-between typo-text-base_leading-none_medium space-x-2 [&_svg]:fill-icon_tertiary ring-offset-4 ring-offset-sidebar cursor-pointer",
