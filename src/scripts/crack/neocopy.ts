@@ -162,8 +162,11 @@ async function publishStory(id: ExtractedCharacterInfo, isAdult: boolean, newVis
     console.error(originData.error);
     return;
   }
-
+  console.log(JSON.stringify(originData.value));
+  
+  console.log(`Writable: ${JSON.stringify(originData.value.asWritable())}`);
   try {
+
     const result = await CrackSdk.story().create(
       originData.value.asWritable().modify((data) => {
         data.visibility = newVisibility;
@@ -177,6 +180,8 @@ async function publishStory(id: ExtractedCharacterInfo, isAdult: boolean, newVis
       return;
     }
     CrackSdk.toastify().doToastifyAlert("새 스토리가 배포되었어요.");
+    window.history.pushState(null, "", window.location.href);
+    window.dispatchEvent(new Event("popstate"));
   } catch (err) {
     CrackSdk.toastify().doToastifyAlert("예상치 못한 오류가 발생했어요.\n결정화 캐즘 지원 채널에 해당 오류를 제보해주시면 빠른 수정이 가능해요.");
     console.error(err);
