@@ -26,16 +26,16 @@ export class ModalManager {
     if (!this.doesInit) {
       this.doesInit = true;
       const globalDoc = document as AttachedDocument<Map<string, ModalManager>>;
-      if (!globalDoc.__attached) {
+      if (!globalDoc.__decentral_attached) {
         try {
           GM_addStyle(ModalStyle);
         } catch (ex) {
           console.warn("!! WARNING !!");
           console.warn("!! WARNING !! GM_addStyle 콜에 실패하였습니다.\n브라우저가 아닌 환경에서 decentralized-modal이 초기화되었을 가능성이 존재합니다.\n해당 환경에서는 decentralized-modal.js가 오작동할 가능성이 존재합니다.");
         }
-        globalDoc.__attached = this.#modalMap;
+        globalDoc.__decentral_attached = this.#modalMap;
       }
-      this.#modalMap = globalDoc.__attached;
+      this.#modalMap = globalDoc.__decentral_attached;
     }
   }
 

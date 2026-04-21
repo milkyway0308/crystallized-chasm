@@ -1,4 +1,4 @@
-export type AttachedDocument<T> = Document & { __attached?: T };
+export type AttachedDocument<T> = Document & { __decentral_attached?: T };
 export type ExpandedVoid = void | Promise<void>;
 
 export type Runnable = () => void;
