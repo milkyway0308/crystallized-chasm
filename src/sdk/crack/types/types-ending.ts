@@ -70,7 +70,12 @@ export class CrackEndingContainer {
       endings: this.endings.map((it) => it.uglify()),
     };
   }
+
+  hasEndings(): boolean {
+    return this.endings.length > 0;
+  }
+
   static from(data: any): CrackEndingContainer {
-    return new CrackEndingContainer(MissingComponentError.ensureArray("Crack Ending Container Deserialization", "endings", data).map((it) => CrackEnding.from(it)));
+    return new CrackEndingContainer((MissingComponentError.ensureArray("Crack Ending Container Deserialization", "endings", data, false) ?? []).map((it) => CrackEnding.from(it)));
   }
 }

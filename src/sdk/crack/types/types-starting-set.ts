@@ -37,9 +37,9 @@ export class CrackStartingSet {
       MissingComponentError.ensureString("Crack Starting Set Deserialization", "situationPrompt", data, false) ?? "",
       MissingComponentError.ensureArray<string>("Crack Starting Set Deserialization", "replySuggestions", data),
       MissingComponentError.ensureArray<any>("Crack Starting Set Deserialization", "situationImages", data).map((it) => CrackSituationImage.from(it)),
-      CrackEndingContainer.from(data["ending"]),
-      MissingComponentError.ensureArray<any>("Crack Starting Set Deserialization", "keywordBook", data).map((it) => CrackKeywordBook.from(it)),
-      MissingComponentError.ensureArray<any>("Crack Starting Set Deserialization", "parameters", data).map((it) => CrackParameter.from(it)),
+      CrackEndingContainer.from(data["ending"] ?? {}),
+      (MissingComponentError.ensureArray<any>("Crack Starting Set Deserialization", "keywordBook", data, false) ?? []).map((it) => CrackKeywordBook.from(it)),
+      (MissingComponentError.ensureArray<any>("Crack Starting Set Deserialization", "parameters", data, false) ?? []).map((it) => CrackParameter.from(it)),
     );
   }
 
@@ -53,7 +53,7 @@ export class CrackStartingSet {
       situationImages: this.situationImages,
       keywordBooks: this.keywordBook,
       parameters: this.parameters.map((it) => it.uglify()),
-      ending: this.ending.uglify(),
+      ending: this.ending.hasEndings() ? this.ending.uglify() : undefined,
     };
   }
 }
