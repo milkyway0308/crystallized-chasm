@@ -1,20 +1,19 @@
-import typia from "typia";
+
 import { CRACK_VERSION_RULE } from "../../constants/script-constants";
 import { CrackSdk } from "../../sdk/crack-sdk";
 import { CrackVisibility } from "../../sdk/crack/types/types-generic";
 import { ReadonlyDetailedStoryInfo, WritableStoryInfo } from "../../sdk/crack/types/types-story";
 import { FileUtil } from "../../utils/file-utils";
-import { Nullable, Undeclarable } from "../../utils/generic-types";
+import { Nullable,} from "../../utils/generic-types";
 import { BrowserInitUtil } from "../../utils/init-util";
 import { NodeLocator } from "../../utils/node-locator-util";
 import { ObserveUtil } from "../../utils/observe-util";
 import { ScriptMetaUtil } from "../../utils/script-meta-util";
 import SCRIPT_STYLE from "./css/neocopy.scss?inline";
-import { plainToClass } from "class-transformer";
 
 export const scriptMeta = ScriptMetaUtil.construct("crack", "neocopy.user.js", undefined, (meta) => {
   meta.name = "Chasm Crystallized Neo-Copy (결정화 캐즘 네오-카피)";
-  meta.version = "CRCK-NCPY-v3.0.0" satisfies CRACK_VERSION_RULE;
+  meta.version = "CRCK-NCPY-v3.0.2" satisfies CRACK_VERSION_RULE;
   meta.author = "milkyway0308";
   meta.defaulticon = "크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오..";
 });
