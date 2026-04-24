@@ -53,7 +53,7 @@ export class CrackStartingSet {
       situationImages: this.situationImages,
       keywordBooks: this.keywordBook,
       parameters: this.parameters.map((it) => it.uglify()),
-      ending: this.ending.hasEndings() ? this.ending.uglify() : undefined,
+      ending: this.ending.hasEndings() ? this.ending.uglify(!includeId) : undefined,
     };
   }
 }
