@@ -12,7 +12,7 @@ import SCRIPT_STYLE from "./css/neocopy.scss?inline";
 
 export const scriptMeta = ScriptMetaUtil.construct("crack", "neocopy.user.js", undefined, (meta) => {
   meta.name = "Chasm Crystallized Neo-Copy (결정화 캐즘 네오-카피)";
-  meta.version = "CRCK-NCPY-v3.1.0" satisfies CRACK_VERSION_RULE;
+  meta.version = "CRCK-NCPY-v3.1.1" satisfies CRACK_VERSION_RULE;
   meta.author = "milkyway0308";
   meta.defaulticon = "크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오..";
 });
@@ -126,9 +126,6 @@ async function publishCharacter(id: ExtractedCharacterInfo, newVisibility: Crack
     console.error(originData.error);
     return;
   }
-  console.log(JSON.stringify(originData.value));
-
-  console.log(`Writable: ${JSON.stringify(originData.value.asWritable())}`);
   try {
     const result = await CrackSdk.character().create(
       originData.value.asWritable().modify((data) => {
@@ -191,12 +188,9 @@ async function publishStory(id: ExtractedCharacterInfo, isAdult: boolean, newVis
     console.error(originData.error);
     return;
   }
-  console.log(JSON.stringify(originData.value));
-
-  console.log(`Writable: ${JSON.stringify(originData.value.asWritable())}`);
   try {
     const result = await CrackSdk.story().create(
-      originData.value.asWritable().modify((data) => {
+      originData.value.asWritable().purify().modify((data) => {
         data.visibility = newVisibility;
       }),
       true,
@@ -408,7 +402,7 @@ function setupStoryDropdown(id: ExtractedCharacterInfo) {
       try {
         const result = await CrackSdk.story().edit(
           id.id,
-          originData.value.asWritable().dematrix(),
+          originData.value.asWritable().purify().dematrix(),
           true,
         );
         if (!result.ok) {
