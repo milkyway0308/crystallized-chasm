@@ -1,10 +1,9 @@
-
 import { CRACK_VERSION_RULE } from "../../constants/script-constants";
 import { CrackSdk } from "../../sdk/crack-sdk";
 import { CrackVisibility } from "../../sdk/crack/types/types-generic";
 import { ReadonlyDetailedStoryInfo, WritableStoryInfo } from "../../sdk/crack/types/types-story";
 import { FileUtil } from "../../utils/file-utils";
-import { Nullable,} from "../../utils/generic-types";
+import { Nullable } from "../../utils/generic-types";
 import { BrowserInitUtil } from "../../utils/init-util";
 import { NodeLocator } from "../../utils/node-locator-util";
 import { ObserveUtil } from "../../utils/observe-util";
@@ -13,7 +12,7 @@ import SCRIPT_STYLE from "./css/neocopy.scss?inline";
 
 export const scriptMeta = ScriptMetaUtil.construct("crack", "neocopy.user.js", undefined, (meta) => {
   meta.name = "Chasm Crystallized Neo-Copy (결정화 캐즘 네오-카피)";
-  meta.version = "CRCK-NCPY-v3.0.4" satisfies CRACK_VERSION_RULE;
+  meta.version = "CRCK-NCPY-v3.1.0" satisfies CRACK_VERSION_RULE;
   meta.author = "milkyway0308";
   meta.defaulticon = "크랙의 캐릭터 퍼블리시/복사/붙여넣기 기능 구현 및 오류 수정. 해당 유저 스크립트는 원본 캐즘과 호환되지 않음으로, 원본 캐즘과 결정화 캐즘 중 하나만 사용하십시오..";
 });
@@ -120,6 +119,37 @@ async function setup() {
   }
 }
 
+async function publishCharacter(id: ExtractedCharacterInfo, newVisibility: CrackVisibility) {
+  const originData = await CrackSdk.character().getDetail(id.id);
+  if (!originData.ok) {
+    CrackSdk.toastify().doToastifyAlert("대상 작품 데이터를 가져오는데에 실패했어요.");
+    console.error(originData.error);
+    return;
+  }
+  console.log(JSON.stringify(originData.value));
+
+  console.log(`Writable: ${JSON.stringify(originData.value.asWritable())}`);
+  try {
+    const result = await CrackSdk.character().create(
+      originData.value.asWritable().modify((data) => {
+        data.visibility = newVisibility;
+      }),
+      true,
+    );
+    if (!result.ok) {
+      console.error(result.error);
+      CrackSdk.toastify().doToastifyAlert("새 스토리 배포 도중 오류가 발생했어요.");
+      return;
+    }
+    CrackSdk.toastify().doToastifyAlert("새 스토리가 배포되었어요.");
+    window.history.pushState(null, "", window.location.href);
+    window.dispatchEvent(new Event("popstate"));
+  } catch (err) {
+    CrackSdk.toastify().doToastifyAlert("예상치 못한 오류가 발생했어요.\n결정화 캐즘 지원 채널에 해당 오류를 제보해주시면 빠른 수정이 가능해요.");
+    console.error(err);
+  }
+}
+
 function setupCharacterDropdown() {
   const popupManager = CrackSdk.pageComponent().articleListing().popup().manager();
   if (!popupManager || popupManager.hasModified("neocopy")) return;
@@ -162,10 +192,9 @@ async function publishStory(id: ExtractedCharacterInfo, isAdult: boolean, newVis
     return;
   }
   console.log(JSON.stringify(originData.value));
-  
+
   console.log(`Writable: ${JSON.stringify(originData.value.asWritable())}`);
   try {
-
     const result = await CrackSdk.story().create(
       originData.value.asWritable().modify((data) => {
         data.visibility = newVisibility;
@@ -338,6 +367,7 @@ function setupStoryDropdown(id: ExtractedCharacterInfo) {
       const originData = await CrackSdk.story().getDetail(id.id);
       if (!originData.ok) {
         CrackSdk.toastify().doToastifyAlert("대상 작품 데이터를 가져오는데에 실패했어요.");
+        console.error(originData.error);
         return;
       }
 
@@ -347,6 +377,38 @@ function setupStoryDropdown(id: ExtractedCharacterInfo) {
           content.asWritable().modify((data) => {
             data.visibility = CrackVisibility.of(originData.value.visibility);
           }),
+          true,
+        );
+        if (!result.ok) {
+          console.error(result.error);
+          CrackSdk.toastify().doToastifyAlert("데이터 수정 중 오류가 발생했어요.");
+          return;
+        }
+        CrackSdk.toastify().doToastifyAlert("작품 데이터가 반영되었어요.");
+      } catch (err) {
+        CrackSdk.toastify().doToastifyAlert("예상치 못한 오류가 발생했어요.\n결정화 캐즘 지원 채널에 해당 오류를 제보해주시면 빠른 수정이 가능해요.");
+        console.error(err);
+      }
+    },
+    "neocopy",
+  );
+  popupManager.addButton(
+    "✦ 이전 버전으로 롤백",
+    async () => {
+      if (!confirm("정말로 이전 버전으로 바꿀까요?\n이 동작은 되돌릴 수 없습니다! 미리 백업을 진행하세요.")) {
+        return;
+      }
+      const originData = await CrackSdk.story().getDetail(id.id);
+      if (!originData.ok) {
+        CrackSdk.toastify().doToastifyAlert("대상 작품 데이터를 가져오는데에 실패했어요.");
+        console.error(originData.error);
+        return;
+      }
+
+      try {
+        const result = await CrackSdk.story().edit(
+          id.id,
+          originData.value.asWritable().dematrix(),
           true,
         );
         if (!result.ok) {

@@ -1,5 +1,7 @@
 import { MissingComponentError } from "../../../utils/error-utils";
+import { Undeclarable } from "../../../utils/generic-types";
 import { CrackEnding, CrackEndingContainer } from "./types-ending";
+import { CrackImageMatrix } from "./types-image-matrix";
 import { CrackKeywordBook } from "./types-keyword-book";
 import { CrackParameter } from "./types-parameter";
 import { CrackSituationImage } from "./types-situation-image";
@@ -26,6 +28,8 @@ export class CrackStartingSet {
     public readonly keywordBook: CrackKeywordBook[],
     /** 시작 설정 스탯 */
     public readonly parameters: CrackParameter[],
+
+    public imageMatrix: Undeclarable<CrackImageMatrix>,
   ) {}
 
   static from(data: any): CrackStartingSet {
@@ -40,6 +44,7 @@ export class CrackStartingSet {
       CrackEndingContainer.from(data["ending"] ?? {}),
       (MissingComponentError.ensureArray<any>("Crack Starting Set Deserialization", "keywordBooks", data, false) ?? []).map((it) => CrackKeywordBook.from(it)),
       (MissingComponentError.ensureArray<any>("Crack Starting Set Deserialization", "parameters", data, false) ?? []).map((it) => CrackParameter.from(it)),
+      CrackImageMatrix.from(data.imageMatrix),
     );
   }
 
@@ -54,6 +59,7 @@ export class CrackStartingSet {
       keywordBooks: this.keywordBook,
       parameters: this.parameters.map((it) => it.uglify()),
       ending: this.ending.hasEndings() ? this.ending.uglify(!includeId) : undefined,
+      imageMatrix: this.imageMatrix?.uglify()
     };
   }
 }

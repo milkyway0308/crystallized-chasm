@@ -3,9 +3,11 @@ import { Consumer, Legacy, Nullable, Undeclarable } from "../../../utils/generic
 import { UpdatableTimestamp } from "../../core/types/generic-types";
 import { CrackOriginalState } from "./types-crack-original";
 import { CrackCreatorInfo } from "./types-creator";
+import { CrackCreatorRecommendedOutput } from "./types-creator-output";
 import { CrackImageMappable, CrackVisibility } from "./types-generic";
 import { CrackGenre } from "./types-genre";
 import { CrackIdPair } from "./types-id-set";
+import { CrackImageMatrix } from "./types-image-matrix";
 import { CrackKeywordBook } from "./types-keyword-book";
 import { CrackPromptTemplate } from "./types-prompt-template";
 import { CrackSituationImage } from "./types-situation-image";
@@ -33,7 +35,20 @@ export class WritableStoryInfo {
     public tags: string[],
     public target: string,
     public visibility: CrackVisibility,
+    public recommendedOutput: CrackCreatorRecommendedOutput,
+    public imageVersion: string,
   ) {}
+
+  dematrix(): WritableStoryInfo {
+    this.imageVersion = "v1";
+    for (const set of this.sets) {
+      set.imageMatrix = undefined;
+      for (const image of set.situationImages) {
+        image.keyword = `이미지 플레이스홀더`;
+      }
+    }
+    return this;
+  }
 
   stringify(includeId: boolean, storyId?: Nullable<string>, isAdult?: Nullable<boolean>) {
     return JSON.stringify({
@@ -59,6 +74,9 @@ export class WritableStoryInfo {
       visibility: this.visibility.originName,
       storyId: storyId === null ? undefined : storyId,
       isAdult: isAdult === null ? undefined : isAdult,
+
+      creatorRecommendedMaxOutput: this.recommendedOutput.uglify(),
+      situationImageVersion: this.imageVersion,
     });
   }
 
@@ -175,6 +193,9 @@ export class ReadonlyDetailedStoryInfo {
 
     /** 장르 ID */
     public readonly genreId: string,
+    public readonly imageVersion: string,
+    public readonly imageMatrix: Undeclarable<CrackImageMatrix>,
+    public readonly recommendOutput: CrackCreatorRecommendedOutput,
   ) {}
 
   asWritable(): WritableStoryInfo {
@@ -199,6 +220,8 @@ export class ReadonlyDetailedStoryInfo {
       this.tags,
       this.target,
       CrackVisibility.of(this.visibility),
+      this.recommendOutput,
+      this.imageVersion,
     );
   }
 
@@ -250,6 +273,9 @@ export class ReadonlyDetailedStoryInfo {
 
       MissingComponentError.ensureString("Crack Story Deserialization", "firstPublicAt", data, false),
       MissingComponentError.ensureString("Crack Story Deserialization", "genreId", data),
+      MissingComponentError.ensureString("Crack Story Deserialization", "situationImageVersion", data),
+      CrackImageMatrix.from(data.imageMatrix),
+      CrackCreatorRecommendedOutput.from(data.creatorRecommendedMaxOutput),
     );
   }
 }

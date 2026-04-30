@@ -12,6 +12,7 @@ import { CrackSessionFetcherApi } from "./crack/session-fetcher-util";
 import { CrackNotificationApi } from "./crack/notification-util";
 import { CrackStoryApi } from "./crack/story-util";
 import { CrackSummaryApi } from "./crack/summary-util";
+import { CrackCharacterApi } from "./crack/character-util";
 
 /**
  * 크랙 출석 유틸리티를 반환합니다.
@@ -99,6 +100,15 @@ export function notification(): typeof CrackNotificationApi {
  */
 export function story(): typeof CrackStoryApi {
   return CrackStoryApi;
+}
+
+
+/**
+ * 크랙 스토리 유틸리티를 반환합니다.
+ * @returns 캐릭터 유틸리티
+ */
+export function character(): typeof CrackCharacterApi {
+  return CrackCharacterApi;
 }
 
 
