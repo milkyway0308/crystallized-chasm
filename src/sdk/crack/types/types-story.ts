@@ -39,6 +39,19 @@ export class WritableStoryInfo {
     public imageVersion: string,
   ) {}
 
+  purify() : WritableStoryInfo {
+    if (this.simpleDescription.length === 0) {
+      this.simpleDescription = "여기에 간략한 설명 입력";
+    }
+    if (this.storyDetails.length === 0) {
+      this.simpleDescription = "여기에 상세 설명 입력";
+    }
+    if (this.description.length === 0) {
+      this.simpleDescription = "여기에 설명 입력";
+    }
+    return this;
+  }
+
   dematrix(): WritableStoryInfo {
     this.imageVersion = "v1";
     for (const set of this.sets) {
@@ -74,7 +87,6 @@ export class WritableStoryInfo {
       visibility: this.visibility.originName,
       storyId: storyId === null ? undefined : storyId,
       isAdult: isAdult === null ? undefined : isAdult,
-
       creatorRecommendedMaxOutput: this.recommendedOutput?.uglify(),
       situationImageVersion: this.imageVersion,
     });
