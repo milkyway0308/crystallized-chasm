@@ -35,7 +35,7 @@ export class WritableStoryInfo {
     public tags: string[],
     public target: string,
     public visibility: CrackVisibility,
-    public recommendedOutput: CrackCreatorRecommendedOutput,
+    public recommendedOutput: Undeclarable<CrackCreatorRecommendedOutput>,
     public imageVersion: string,
   ) {}
 
@@ -75,7 +75,7 @@ export class WritableStoryInfo {
       storyId: storyId === null ? undefined : storyId,
       isAdult: isAdult === null ? undefined : isAdult,
 
-      creatorRecommendedMaxOutput: this.recommendedOutput.uglify(),
+      creatorRecommendedMaxOutput: this.recommendedOutput?.uglify(),
       situationImageVersion: this.imageVersion,
     });
   }
@@ -195,7 +195,7 @@ export class ReadonlyDetailedStoryInfo {
     public readonly genreId: string,
     public readonly imageVersion: string,
     public readonly imageMatrix: Undeclarable<CrackImageMatrix>,
-    public readonly recommendOutput: CrackCreatorRecommendedOutput,
+    public readonly recommendOutput: Undeclarable<CrackCreatorRecommendedOutput>,
   ) {}
 
   asWritable(): WritableStoryInfo {
