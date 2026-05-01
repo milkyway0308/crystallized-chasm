@@ -16,7 +16,7 @@ import { Undeclarable } from "../../utils/generic-types";
 
 export const scriptMeta = ScriptMetaUtil.construct("crack", "majority-report.user.js", undefined, (meta) => {
   meta.name = "Chasm Crystallized Majority-Report (결정화 캐즘 묶음보고서)";
-  meta.version = "CRCK-MRPT-v1.0.1" satisfies CRACK_VERSION_RULE;
+  meta.version = "CRCK-MRPT-v1.0.2" satisfies CRACK_VERSION_RULE;
   meta.author = "milkyway0308";
   meta.description = "이미지 업로드 간편화. 이 기능은 결정화 캐즘 오리지널 패치입니다.";
 });
@@ -247,7 +247,7 @@ function modifyUploadPanel(panel: Element) {
   for (const child of panel.children) {
     child.classList.add("chasm-mrpt-ignore");
   }
-  panel.append(NodeUtil.setupParagraphNode({ text: " 주의하세요: 묶음보고서 모듈은 현재 버전에서는 첫번째 시작 설정에만 이미지 업로드가 가능합니다. ", style: "color: #c44846; font-weight: 600; font-size: 16px;" }));
+  panel.append(NodeUtil.setupParagraphNode({ text: " 주의하세요: 묶음보고서 모듈은 현재 버전에서는 전체 시작 설정에만 이미지 업로드가 가능합니다. ", style: "color: #c44846; font-weight: 600; font-size: 16px;" }));
   panel.append(createCrackStyleInput("캐릭터 이름", "캐릭터 이름을 지정하세요. 파일 이름은 무시됩니다.", "chasm-mrpt-charactrer-category"));
   panel.append(createCrackStyleInput("캐릭터 상태", "캐릭터 상태, 혹은 감정을 지정하세요.", "chasm-mrpt-charactrer-situation"));
   panel.append(
