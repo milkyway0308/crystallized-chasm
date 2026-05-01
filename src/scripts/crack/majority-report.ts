@@ -16,7 +16,7 @@ import { Undeclarable } from "../../utils/generic-types";
 
 export const scriptMeta = ScriptMetaUtil.construct("crack", "majority-report.user.js", undefined, (meta) => {
   meta.name = "Chasm Crystallized Majority-Report (결정화 캐즘 묶음보고서)";
-  meta.version = "CRCK-MRPT-v1.0.0" satisfies CRACK_VERSION_RULE;
+  meta.version = "CRCK-MRPT-v1.0.1" satisfies CRACK_VERSION_RULE;
   meta.author = "milkyway0308";
   meta.description = "이미지 업로드 간편화. 이 기능은 결정화 캐즘 오리지널 패치입니다.";
 });
@@ -380,7 +380,6 @@ function injectElement() {
   if (NodeLocator.getAll(`[aria-selected=true]`).find((it) => it.textContent === "미디어")) {
     const injectTarget = NodeLocator.getAll(`div[role="tablist"][data-orientation="horizontal"]`);
     if (injectTarget.length <= 0) return;
-    CrackSdk.toastify().doToastifyAlert("묶음보고서 모듈은 서드파티의 한계로 시작 설정 실시간 반영이 불가능해요.\n만약 시작 설정을 추가했다면 저장 후 다시 편집을 시도해주세요.");
     const last = injectTarget.at(-1)!;
     const expectedPanel = last.nextElementSibling;
     if (!expectedPanel) return;
@@ -391,6 +390,8 @@ function injectElement() {
       modifyUploadPanel(expectedPanel);
     });
     modifyUploadPanel(expectedPanel);
+    
+    CrackSdk.toastify().doToastifyAlert("묶음보고서 모듈은 서드파티의 한계로 시작 설정 실시간 반영이 불가능해요.\n만약 시작 설정을 추가했다면 저장 후 다시 편집을 시도해주세요.");
   }
 }
 
