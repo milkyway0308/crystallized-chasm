@@ -477,12 +477,11 @@ function modifyUploadPanel(panel: Element) {
           try {
             const category = NodeLocator.get<HTMLInputElement>("#chasm-mrpt-charactrer-category");
             const situation = NodeLocator.get<HTMLInputElement>("#chasm-mrpt-charactrer-situation");
-            const useEmotionAnalze = NodeLocator.get("#chasm-mrpt-emotion-analyze")?.getAttribute("active") === "true";
             if (!category || category.value.length <= 0) {
               CrackSdk.toastify().doToastifyAlert("캐릭터 이름은 1자 이상이여야 해요.");
               return;
             }
-            if (!useEmotionAnalze && (!situation || situation.value.length <= 0)) {
+            if (NodeLocator.get("#chasm-mrpt-emotion-analyze")?.getAttribute("active") !== "true" && (!situation || situation.value.length <= 0)) {
               CrackSdk.toastify().doToastifyAlert("상황은 1자 이상이여야 해요.");
               return;
             }
@@ -490,7 +489,7 @@ function modifyUploadPanel(panel: Element) {
             let situationText = situation?.value;
             const selected = await FileUtil.acceptFileRaw("image/png, image/jpg, image/jpeg, image/webp");
             if (selected) {
-              if (NodeLocator.get("#chasm-mrpt-emotion-analyze")?.getAttribute("active") === "true") {
+              if (!situationText) {
                 if (!isOrtLoadedBefore) {
                   CrackSdk.toastify().doToastifyAlert("감정 인식 모듈 최초 초기화를 진행하고 있어요.\n시간이 조금 더 걸릴 수 있어요!");
                 }
