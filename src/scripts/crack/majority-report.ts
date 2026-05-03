@@ -20,7 +20,7 @@ export const scriptMeta = ScriptMetaUtil.construct("crack", "majority-report.use
   meta.name = "Chasm Crystallized Majority-Report (결정화 캐즘 묶음보고서)";
   meta.version = "CRCK-MRPT-v1.1.0" satisfies CRACK_VERSION_RULE;
   meta.author = "milkyway0308";
-  meta.description = "이미지 업로드 간편화. 이 기능은 결정화 캐즘 오리지널 패치입니다.";
+  meta.description = "이미지 감정 분석 및 이미지 업로드 간편화. 이 기능은 결정화 캐즘 오리지널 패치입니다.";
 });
 
 // ==============================================================
