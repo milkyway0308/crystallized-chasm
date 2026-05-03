@@ -1,4 +1,10 @@
 .chasm-mrpt {
+  &-warn-text {
+    color: #c44846;
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 0.72rem;
+  }
   &-text {
     &-input {
       display: flex;
@@ -18,6 +24,10 @@
       padding-bottom: 0.5rem;
       padding-left: 0.75rem;
 
+      &[disabled] {
+        cursor: not-allowed;
+      }
+      
       &-container {
         display: inline-flex;
         align-items: center;
@@ -33,6 +43,34 @@
     flex-direction: column;
     gap: 0.5rem;
     margin-bottom: 2rem;
+
+    &-horizontal {
+      display: flex;
+      flex-direction: row;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+  }
+
+  &-button {
+    display: flex;
+    align-items: center;
+
+    color: hsl(0 0% 98%);
+    background-color: hsl(240 4% 16%);
+
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+
+    height: 2.75rem;
+    padding: 0.5rem 2rem;
+    border-radius: 8px;
+    cursor: pointer;
+
+    &[active="true"] {
+      background-color: hsl(5 100% 60%);
+    }
   }
 
   &-image-dragdrop {
@@ -96,36 +134,35 @@
 
   &-dropdown {
     &-button {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 1.5;
-        color: hsl(0 0% 98%);
-        border-radius: 12px;
-        background-color: hsl(0 0% 100%/0.05);
-        padding: 0rem 0.75rem;
-        height: 2rem;
-        outline: 2px solid transparent;
-        cursor: pointer;
-        width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.5;
+      color: hsl(0 0% 98%);
+      border-radius: 12px;
+      background-color: hsl(0 0% 100%/0.05);
+      padding: 0rem 0.75rem;
+      height: 2rem;
+      outline: 2px solid transparent;
+      cursor: pointer;
+      width: 100%;
     }
 
     &-container {
-        position: fixed;
-        z-index: 1000;
-        min-width: max-content;
-        left: 0px;
-        top: 0px;
-        color: hsl(0 0% 98%);
+      position: fixed;
+      z-index: 1000;
+      min-width: max-content;
+      left: 0px;
+      top: 0px;
+      color: hsl(0 0% 98%);
 
-        background-color: hsl(0 0% 15%);
-        border-radius: 8px;
-        &-element {
-            font-size: 14px;
-            
-        }
+      background-color: hsl(0 0% 15%);
+      border-radius: 8px;
+      &-element {
+        font-size: 14px;
+      }
     }
   }
 

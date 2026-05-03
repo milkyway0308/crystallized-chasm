@@ -13,6 +13,7 @@ import { CrackNotificationApi } from "./crack/notification-util";
 import { CrackStoryApi } from "./crack/story-util";
 import { CrackSummaryApi } from "./crack/summary-util";
 import { CrackCharacterApi } from "./crack/character-util";
+import { CrackReactUtil } from "./crack/types/react-util";
 
 /**
  * 크랙 출석 유틸리티를 반환합니다.
@@ -102,7 +103,6 @@ export function story(): typeof CrackStoryApi {
   return CrackStoryApi;
 }
 
-
 /**
  * 크랙 스토리 유틸리티를 반환합니다.
  * @returns 캐릭터 유틸리티
@@ -110,7 +110,6 @@ export function story(): typeof CrackStoryApi {
 export function character(): typeof CrackCharacterApi {
   return CrackCharacterApi;
 }
-
 
 /**
  * 크랙 장기기억 관련 유틸리티를 반환합니다.
@@ -126,6 +125,14 @@ export function summary(): typeof CrackSummaryApi {
  */
 export function toastify(): ToastifyInjector {
   return ToastifyInjector.findInjector();
+}
+
+/**
+ * 크랙 리액트 관련 유틸리티를 반환합니다.
+ * @returns 크랙 리액트 유틸리티
+ */
+export function react(): typeof CrackReactUtil {
+  return CrackReactUtil;
 }
 
 export function addonModal(): typeof CrackAddonModalApi {
