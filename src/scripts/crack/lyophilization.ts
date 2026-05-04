@@ -10,7 +10,7 @@ export const scriptMeta = ScriptMetaUtil.construct("crack", "lyophilization.user
   meta.name = "Chasm Crystallized Lyophilization (결정화 캐즘 동결건조)";
   meta.version = "CRCK-LYOP-v2.0.0" satisfies CRACK_VERSION_RULE;
   meta.author = "milkyway0308";
-  meta.defaulticon = "채팅방 백업 및 완전한 아카이브화 지원. 이 기능은 원본 채팅 백업 확장 스크립트의 유지보수 버전입니다.";
+  meta.description = "채팅방 백업 및 완전한 아카이브화 지원. 이 기능은 원본 채팅 백업 확장 스크립트의 유지보수 버전입니다.";
 });
 
 function createCopySVG() {

@@ -9,9 +9,9 @@ import { ObserveUtil } from "../../utils/observe-util";
 import { ScriptMetaUtil } from "../../utils/script-meta-util";
 import SCRIPT_STYLE from "./css/absolute-zero.scss?inline";
 
-export const scriptMeta = ScriptMetaUtil.construct("crack", "alarm-clock.user.js", undefined, (meta) => {
+export const scriptMeta = ScriptMetaUtil.construct("crack", "absolutezero.user.js", undefined, (meta) => {
   meta.name = "Chasm Crystallized AbsoluteZero (결정화 캐즘 절대영도)";
-  meta.version = "CRCK-ALRM-v2.0.0" satisfies CRACK_VERSION_RULE;
+  meta.version = "CRCK-AZRO-v2.0.0" satisfies CRACK_VERSION_RULE;
   meta.author = "milkyway0308";
   meta.description = "선택하거나 호버하지 않은 작품의 GIF 차단. 이 기능은 결정화 캐즘 오리지널 패치입니다.";
 });

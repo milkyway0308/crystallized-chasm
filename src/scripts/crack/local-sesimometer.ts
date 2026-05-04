@@ -14,7 +14,7 @@ export const scriptMeta = ScriptMetaUtil.construct("crack", "local-seismometer.u
   meta.name = "Chasm Crystallized Local Sesimometer (캐즘 국소지진계)";
   meta.version = "CRCK-LSEM-v2.0.1" satisfies CRACK_VERSION_RULE;
   meta.author = "milkyway0308";
-  meta.defaulticon = "요약 메모리가 변경될 때 마다 알림 전송. 이 기능은 결정화 캐즘 오리지널 패치입니다.";
+  meta.description = "요약 메모리가 변경될 때 마다 알림 전송. 이 기능은 결정화 캐즘 오리지널 패치입니다.";
 });
 
 const logger = readonlyLazy(() => new LogUtil("Chasm Crystallized Local Sesimometer", false));

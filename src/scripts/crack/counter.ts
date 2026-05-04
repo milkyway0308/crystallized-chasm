@@ -51,7 +51,7 @@ const db = readonlyLazy(() =>
         .version(1)
         .stores({
           chatStore: `sessionId, lastAccess`,
-          messageStore: `messageId, sessionId, time`,
+          messageStore: `messageId, sessionId`,
         })
         .upgrade(async (tx) => {
           await Promise.all(
@@ -174,12 +174,6 @@ function prepare() {
   ObserveUtil.attachObserver(document, () => {
     debouncer.runDebouncer(100);
   });
-  //   ObserveUtil.attachHrefObserver(document, () => {
-  //     const textNode = document.getElementById("chasm-counter-indicator");
-  //     if (textNode) {
-  //       textNode.textContent = "--";
-  //     }
-  //   });
 }
 
 function addMenu() {
