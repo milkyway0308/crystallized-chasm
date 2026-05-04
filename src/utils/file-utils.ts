@@ -45,7 +45,27 @@ function acceptFile(): Promise<Nullable<string>> {
   });
 }
 
+function acceptFileRaw(accepts: string): Promise<Nullable<File>> {
+  return new Promise((resolve, reject) => {
+    const tempElement = document.createElement("input");
+    tempElement.type = "file";
+    tempElement.accept = accepts;
+    tempElement.addEventListener("change", (event) => {
+      const target = event.target as HTMLInputElement;
+      const file = target.files?.[0];
+      if (!file) {
+        resolve(null);
+        return;
+      }
+      resolve(file)
+    });
+
+    tempElement.click();
+  });
+}
+
 export const FileUtil = {
   exportString,
   acceptFile,
+  acceptFileRaw
 } as const;

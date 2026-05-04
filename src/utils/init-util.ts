@@ -1,6 +1,8 @@
-import { Runnable } from "./generic-types";
+import { Runnable, Undeclarable } from "./generic-types";
 
 declare function GM_addStyle(css: string): void;
+declare function GM_getResourceURL(key: string) : Undeclarable<string>;
+
 export class BrowserInitUtil {
   /**
    * 브라우저 환경일 경우, 펑션이 실행되도록 구성합니다.
@@ -45,4 +47,17 @@ export class BrowserInitUtil {
     }
     return false;
   }
+
+  /**
+   * GM_getResourceURL이 존재할 때만 실행하도록 안전하게 스타일을 추가합니다.
+   * @param key 리소스 키
+   * @returns 리소스 BLOB URL
+   */
+  static callGMGetResourceUrl(key: string): Undeclarable<string> {
+    if (typeof GM_getResourceURL !== "undefined") {
+      return GM_getResourceURL(key);
+    }
+    return undefined;
+  }
 }
+
