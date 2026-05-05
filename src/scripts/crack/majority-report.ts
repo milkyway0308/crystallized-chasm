@@ -18,7 +18,7 @@ import { fail, FutureResult, Result, success } from "../../utils/flow-handler";
 
 export const scriptMeta = ScriptMetaUtil.construct("crack", "majority-report.user.js", undefined, (meta) => {
   meta.name = "Chasm Crystallized Majority-Report (결정화 캐즘 묶음보고서)";
-  meta.version = "CRCK-MRPT-v1.2.0" satisfies CRACK_VERSION_RULE;
+  meta.version = "CRCK-MRPT-v1.2.1" satisfies CRACK_VERSION_RULE;
   meta.author = "milkyway0308";
   meta.description = "이미지 감정 분석 및 이미지 업로드 간편화. 이 기능은 결정화 캐즘 오리지널 패치입니다.";
 });
@@ -600,8 +600,9 @@ function updateElement() {
 async function tick() {
   updateElement();
   if (uploadQueue.length <= 0) return;
-  const run = UPLOAD_THREASHOLD - uploadQueue.length;
+  const run = UPLOAD_THREASHOLD - uploading;
   if (run <= 0) return;
+  
   for (let i = 0; i < run; i++) {
     const next = uploadQueue.splice(0, 1)[0];
     if (!next) continue;
@@ -730,8 +731,8 @@ function modifyUploadPanel(panel: Element) {
   );
 
   const clearButton = createCrackStyleButton("로그 비우기", "업로드 창의 실패 로그를 비우고 초기화해요.", "chasm-mrpt-reset", "로그 초기화", () => {
-    const logger = NodeLocator.get("#chasm-mrpt-image-dragdrop-upload-statistics");
-    const container = NodeLocator.get("#chasm-mrpt-image-dragdrop-error-container");
+    const logger = NodeLocator.get(".chasm-mrpt-image-dragdrop-upload-statistics");
+    const container = NodeLocator.get(".chasm-mrpt-image-dragdrop-error-container");
     uploadResult = [];
     if (container) container.replaceChildren();
     if (logger && uploading <= 0) logger.textContent = "업로드 대기중";
