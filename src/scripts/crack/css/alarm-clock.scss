@@ -1,0 +1,120 @@
+@keyframes chasm-alarm-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ac-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ac-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+body[data-theme="light"] {
+  --chasm-alarm-clock-background: #3e3e3e;
+  --chasm-alarm-clock-text: white;
+}
+
+body[data-theme="dark"] {
+  --chasm-alarm-clock-background: #efefef;
+  --chasm-alarm-clock-text: black;
+}
+
+.chasm-alarm-clock {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  background-color: var(--chasm-alarm-clock-background);
+  color: var(--chasm-alarm-clock-text);
+
+  top: 55px;
+  width: 200px;
+  height: 60px;
+
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-top: 5px;
+
+  white-space: nowrap;
+  font-size: 15px;
+
+  cursor: default;
+  opacity: 1;
+  transform: translateX(-46%);
+
+  transition:
+    height 0.15s ease-out,
+    width 0.15s ease-out,
+    transform 0.15s ease-out,
+    opacity 0.5s linear;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 80%;
+    margin-left: -9.5px;
+
+    border: solid transparent;
+    border-width: 0 0 12px 12px;
+    border-bottom-color: var(--chasm-alarm-clock-background);
+  }
+
+  &[mobile] {
+    transform: translate(0, 0);
+
+    &::after {
+      left: 90%;
+    }
+
+    &[loader] {
+      transform: translate(-15%, 0);
+    }
+  }
+
+  &[loader] {
+    width: 60px;
+    height: 57px;
+    transform: translateX(-80%);
+
+    transition:
+      height 0.15s ease-out,
+      width 0.15s ease-out,
+      transform 0.22s linear;
+  }
+
+  &-active {
+    cursor: pointer;
+    color: #ffa600;
+  }
+
+  &-loading {
+    animation: chasm-alarm-rotate 1s infinite linear;
+  }
+}
+
+[ac-fade-in] {
+  animation: ac-fade-in 1s forwards;
+}
+
+[ac-fade-out] {
+  animation: ac-fade-out 0.55s forwards;
+}

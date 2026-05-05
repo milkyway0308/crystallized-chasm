@@ -1,0 +1,44 @@
+import { asyncHandleResult, Result, success, unwrap } from "../../utils/flow-handler";
+import { CrackNetworkApi } from "./network-util";
+
+/**
+ * 출석 가능 여부를 서버에서 받아와 반환합니다.
+ * @returns 출석 가능 여부, 혹은 오류
+ * @internal
+ */
+async function isAttendable(): Promise<Result<boolean>> {
+  return asyncHandleResult(async () => {
+    const origin = await CrackNetworkApi.authFetch("GET", "https://crack-api.wrtn.ai/crack-cash/attendance");
+    if (!origin.ok) return origin;
+    const webResult = origin.value;
+
+    return success(webResult.data && webResult.data.attendanceStatus && webResult.data.attendanceStatus === "NOT_ATTENDED");
+  });
+}
+
+/**
+ * 출석을 API를 통해 진행합니다.
+ * @returns 출석 성공 여부
+ */
+async function performAttend(): Promise<Result<boolean>> {
+  const result = await CrackNetworkApi.authFetch("POST", "https://crack-api.wrtn.ai/crack-cash/attendance");
+  if (!result.ok) return result;
+  return success(true);
+}
+
+/**
+ * 출석 가능한 시간인지 반환합니다.
+ * 크랙은 6시부터 23시 59분까지 출석이 가능합니다.
+ * @returns 출석 가능 시간 여부
+ */
+function isAttendableTime(): boolean {
+  const time = new Date().getHours();
+  if (time < 6) return false;
+  return true;
+}
+
+export const CrackAttendApi = {
+  isAttendable,
+  performAttend,
+  isAttendableTime,
+} as const;

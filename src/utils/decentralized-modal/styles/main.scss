@@ -1,0 +1,824 @@
+/*
+ * 변수 선언부 
+ */
+.decentral-color-container {
+  --decentral-text: #000000;
+  --decentral-text-inverted: #ffffff;
+  --decentral-text-formal: #64748b;
+  --decentral-text-inactive-hover: #64748b;
+  --decentral-text-inactive: #64748b;
+  --decentral-background: #ffffff;
+  --decentral-background-menu: #eff6ff;
+  --decentral-hover: #f1f5f9;
+  --decentral-border: #cbd5e1;
+  --decentral-active-item: #2563eb;
+  --decentral-inactive-item: #94a3b8;
+  --decentral-active-text: #2563eb;
+  --decentral-background-active-item: #0ea5e910;
+  --decentral-text-background: #f1f5f9;
+  --decentral-text-border: #e2e8f0;
+  --decentral-switch-background: #f8fafc;
+  --decentral-switch-inactive: #cbd5e1;
+}
+
+.decentral-color-container[theme="dark"] {
+  --decentral-text: #ffffff;
+  --decentral-text-inverted: #000000;
+  --decentral-text-formal: #b3b7bdff;
+  --decentral-text-inactive-hover: #64748b;
+  --decentral-text-inactive: #949494ff;
+  --decentral-background: #272727ff;
+  --decentral-background-menu: #292929ff;
+  --decentral-hover: #5a5a5aff;
+  --decentral-border: #686868ff;
+  --decentral-active-item: #4e7ce0ff;
+  --decentral-inactive-item: #94a3b8;
+  --decentral-active-text: #4e7ce0ff;
+  --decentral-background-active-item: #0ea5e910;
+  --decentral-text-background: transparent;
+  --decentral-text-border: #686868ff;
+  --decentral-switch-background: transparent;
+  --decentral-switch-inactive: #7a7a7aff;
+}
+
+/*
+ * 모달 컨테이너 선언
+ * 원본 페이지
+ * └ **모달 컨테이너** 
+ */
+.decentral-modal-container {
+  display: flex;
+  flex-direction: column;
+  z-index: 999;
+  margin: auto;
+  pointer-events: auto;
+  background-color: #99999970;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  font-family:
+    "Pretendard Variable",
+    Pretendard,
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    Roboto,
+    "Helvetica Neue",
+    "Segoe UI",
+    "Apple SD Gothic Neo",
+    "Noto Sans KR",
+    "Malgun Gothic",
+    "Apple Color Emoji",
+    "Segoe UI Emoji",
+    "Segoe UI Symbol",
+    sans-serif;
+}
+
+/*
+ * 모달 베이스 선언
+ * 원본 페이지
+ * └ 모달 컨테이너
+ *   └ **모달 베이스** 
+ */
+.decentral-modal {
+  display: flex;
+  flex-direction: row;
+  min-width: 300px;
+  max-width: 1000px;
+  min-height: 640px;
+  max-height: 90%;
+  width: 100%;
+  height: 60%;
+  border-radius: 3px;
+  background-color: var(--decentral-background);
+  margin: auto;
+  color: var(--decentral-text);
+}
+
+/*
+ * 모달 헤더(제목) 선언
+ * 원본 페이지
+ * └ 모달 컨테이너
+ *   └ 모달 베이스
+ *     └ **모달 헤더**
+ */
+/* 모달 헤더 아이콘 */
+.decentral-modal-title-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  padding: 0px 16px;
+}
+
+/* 모달 헤더 제목 */
+.decentral-modal-title-container {
+  display: flex;
+  flex-direction: row;
+  padding: 15px 20px;
+  align-items: center;
+  border-bottom: 1px solid var(--decentral-border);
+}
+
+/* 모달 헤더 제목 텍스트*/
+.decental-modal-title-text {
+  margin-left: 10px;
+}
+
+/* 모달 헤더 우측 툴바 컨테이너 */
+.decentral-modal-button-container {
+  margin-left: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+/*
+ * 모달 좌측 PC / 태블릿 메뉴 컨테이너 선언
+ * 원본 페이지
+ * └ 모달 컨테이너
+ *   └ 모달 베이스
+ *     └ **모달 메뉴**
+ */
+/* 모달 메뉴 컨테이너 */
+.decentral-menu-container {
+  border-right: 1px solid var(--decentral-border);
+  display: flex;
+  width: 200px;
+  min-width: 200px;
+  height: 100%;
+  flex-direction: column;
+  padding: 20px 15px;
+  background-color: var(--decentral-background-menu);
+  color: var(--decentral-text-inactive);
+  font-weight: 400;
+  user-select: none;
+  overflow-y: auto;
+}
+
+/* 모달 최상단 메뉴 요소 */
+.decentral-menu-container .decentral-menu-element {
+  display: flex;
+  font-size: 15px;
+  padding: 12px 10px;
+  border-radius: 2px;
+  padding-left: 15px;
+  width: 100%;
+  border-radius: 2px;
+}
+
+/* 모달 최상단 메뉴 요소 컨테이너 */
+.decentral-menu-element-container .decentral-sub-menu-container {
+  display: none;
+  width: 100%;
+}
+
+.decentral-menu-element-container[active="true"] .decentral-sub-menu-container {
+  display: flex;
+  flex-direction: column;
+  margin-top: 5px;
+}
+
+/* 모달 서브 메뉴 요소 */
+.decentral-menu-container .decentral-sub-menu-element {
+  display: flex;
+  font-size: 14px;
+  padding: 8px 6px;
+  border-radius: 2px;
+  padding-left: 15px;
+  margin-left: 10px;
+  width: 100%;
+  border-radius: 2px;
+}
+
+/* 메뉴 커서 핸들러 */
+.decentral-menu-element,
+.decentral-sub-menu-element {
+  cursor: pointer;
+}
+
+/* 표시된 메뉴 호버시 백그라운드 색상 적용 */
+.decentral-menu-element:not([active="true"]):hover,
+.decentral-sub-menu-element:not([active="true"]):hover {
+  background-color: var(--decentral-hover);
+}
+
+.decentral-menu-element:is([active="true"], [child-active="true"]),
+.decentral-sub-menu-element[active="true"] {
+  color: var(--decentral-active-text);
+  background-color: var(--decentral-background-active-item);
+}
+
+/* 선택된 메뉴 색상 및 볼드 적용 */
+.decentral-menu-container .decentral-menu-element[active="true"],
+.decentral-sub-menu-element[active="true"] {
+  position: relative;
+  font-weight: 700;
+}
+
+/* 선택된 메뉴 좌측 보더 적용 */
+.decentral-menu-container .decentral-menu-element[active="true"]:before,
+.decentral-sub-menu-element[active="true"]:before {
+  top: 20%;
+  content: "";
+  position: absolute;
+  left: -1px;
+  width: 2px;
+  height: 60%;
+  background-color: blue;
+}
+
+/*
+ * 모바일 메뉴 컨테이너 선언
+ * 원본 페이지
+ * └ 모달 컨테이너
+ *   └ 모달 베이스
+ *     └ **모바일 모달 메뉴**
+ */
+/* 모바일 모달 메뉴 컨테이너 */
+.decentral-mobile-menu-container {
+  display: none;
+  z-index: 2500;
+  border: 1px solid var(--decentral-border);
+  width: 100%;
+  height: fit-content;
+  flex-direction: column;
+  padding: 20px 15px;
+  background-color: var(--decentral-background-menu);
+  color: var(--decentral-text-inactive);
+  font-weight: 400;
+  user-select: none;
+  overflow-y: auto;
+}
+
+.decentral-mobile-menu-container[active="true"] {
+  display: flex;
+  position: absolute;
+}
+
+/* 모바일 모달 최상단 메뉴 요소 */
+.decentral-mobile-menu-container .decentral-mobile-menu-element {
+  display: flex;
+  font-size: 15px;
+  padding: 12px 10px;
+  border-radius: 2px;
+  padding-left: 15px;
+  width: 100%;
+  border-radius: 2px;
+}
+
+/* 모바일 모달 최상단 메뉴 요소 컨테이너 */
+.decentral-mobile-menu-element-container .decentral-mobile-sub-menu-container {
+  display: none;
+  width: 100%;
+}
+
+.decentral-mobile-menu-element-container[active="true"] .decentral-mobile-sub-menu-container {
+  display: flex;
+  flex-direction: column;
+  margin-top: 5px;
+}
+
+/* 모바일 모달 서브 메뉴 요소 */
+.decentral-mobile-menu-container .decentral-mobile-sub-menu-element {
+  display: flex;
+  font-size: 14px;
+  padding: 8px 6px;
+  border-radius: 2px;
+  padding-left: 15px;
+  margin-left: 10px;
+  width: 100%;
+  border-radius: 2px;
+}
+
+/* 모바일 메뉴 커서 핸들러 */
+.decentral-mobile-menu-element,
+.decentral-mobile-sub-menu-element {
+  cursor: pointer;
+}
+
+/* 모바일 표시된 메뉴 호버시 백그라운드 색상 적용 */
+.decentral-mobile-menu-element:not([active="true"]):hover,
+.decentral-mobile-sub-menu-element:not([active="true"]):hover {
+  background-color: var(--decentral-hover);
+}
+
+.decentral-mobile-menu-element:is([active="true"], [child-active="true"]),
+.decentral-mobile-sub-menu-element[active="true"] {
+  color: var(--decentral-active-text);
+  background-color: var(--decentral-background-active-item);
+}
+
+/* 선택된 모바일 메뉴 색상 및 볼드 적용 */
+.decentral-mobile-menu-container .decentral-menu-element[active="true"],
+.decentral-mobile-sub-menu-element[active="true"] {
+  position: relative;
+  font-weight: 700;
+}
+
+/* 선택된 모바일 메뉴 좌측 보더 적용 */
+.decentral-mobile-menu-container .decentral-mobile-menu-element[active="true"]:before,
+.decentral-mobile-sub-menu-element[active="true"]:before {
+  top: 20%;
+  content: "";
+  position: absolute;
+  left: -1px;
+  width: 2px;
+  height: 60%;
+  background-color: blue;
+}
+
+/*
+ * 모달 우측 컨텐츠 선언
+ * 원본 페이지
+ * └ 모달 컨테이너
+ *   └ 모달 베이스
+ *     └ 모달 컨텐츠
+ */
+/* 스크롤 한계 적용을 위한 컨텐츠 그리드 래퍼 */
+.decentral-grid-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+}
+
+/* 컨텐츠 그리드 컨테이너 */
+.decentral-grid {
+  display: grid;
+  width: 100%;
+  min-width: 200px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3em;
+  grid-row-gap: 0.3em;
+  padding: 8px 16px;
+  min-height: 0;
+  min-width: 0;
+  position: absolute;
+}
+
+/* 컨텐츠 고정 푸터 */
+.decentral-modal-footer {
+  border-top: 1px solid var(--decentral-border);
+  display: flex;
+  flex-direction: column;
+  padding: 0px 16px;
+}
+
+/* 컨텐츠 제목 텍스트 */
+.decentral-element-title {
+  display: flex;
+  flex-direction: row;
+  font-size: 13px;
+  font-weight: light;
+  padding-bottom: 8px;
+  color: var(--decentral-text-formal);
+  user-select: none;
+  width: 100%;
+  align-items: bottom;
+}
+
+.decentral-modifiable-component {
+}
+
+.decentral-element-title-suffix {
+  font-size: 13px;
+  font-weight: light;
+  color: var(--decentral-text-formal);
+  user-select: none;
+  margin-left: auto;
+  width: fit-content;
+  height: fit-content;
+}
+
+/* 2단 적재 가능한 속성 요소 */
+.decentral-grid-element {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  height: fit-content;
+  padding: 10px 5px;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* 동시 적재 불가능한 속성 요소 */
+.decentral-grid-element-long {
+  display: flex;
+  flex-direction: column;
+  grid-column: 1 / 3;
+  max-width: 100%;
+  height: fit-content;
+  padding: 10px 5px;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* 동시 적재 불가능한 속성 요소 */
+.decentral-grid-element-long-semi-flat {
+  display: flex;
+  flex-direction: column;
+  grid-column: 1 / 3;
+  max-width: 100%;
+  height: fit-content;
+  padding: 5px 5px;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* 동시 적재 불가능한 속성 요소 */
+.decentral-grid-element-long-flat {
+  display: flex;
+  flex-direction: column;
+  grid-column: 1 / 3;
+  max-width: 100%;
+  height: fit-content;
+  padding: 0px 5px;
+  min-height: 0;
+  min-width: 0;
+}
+
+/*
+ * 범용 클래스 선언 
+ */
+/* Weight 1 기반 가변 수직 컨테이너 */
+.decentral-vertical-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/*
+ * 체크박스-스위치 선언 
+ */
+/* 스위치 최상단 컨테이너 */
+.decentral-boxed-field {
+  display: flex;
+  width: 100%;
+  background-color: var(--decentral-switch-background);
+  border: 1px solid var(--decentral-text-border);
+  user-select: none;
+  padding: 12px 0px;
+}
+
+.decentral-padded-boxed-field {
+  display: flex;
+  width: 100%;
+  background-color: var(--decentral-switch-background);
+  border: 1px solid var(--decentral-text-border);
+  user-select: none;
+  padding: 12px 16px;
+}
+
+/* 스위치 텍스트 컨테이너 */
+.decentral-boxed-field .element-text-container {
+  display: flex;
+  flex-direction: column;
+  justify-items: center;
+  padding: 8px 16px;
+}
+
+/* 긴 스위치 텍스트 컨테이너 */
+.decentral-boxed-field .element-text-container-full {
+  display: flex;
+  flex-direction: column;
+  justify-items: center;
+  padding: 8px 16px;
+  width: 100%;
+}
+
+/* 스위치 제목 */
+.decentral-boxed-field .element-title {
+  font-size: 14px;
+  font-weight: normal;
+  margin-bottom: 4px;
+  color: var(--decentral-text);
+}
+
+/* 스위치 설명 */
+.decentral-boxed-field .element-description {
+  font-size: 13px;
+  font-weight: light;
+  color: var(--decentral-text-formal);
+}
+
+/* 스위치 내 체크박스 컨테이너 */
+.decentral-boxed-field .element-input-container {
+  display: flex;
+  margin-left: auto;
+  align-items: center;
+  padding: 4px 8px;
+}
+
+.decentral-boxed-field .element-input-container-long {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.decentral-boxed-field .element-small-input {
+  background: var(--decentral-text-background);
+  border: 1px solid var(--decentral-text-border);
+  color: var(--decentral-text);
+  border-radius: 3px;
+  width: 64px;
+  height: 36px;
+  padding: 4px 8px;
+}
+
+.decentral-boxed-field .element-medium-input {
+  background: var(--decentral-text-background);
+  border: 1px solid var(--decentral-text-border);
+  color: var(--decentral-text);
+  border-radius: 3px;
+  width: 96px;
+  height: 36px;
+  padding: 4px 8px;
+}
+
+.decentral-boxed-field .element-large-input {
+  background: var(--decentral-text-background);
+  border: 1px solid var(--decentral-text-border);
+  color: var(--decentral-text);
+  border-radius: 3px;
+  width: 128px;
+  height: 36px;
+  padding: 4px 8px;
+}
+
+/*
+        Switch Checkbox source code from:
+        https://www.daleseo.com/css-toggle-switch/
+    */
+/* 커스텀 체크박스 설정 */
+.element-switch {
+  appearance: none;
+  position: relative;
+  border-radius: 1.25em;
+  width: 4em;
+  height: 2em;
+  background-color: var(--decentral-switch-inactive);
+  border-color: var(--decentral-switch-inactive);
+}
+
+/* 체크박스 스위치 버튼 */
+.element-switch::before {
+  content: "";
+  position: absolute;
+  top: -0.05em;
+  left: 0;
+  width: 2em;
+  height: 2em;
+  border-radius: 50%;
+  transform: scale(0.6);
+  background-color: white;
+  transition: left 50ms linear;
+}
+
+/* 선택된 체크박스의 스위치 위치 이동 */
+.element-switch:checked::before {
+  left: 2em;
+}
+/* 체크된 스위치 체크박스 색상 */
+.element-switch:checked {
+  background-color: var(--decentral-active-item);
+  border-color: var(--decentral-active-item);
+}
+
+/* 비활성화된 스위치 체크박스 설정 */
+.element-switch:disabled {
+  border-color: lightgray;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* 비활성화된 스위치 버튼 색상 설정 */
+.element-switch:disabled:before {
+  background-color: var(--decentral-text-inactive);
+}
+
+/*
+ * input 기반 1단 텍스트필드 선언 
+ */
+.decentral-text-field {
+  background-color: var(--decentral-text-background);
+  border: 1px solid var(--decentral-text-border);
+  border-radius: 4px;
+  width: 100%;
+  padding: 4px 8px;
+  color: var(--decentral-text);
+  height: 36px;
+}
+
+/*
+ * textarea 기반 다단식 텍스트에리어 선언 
+ */
+/* 수정 가능한 일반 textarea */
+.decentral-text-area {
+  background-color: var(--decentral-text-background);
+  border: 1px solid var(--decentral-text-border);
+  resize: none;
+  width: 100%;
+  padding: 4px 8px;
+  color: var(--decentral-text);
+  height: 64px;
+}
+
+/* 
+ * 데이터 표시용 수정 불가능 textarea
+ */
+.decentral-logging-area {
+  background-color: var(--decentral-text-background);
+  border: 1px solid var(--decentral-text-border);
+  resize: none;
+  width: 100%;
+  padding: 4px 8px;
+  color: var(--decentral-text);
+  height: 128px;
+}
+
+.decentral-button {
+  background-color: var(--decentral-active-item);
+  color: var(--decentral-text-inverted);
+  width: 100%;
+  height: 32px;
+  padding: 4px 16px;
+  border-radius: 3px;
+  font-weight: normal;
+  font-size: 14px;
+}
+
+.decentral-button[disabled="true"] {
+  background-color: var(--decentral-inactive-item);
+  cursor: not-allowed;
+}
+
+.decentral-text-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--decentral-text);
+  margin-top: 4px;
+}
+
+.decentral-text-plain {
+  font-size: 14px;
+  font-weight: light;
+  color: var(--decentral-text-formal);
+}
+
+/**
+ * 커스텀 셀렉트박스 드롭다운 
+ */
+.decentral-select {
+  width: 100%;
+  border-radius: 3px;
+  background-color: transparent;
+  overflow: hidden;
+  position: relative;
+  color: var(--decentral-text);
+  border: 1px solid var(--decentral-text-border);
+  user-select: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  font-size: 14px;
+}
+
+.decentral-select .decentral-option {
+  position: relative;
+  background-color: var(--decentral-background);
+  color: var(--decentral-text);
+  float: left;
+  z-index: 2002;
+  position: relative;
+  display: flex;
+  width: 100%;
+}
+
+.decentral-select:not([list-enabled="true"]) .decentral-list {
+  display: none;
+}
+
+.decentral-outer-click-detection {
+  position: absolute;
+  z-index: 2000;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.decentral-option-group {
+  font-size: 12px;
+  color: var(--decentral-text-formal);
+  font-weight: bold;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-left: 5px;
+}
+
+.decentral-option {
+  padding: 4px 10px;
+  background-color: transparent;
+  background-color: var(--decentral-text);
+  transition:
+    color 0.1s ease,
+    background-color 0.1s ease;
+}
+
+.decentral-option:not(:nth-child(1)) {
+  z-index: 2100;
+}
+
+.decentral-option:not(:nth-child(1)):hover {
+  background-color: var(--decentral-hover);
+  transition:
+    color 0.1s ease,
+    background-color 0.1s ease;
+}
+
+.decentral-select[list-enabled="true"] .decentral-list {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  padding: 5px;
+  z-index: 2300;
+  height: 250px;
+  overflow-y: scroll;
+  border: 1px solid var(--decentral-text-border);
+  background-color: var(--decentral-background);
+  width: 244px;
+}
+
+/**
+ *  모바일 레이아웃 대응 
+ */
+.decentral-mobile-menu-button {
+  display: none;
+}
+
+@media screen and (max-width: 600px) {
+  .decentral-menu-container {
+    display: none;
+    width: 100%;
+  }
+  .decentral-mobile-menu-button {
+    display: block;
+    margin-right: 8px;
+  }
+
+  .decentral-modal-mobile-menu[active="true"] {
+    display: flex;
+  }
+
+  .decentral-grid {
+    grid-template-columns: 100%;
+    column-count: 1;
+  }
+
+  .decentral-grid-element {
+    grid-column: 1 / 1;
+  }
+  .decentral-grid-element-long {
+    grid-column: 1 / 1;
+  }
+  .decentral-grid-element-long-semi-flat {
+    grid-column: 1 / 1;
+  }
+  .decentral-grid-element-long-flat {
+    grid-column: 1 / 1;
+  }
+}
+
+@media screen and (max-width: 850px) {
+  .decentral-grid {
+    grid-template-columns: 100%;
+    column-count: 1;
+  }
+  .decentral-grid-element {
+    grid-column: 1 / 1;
+  }
+  .decentral-grid-element-long {
+    grid-column: 1 / 1;
+  }
+  .decentral-grid-element-long-semi-flat {
+    grid-column: 1 / 1;
+  }
+  .decentral-grid-element-long-flat {
+    grid-column: 1 / 1;
+  }
+}
+/**
+ *  연동 전용
+ */
+/* 스크롤 제거 */
+.decentral-disable-scroll-flag {
+  overflow: hidden !important;
+}

@@ -1,0 +1,69 @@
+.chasm-copy {
+  &-dropdown {
+    &-container {
+      display: flex;
+      flex-direction: row;
+      min-width: 98px;
+      background-color: hsl(var(--popover));
+      border-left: 1px solid var(--surface_chat_primary);
+      border-top: 1px solid var(--surface_chat_primary);
+      border-bottom: 1px solid var(--surface_chat_primary);
+      padding: 0px 0px;
+      border-radius: 1px;
+      box-shadow:
+        rgba(0, 0, 0, 0.05) 0px 1px 2px 0px,
+        rgba(0, 0, 0, 0.1) 0px 2px 4px -2px;
+      z-index: 1001 !important;
+      position: fixed !important;
+      pointer-events: all !important;
+    }
+    &-item-container {
+      display: flex;
+      flex-direction: column;
+      width: calc(100% - 2px);
+      height: 100%;
+      z-index: 11 !important;
+    }
+  }
+  &-button {
+    &-primary {
+      font-size: 14px;
+      font-weight: 500;
+      color: hsl(var(--popover-foreground));
+      transition: all 0.3s;
+      user-select: none;
+      &:hover {
+        color: var(--text_primary);
+        background-color: hsl(var(--accent));
+        cursor: cursor;
+        transition: all 0.3s;
+      }
+    }
+
+    &-secondary {
+      font-size: 14px;
+      font-weight: 500;
+      color: hsl(var(--popover-foreground));
+      padding: 8px 14px;
+      transition: all 0.3s;
+      user-select: none;
+    }
+  }
+}
+#chasm-copy-partial-border {
+  width: 1px;
+  margin-top: 33px;
+  height: calc(100% - 28px);
+  background-color: var(--surface_chat_primary);
+}
+
+[chasm-dropdown-enabled] {
+  border-top: 1px solid var(--surface_chat_primary) !important;
+  border-bottom: 1px solid var(--surface_chat_primary) !important;
+  border-right: 1px solid var(--surface_chat_primary) !important;
+}
+
+.chasm-neocopy-dropdown-parent {
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+}
