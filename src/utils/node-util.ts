@@ -1,4 +1,4 @@
-import { Nullable } from "./generic-types";
+import { Nullable, Undeclarable } from "./generic-types";
 
 export interface AnnotatedContent<Main extends HTMLElement, Suffix extends HTMLElement> {
   title: Nullable<Main>;
@@ -170,13 +170,12 @@ export class NodeUtil {
     return this.createGenericGridElement("decentral-grid-element-long-semi-flat", titleText, lambda);
   }
 
-  
   /**
    * HTML 기반 요소를 복사해 반환합니다.
    * 반환된 요소는 항상 입력된 요소와 동일한 타입을 갖습니다.
    */
   static clone<T extends Element>(target: T): T {
-    return target.cloneNode(true) as T; 
+    return target.cloneNode(true) as T;
   }
 
   /**
@@ -219,5 +218,10 @@ export class NodeUtil {
 
   static isNodeSelected(e: HTMLElement) {
     return (e.parentElement?.querySelectorAll(":hover")?.length ?? 0) > 0;
+  }
+
+  static replaceTextIfChanged(e: Undeclarable<Element>, text: string) {
+    if (!e) return;
+    if (e.textContent !== text) e.textContent = text;
   }
 }

@@ -11,14 +11,14 @@ import SCRIPT_STYLE from "./css/majority-report.scss?inline";
 import CLOUD_SVG from "./svg/cloud.svg?raw";
 
 import { FileUtil } from "../../utils/file-utils";
-import { ExpandedVoid, Undeclarable } from "../../utils/generic-types";
+import { ExpandedVoid, Nullable, Undeclarable } from "../../utils/generic-types";
 
 import * as ort from "onnxruntime-web";
-import { fail, FutureResult, success } from "../../utils/flow-handler";
+import { fail, FutureResult, Result, success } from "../../utils/flow-handler";
 
 export const scriptMeta = ScriptMetaUtil.construct("crack", "majority-report.user.js", undefined, (meta) => {
   meta.name = "Chasm Crystallized Majority-Report (결정화 캐즘 묶음보고서)";
-  meta.version = "CRCK-MRPT-v1.1.0" satisfies CRACK_VERSION_RULE;
+  meta.version = "CRCK-MRPT-v1.2.0" satisfies CRACK_VERSION_RULE;
   meta.author = "milkyway0308";
   meta.description = "이미지 감정 분석 및 이미지 업로드 간편화. 이 기능은 결정화 캐즘 오리지널 패치입니다.";
 });
@@ -70,14 +70,43 @@ class SetIdPairs {
     public readonly setId: string,
   ) {}
 }
+
 class IdPairs {
   constructor(
-    public readonly setId: string,
+    public readonly set: SetIdPairs,
     public readonly id: string,
     public readonly url: string,
   ) {}
 }
 
+class EmotionDetectResult {
+  constructor(
+    public readonly file: File,
+    public readonly emotion: string,
+  ) {}
+}
+
+class FileUploadParam {
+  constructor(
+    public readonly storyId: string,
+    public readonly setIds: SetIdPairs[],
+    public readonly file: File,
+    public readonly character: string,
+    public readonly category: Nullable<string>,
+  ) {}
+
+  withCategory(category: string): FileUploadParam {
+    return new FileUploadParam(this.storyId, this.setIds, this.file, this.character, category);
+  }
+}
+
+class FileUploadResult {
+  public readonly resultId = crypto.randomUUID();
+  constructor(
+    public readonly file: File,
+    public readonly failureCause: Nullable<Error>,
+  ) {}
+}
 // ==============================================================
 //                          일반 상수
 // ==============================================================
@@ -134,8 +163,7 @@ function injectImage(setId: string, expectedId: string, category: string, situat
     collapsed: true,
   };
   const currentImages: any[] = former.value.getValues("_situationImages") || [];
-
-  former.value.setValue("_situationImages", [...currentImages.filter((it) => it.category !== category && it.situation !== situation), newImageEntry], { shouldDirty: true });
+  former.value.setValue("_situationImages", [...currentImages.filter((it) => it.category !== category || it.situation !== situation), newImageEntry], { shouldDirty: true });
   return undefined;
 }
 
@@ -430,7 +458,228 @@ function getHighestLabel(classifierLabels: string[], item: Float32Array<ArrayBuf
 }
 
 // ==============================================================
-//                        UI 조작
+//                         UI 로직
+// ==============================================================
+
+const UPLOAD_THREASHOLD = 3;
+const uploadQueue = new Array<FileUploadParam>();
+let uploadResult = new Array<FileUploadResult>();
+let uploading = 0;
+
+async function doUpload(param: FileUploadParam) {
+  let fileType = param.file.name.slice((Math.max(0, param.file.name.lastIndexOf(".")) || Infinity) + 1).toLowerCase();
+  if (fileType === "jpg") {
+    fileType = "jpeg";
+  }
+  const uploadRequest = await CrackSdk.network().authFetch("POST", "https://crack-api.wrtn.ai/crack-api/situation-images/presigned-urls/bulk", {
+    sourceId: param.storyId,
+    startingSets: param.setIds.map((it) => {
+      return { baseSetId: it.setId };
+    }),
+    uploads: [{ fileType: fileType, category: param.character, situation: param.category }],
+  });
+  if (!uploadRequest.ok) {
+    uploadResult.push(new FileUploadResult(param.file, new Error("프리사인 처리 실패")));
+    console.error(uploadRequest.error);
+    return;
+  }
+  if (uploadRequest.value.data.startingSets[0].rejected.length > 0) {
+    uploadResult.push(new FileUploadResult(param.file, new Error("프리사인 요청 거부")));
+    return;
+  }
+  let bulkUploadUrl = `https://crack-api.wrtn.ai/crack-api/situation-images/stories/${param.storyId}/starting-sets?bulkId=${uploadRequest.value.data.bulkId}&`;
+  for (let setId of param.setIds) {
+    bulkUploadUrl = `${bulkUploadUrl}&baseSetIds%5B%5D=${setId}`;
+  }
+  const checkRequest = await CrackSdk.network().authFetch("GET", bulkUploadUrl);
+  if (!checkRequest.ok) {
+    uploadResult.push(new FileUploadResult(param.file, new Error("벌크 업로드 처리 실패")));
+    console.error(checkRequest.error);
+    return;
+  }
+  const putRequest = await fetch(uploadRequest.value.data.startingSets[0].uploads[0].url, { method: "PUT", body: param.file });
+  if (!putRequest.ok) {
+    uploadResult.push(new FileUploadResult(param.file, new Error("이미지 업로드 처리 실패")));
+    return;
+  }
+
+  let expectedUrl: IdPairs[] = [];
+  for (let i = 0; i < 15; i++) {
+    await new Promise((r) => setTimeout(r, 1000));
+    expectedUrl = [];
+    const finalizeRequest = await CrackSdk.network().authFetch("GET", bulkUploadUrl);
+    if (!finalizeRequest.ok) {
+      uploadResult.push(new FileUploadResult(param.file, new Error("최종 이미지 처리 실패")));
+      return;
+    }
+    let index = 0;
+    for (let set of finalizeRequest.value.data.startingSets) {
+      const progress = set.progress;
+      if (progress.errorCount > 0) {
+        uploadResult.push(new FileUploadResult(param.file, new Error("이미지 검열됨")));
+        return;
+      }
+      if (progress.errorCount + progress.successCount === progress.totalCount) {
+        expectedUrl.push(new IdPairs(param.setIds[index], param.setIds[index].id, set.uploads[0].url));
+      }
+      index++;
+    }
+    if (expectedUrl.length === param.setIds.length) break;
+  }
+  if (expectedUrl.length !== param.setIds.length) {
+    uploadResult.push(new FileUploadResult(param.file, new Error("검열 대기 제한 시간 초과")));
+    return;
+  }
+  for (const image of expectedUrl) {
+    const completeRequest = await fetch(`${image.url}?_cb=${Date.now()}`);
+    if (!completeRequest.ok) {
+      uploadResult.push(new FileUploadResult(param.file, new Error("이미지 업로드 완료 검증 실패")));
+      return;
+    }
+    await fetch(`${image.url}`);
+  }
+  for (const image of expectedUrl) {
+    const injectResult = injectImage(image.set.id, image.id, param.character, param.category!, image.url);
+    if (injectResult) {
+      uploadResult.push(new FileUploadResult(param.file, new Error("이미지 업로드 완료 검증 실패")));
+      return;
+    }
+  }
+  uploadResult.push(new FileUploadResult(param.file, null));
+}
+
+async function analyzeAndUpload(param: FileUploadParam) {
+  const fetched = await gatherImageEmotion(CLASSIFIER_LABELS, [param.file]);
+  if (!fetched[0].ok) {
+    uploadResult.push(new FileUploadResult(param.file, fetched[0].error));
+    return;
+  }
+  await doUpload(param.withCategory(fetched[0].value.emotion));
+}
+
+function updateElement() {
+  const element = NodeLocator.get(".chasm-mrpt-image-dragdrop-upload-statistics");
+  const container = NodeLocator.get(".chasm-mrpt-image-dragdrop-error-container");
+  if (!element || !container) return;
+  if (uploading <= 0 && uploadResult.length <= 0) {
+    // element.textContent = `업로드 대기중`;
+    return;
+  }
+
+  let successCount = 0;
+
+  for (const log of uploadResult) {
+    if (log.failureCause) {
+      if (!NodeLocator.get(`#mrpt-log-${log.resultId}`)) {
+        let fileName = log.file.name;
+        if (fileName.length > 15) {
+          fileName = `${fileName.substring(0, 13)}..`;
+        }
+        container.append(
+          NodeUtil.setupNode("p", {
+            cls: "chasm-mrpt-dragdrop-upload-log",
+            text: `❌ ${fileName}: ${log.failureCause.message}`,
+            onInit: (node) => {
+              node.id = `mrpt-log-${log.resultId}`;
+            },
+          }),
+        );
+      }
+    } else {
+      successCount++;
+    }
+  }
+
+  if (uploading <= 0) {
+    NodeUtil.replaceTextIfChanged(element, `${successCount}개의 이미지의 업로드에 성공했어요.`);
+  } else {
+    NodeUtil.replaceTextIfChanged(element, `업로드 진행중: ${uploadResult.length} / ${uploadResult.length + uploading + uploadQueue.length}`);
+  }
+}
+
+async function tick() {
+  updateElement();
+  if (uploadQueue.length <= 0) return;
+  const run = UPLOAD_THREASHOLD - uploadQueue.length;
+  if (run <= 0) return;
+  for (let i = 0; i < run; i++) {
+    const next = uploadQueue.splice(0, 1)[0];
+    if (!next) continue;
+    uploading++;
+    setTimeout(async () => {
+      try {
+        await (next.category ? doUpload(next) : analyzeAndUpload(next));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        uploading--;
+      }
+    });
+  }
+}
+
+async function gatherImageEmotion(labels: string[], files: File[]): Promise<Result<EmotionDetectResult>[]> {
+  if (!isOrtLoadedBefore) {
+    await loadOrtSessions();
+  }
+  const list = new Array<Result<EmotionDetectResult>>();
+  for (const file of files) {
+    const classifierResult = await executeEmotionAnalyze(file);
+    if (classifierResult.ok) {
+      list.push(success(new EmotionDetectResult(file, getHighestLabel(labels, classifierResult.value))));
+    } else {
+      list.push(classifierResult);
+    }
+  }
+
+  return list;
+}
+
+async function openQueue() {
+  const useAnalysis = NodeLocator.get("#chasm-mrpt-emotion-analyze");
+  const character = NodeLocator.get<HTMLInputElement>("#chasm-mrpt-character-name")?.value ?? "";
+  const situation = NodeLocator.get<HTMLInputElement>("#chasm-mrpt-character-situation")?.value ?? "";
+  const query = new URLSearchParams(window.location.search);
+  const storyId = query.get("storyId");
+  if (!storyId) {
+    CrackSdk.toastify().doToastifyAlert("알 수 없는 오류가 발생해 스토리 ID를 가져올 수 없었어요.");
+    return;
+  }
+  const setIds = extractCurrentSetIds();
+  if (!setIds) {
+    CrackSdk.toastify().doToastifyAlert("작품 ID 세트 추출에 실패했어요.");
+    return;
+  }
+  if (character.length <= 0) {
+    CrackSdk.toastify().doToastifyAlert("캐릭터 이름은 1자 이상이여야 해요.");
+    return;
+  }
+  if (useAnalysis?.getAttribute("active") === "true") {
+    const selected = await FileUtil.acceptFileRaw("image/png, image/jpg, image/jpeg, image/webp", true);
+    if (selected) {
+      for (const file of selected) {
+        uploadQueue.push(new FileUploadParam(storyId, setIds, file, character, null));
+      }
+    }
+  } else {
+    if (situation.length <= 0) {
+      CrackSdk.toastify().doToastifyAlert("캐릭터 상태는 1자 이상이여야 해요.");
+      return;
+    }
+    const selected = await FileUtil.acceptFileRaw("image/png, image/jpg, image/jpeg, image/webp", false);
+    if (selected) {
+      for (const file of selected) {
+        uploadQueue.push(new FileUploadParam(storyId, setIds, file, character, situation));
+      }
+    }
+  }
+}
+BrowserInitUtil.init(() => {
+  setInterval(tick, 250);
+});
+
+// ==============================================================
+//                         UI 조작
 // ==============================================================
 
 function modifyUploadPanel(panel: Element) {
@@ -439,10 +688,10 @@ function modifyUploadPanel(panel: Element) {
   }
   panel.append(NodeUtil.setupParagraphNode({ cls: "chasm-mrpt-warn-text", text: " 주의하세요: 묶음보고서 모듈은 현재 버전에서는 전체 시작 설정에만 이미지 업로드가 가능합니다. " }));
   panel.append(
-    createCrackStyleButton("감정 분석", "AI 모델을 통한 감정 분석 사용 여부예요.\n활성화되면 카테고리를 입력할 수 없어요.\n\n다음 모델을 사용해요:\nhttps://huggingface.co/skywolf46/kaunsera-at-home", "chasm-mrpt-emotion-analyze", "비활성화됨", () => {
+    createCrackStyleButton("감정 분석", "AI 모델을 통한 감정 분석 사용 여부예요.\nhttps://huggingface.co/skywolf46/kaunsera-at-home", "chasm-mrpt-emotion-analyze", "비활성화됨", () => {
       const button = NodeLocator.get<HTMLButtonElement>("#chasm-mrpt-emotion-analyze");
       if (button) {
-        const area = NodeLocator.get<HTMLInputElement>("#chasm-mrpt-charactrer-situation");
+        const area = NodeLocator.get<HTMLInputElement>("#chasm-mrpt-character-situation");
         if (button.hasAttribute("active")) {
           button.removeAttribute("active");
           button.innerText = "비활성화됨";
@@ -457,8 +706,8 @@ function modifyUploadPanel(panel: Element) {
     }),
   );
 
-  panel.append(createCrackStyleInput("캐릭터 이름", "캐릭터 이름을 지정하세요. 파일 이름은 무시됩니다.", "chasm-mrpt-charactrer-category"));
-  panel.append(createCrackStyleInput("캐릭터 상태", "캐릭터 상태, 혹은 감정을 지정하세요.", "chasm-mrpt-charactrer-situation"));
+  panel.append(createCrackStyleInput("캐릭터 이름", "캐릭터 이름을 지정하세요. 파일 이름은 무시됩니다.", "chasm-mrpt-character-name"));
+  panel.append(createCrackStyleInput("캐릭터 상태", "캐릭터 상태, 혹은 감정을 지정하세요.", "chasm-mrpt-character-situation"));
   panel.append(
     NodeUtil.setupNode("button", {
       cls: "chasm-mrpt-image-dragdrop",
@@ -470,131 +719,25 @@ function modifyUploadPanel(panel: Element) {
               container.append(parser.parseFromString(CLOUD_SVG, "image/svg+xml").documentElement);
               container.append(NodeUtil.setupParagraphNode({ cls: "chasm-mrpt-image-dragdrop-contents-title", text: "이미지를 올려보세요!" }));
               container.append(NodeUtil.setupParagraphNode({ cls: "chasm-mrpt-image-dragdrop-contents-description", text: "캐릭터 상태가 존재하는 상태에서는 문제가 발생할 수 있어요" }));
+              container.append(NodeUtil.setupParagraphNode({ cls: "chasm-mrpt-image-dragdrop-upload-statistics", text: "업로드 대기중" }));
+              container.append(NodeUtil.setupNode("div", { cls: "chasm-mrpt-image-dragdrop-error-container" }));
             },
           }),
         );
-        node.onclick = async () => {
-          try {
-            const category = NodeLocator.get<HTMLInputElement>("#chasm-mrpt-charactrer-category");
-            const situation = NodeLocator.get<HTMLInputElement>("#chasm-mrpt-charactrer-situation");
-            if (!category || category.value.length <= 0) {
-              CrackSdk.toastify().doToastifyAlert("캐릭터 이름은 1자 이상이여야 해요.");
-              return;
-            }
-            if (NodeLocator.get("#chasm-mrpt-emotion-analyze")?.getAttribute("active") !== "true" && (!situation || situation.value.length <= 0)) {
-              CrackSdk.toastify().doToastifyAlert("상황은 1자 이상이여야 해요.");
-              return;
-            }
-            const categoryText = category.value;
-            let situationText = situation?.value;
-            const selected = await FileUtil.acceptFileRaw("image/png, image/jpg, image/jpeg, image/webp");
-            if (selected) {
-              if (!situationText) {
-                if (!isOrtLoadedBefore) {
-                  CrackSdk.toastify().doToastifyAlert("감정 인식 모듈 최초 초기화를 진행하고 있어요.\n시간이 조금 더 걸릴 수 있어요!");
-                }
-                const classifierResult = await executeEmotionAnalyze(selected);
-                if (classifierResult.ok) {
-                  situationText = getHighestLabel(CLASSIFIER_LABELS, classifierResult.value);
-                } else {
-                  CrackSdk.toastify().doToastifyAlert(`감정 인식 처리에 실패했어요:\n${classifierResult.error.message}`);
-                  return;
-                }
-              }
-
-              const query = new URLSearchParams(window.location.search);
-              const result = await CrackSdk.story().getDetail(query.get("storyId")!);
-              if (!result.ok) {
-                CrackSdk.toastify().doToastifyAlert("알 수 없는 오류가 발생해 작품 정보를 가져올 수 없었어요.");
-                console.error(result.error);
-                return;
-              }
-              const setToUpload = extractCurrentSetIds();
-              if (!setToUpload) {
-                CrackSdk.toastify().doToastifyAlert("작품 ID 세트 추출에 실패했어요.");
-                return;
-              }
-              const uploadRequest = await CrackSdk.network().authFetch("POST", "https://crack-api.wrtn.ai/crack-api/situation-images/presigned-urls/bulk", {
-                sourceId: query.get("storyId")!,
-                startingSets: setToUpload.map((it) => {
-                  return { baseSetId: it.setId };
-                }),
-                uploads: [{ fileType: selected.name.slice((Math.max(0, selected.name.lastIndexOf(".")) || Infinity) + 1), category: categoryText, situation: situationText }],
-              });
-              if (!uploadRequest.ok) {
-                CrackSdk.toastify().doToastifyAlert("알 수 없는 오류가 발생해 프리사인 처리에 실패했어요.");
-                console.error(uploadRequest.error);
-                return;
-              }
-              if (uploadRequest.value.data.startingSets[0].rejected.length > 0) {
-                CrackSdk.toastify().doToastifyAlert("크랙 API에서 이미지 프리사인을 거부했어요.\n이미 업로드된 이미지인지 확인해주세요.");
-                return;
-              }
-              const checkRequest = await CrackSdk.network().authFetch("GET", `https://crack-api.wrtn.ai/crack-api/situation-images/stories/${query.get("storyId")!}/starting-sets?bulkId=${uploadRequest.value.data.bulkId}&baseSetIds%5B%5D=${result.value.startingSets[0].setId}`);
-              if (!checkRequest.ok) {
-                CrackSdk.toastify().doToastifyAlert("알 수 없는 오류가 발생해 벌크 데이터 처리에 실패했어요.");
-                console.error(checkRequest.error);
-                return;
-              }
-              const putRequest = await fetch(uploadRequest.value.data.startingSets[0].uploads[0].url, { method: "PUT", body: selected });
-              if (!putRequest.ok) {
-                CrackSdk.toastify().doToastifyAlert("알 수 없는 오류가 발생해 이미지 업로드 처리에 실패했어요.");
-                return;
-              }
-
-              let expectedUrl: IdPairs[] = [];
-              for (let i = 0; i < 15; i++) {
-                await new Promise((r) => setTimeout(r, 500));
-                expectedUrl = [];
-                const finalizeRequest = await CrackSdk.network().authFetch("GET", `https://crack-api.wrtn.ai/crack-api/situation-images/stories/${query.get("storyId")!}/starting-sets?bulkId=${uploadRequest.value.data.bulkId}&baseSetIds%5B%5D=${result.value.startingSets[0].setId}`);
-                if (!finalizeRequest.ok) {
-                  CrackSdk.toastify().doToastifyAlert("최종 이미지 처리에 실패해 이미지 업로드 처리에 실패했어요.");
-                  return;
-                }
-                let index = 0;
-                for (let set of finalizeRequest.value.data.startingSets) {
-                  const progress = set.progress;
-                  if (progress.errorCount > 0) {
-                    CrackSdk.toastify().doToastifyAlert("이미지가 크랙 검열 시스템에 의해 거부되었어요.");
-                    return;
-                  }
-                  if (progress.errorCount + progress.successCount === progress.totalCount) {
-                    expectedUrl.push(new IdPairs(setToUpload[index].id, set.uploads[0]._id, set.uploads[0].url));
-                  }
-                  index++;
-                }
-                if (expectedUrl.length === setToUpload.length) break;
-              }
-              if (expectedUrl.length !== setToUpload.length) {
-                CrackSdk.toastify().doToastifyAlert("이미지 업로드 시간 제한을 초과했어요.");
-                return;
-              }
-              for (const image of expectedUrl) {
-                const completeRequest = await fetch(`${image.url}?_cb=${Date.now()}`);
-                if (!completeRequest.ok) {
-                  CrackSdk.toastify().doToastifyAlert("이미지 업로드 완료 검증에 실패했어요.");
-                  return;
-                }
-                await fetch(`${image.url}`);
-              }
-              for (const image of expectedUrl) {
-                const injectResult = injectImage(image.setId, image.id, categoryText, situationText, image.url);
-                if (injectResult) {
-                  CrackSdk.toastify().doToastifyAlert("UI 인젝션에 실패했어요.\n정상적으로 작품에 이미지가 반영되지 않을 가능성이 높아요.\n이 오류는 결정화 캐즘 채널에 제보하면 빠르게 수정될 수 있어요.");
-                }
-              }
-
-              CrackSdk.toastify().doToastifyAlert("이미지를 업로드했어요.");
-            }
-          } catch (err) {
-            console.error(err);
-
-            CrackSdk.toastify().doToastifyAlert("예상하지 못한 오류가 발생했어요.\n정상적으로 작품에 이미지가 반영되지 않을 가능성이 높아요.\n이 오류는 결정화 캐즘 채널에 제보하면 빠르게 수정될 수 있어요.");
-          }
-        };
+        node.onclick = openQueue;
       },
     }),
   );
+
+  const clearButton = createCrackStyleButton("로그 비우기", "업로드 창의 실패 로그를 비우고 초기화해요.", "chasm-mrpt-reset", "로그 초기화", () => {
+    const logger = NodeLocator.get("#chasm-mrpt-image-dragdrop-upload-statistics");
+    const container = NodeLocator.get("#chasm-mrpt-image-dragdrop-error-container");
+    uploadResult = [];
+    if (container) container.replaceChildren();
+    if (logger && uploading <= 0) logger.textContent = "업로드 대기중";
+  });
+  clearButton.setAttribute("active", "true");
+  panel.append(clearButton);
 }
 
 function injectElement() {

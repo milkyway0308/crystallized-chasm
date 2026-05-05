@@ -45,19 +45,23 @@ function acceptFile(): Promise<Nullable<string>> {
   });
 }
 
-function acceptFileRaw(accepts: string): Promise<Nullable<File>> {
+function acceptFileRaw(accepts: string, multi: boolean): Promise<Nullable<File[]>> {
   return new Promise((resolve, reject) => {
     const tempElement = document.createElement("input");
     tempElement.type = "file";
     tempElement.accept = accepts;
+    if (multi) tempElement.multiple = true;
     tempElement.addEventListener("change", (event) => {
       const target = event.target as HTMLInputElement;
-      const file = target.files?.[0];
-      if (!file) {
+      if (!target.files) {
         resolve(null);
-        return;
+      } else {
+        const arr = [];
+        for (const file of target.files) {
+          arr.push(file);
+        }
+        resolve(arr);
       }
-      resolve(file)
     });
 
     tempElement.click();
@@ -67,5 +71,5 @@ function acceptFileRaw(accepts: string): Promise<Nullable<File>> {
 export const FileUtil = {
   exportString,
   acceptFile,
-  acceptFileRaw
+  acceptFileRaw,
 } as const;
