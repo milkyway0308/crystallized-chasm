@@ -71,12 +71,12 @@ IGX는 추후 크롬 웹 익스텐션을 통해 플랫폼 확장 프로젝트 �
 **결정화 캐즘 프로젝트는 스크립트별로 기능이 분리됩니다. 또한, 플랫폼별로 동일한 이름을 가진 모듈이 존재할 수 있습니다.**<br>
 **반드시 모든 스크립트를 설치할 필요는 없습니다. 필요한 기능만 골라 설치하세요.**
 
-- [결정화 캐즘 크랙 플랫폼 카탈로그](/crack/)
-- [결정화 캐즘 베이비챗 플랫폼 카탈로그](/babechat/)
+- [결정화 캐즘 크랙 플랫폼 카탈로그](/src/scripts/crack/README.md)
+- [결정화 캐즘 베이비챗 플랫폼 카탈로그](/src/scripts/babechat/README.md)
 
 # 그룹 프로젝트
 결정화 캐즘 프로젝트는 이제 대형 프로젝트로 성장하여 여러개의 서브 프로젝트를 지닙니다.
 현재 진행중인 프로젝트를 확인해보세요:
 
-- [Kaunsera@Home](https://huggingface.co/skywolf46/kaunsera-at-home)
+- [Kaunsera@Home](https://huggingface.co/skywolf46/kaunsera-at-home)<br>
 Kaunsera@Home은 애니메이션 스타일에 특화된, 수작업으로 라벨링된 데이터로 훈련된 경량 감정 분석 프레임워크입니다.
