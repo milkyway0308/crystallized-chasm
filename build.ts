@@ -1,8 +1,8 @@
 import { build, createServer } from "vite";
 
 import monkey, { cdn, type MonkeyUserScript } from "vite-plugin-monkey";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 
 function findTypeScripts(pathName: string): string[] {
   const srcDir = path.resolve(pathName);
@@ -37,7 +37,7 @@ async function buildScript(entryPath: string, scriptId: string, module: { script
         enforce: "pre",
         transform(code, id) {
           if (id.endsWith(".ts")) {
-            return code.replace(/ScriptMetaUtil\.construct/g, "/* @__PURE__ */ ScriptMetaUtil.construct");
+            return code.replaceAll(/ScriptMetaUtil\.construct/g, "/* @__PURE__ */ ScriptMetaUtil.construct");
           }
         },
       },
@@ -49,7 +49,7 @@ async function buildScript(entryPath: string, scriptId: string, module: { script
           externalGlobals: {
             dexie: cdn.jsdelivr("Dexie", "dist/dexie.min.js"),
             "lz-string": cdn.jsdelivr("LZString", "libs/lz-string.min.js"),
-            "onnxruntime-web": cdn.jsdelivr("ort","dist/ort.min.js")
+            "onnxruntime-web": cdn.jsdelivr("ort", "dist/ort.min.js"),
           },
         },
       }),
@@ -67,10 +67,10 @@ async function buildScript(entryPath: string, scriptId: string, module: { script
 function formatBytes(bytes: number, decimals: number = 2) {
   if (!+bytes) return "0 byte";
   const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
+  const dm = Math.max(0, decimals);
   const sizes = [" byte", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))}${sizes[i]}`;
+  return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(dm))}${sizes[i]}`;
 }
 
 async function buildAll() {
@@ -102,4 +102,4 @@ async function buildAll() {
   console.log(`./crystallized-chasm: Full script build completed in ${Math.round(performance.now() - allBuildStart)}ms`);
 }
 
-buildAll();
+await buildAll();

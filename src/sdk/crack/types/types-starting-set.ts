@@ -42,7 +42,7 @@ export class CrackStartingSet {
       MissingComponentError.ensureArray<string>("Crack Starting Set Deserialization", "replySuggestions", data),
       MissingComponentError.ensureArray<any>("Crack Starting Set Deserialization", "situationImages", data).map((it) => CrackSituationImage.from(it)),
       CrackEndingContainer.from(data["ending"] ?? {}),
-      (MissingComponentError.ensureArray<any>("Crack Starting Set Deserialization", "keywordBooks", data, false) ?? []).map((it) => CrackKeywordBook.from(it)),
+      (MissingComponentError.ensureArray<any>("Crack Starting Set Deserialization", "keywordBook", data, false) ?? []).map((it) => CrackKeywordBook.from(it)),
       (MissingComponentError.ensureArray<any>("Crack Starting Set Deserialization", "parameters", data, false) ?? []).map((it) => CrackParameter.from(it)),
       CrackImageMatrix.from(data.imageMatrix),
     );
@@ -56,7 +56,7 @@ export class CrackStartingSet {
       situationPrompt: this.situationPrompt,
       replySuggestions: this.replySuggestions,
       situationImages: this.situationImages,
-      keywordBooks: this.keywordBook,
+      keywordBook: this.keywordBook,
       parameters: this.parameters.map((it) => it.uglify()),
       ending: this.ending.hasEndings() ? this.ending.uglify(!includeId) : undefined,
       imageMatrix: this.imageMatrix?.uglify()
