@@ -100,7 +100,7 @@ export class CrackEnding {
     public imageUrl: string,
     public condition: CrackEndingCondition,
     public prompt: string,
-    public epilogueExample: string,
+    public epilogueExample: Nullable<string>,
     public hint: Nullable<string>,
     public rarity: string,
   ) {}
@@ -113,7 +113,7 @@ export class CrackEnding {
       imageUrl: this.imageUrl,
       condition: this.condition.uglify(eraseId),
       conditionPrompt: this.prompt,
-      epilogueExample: this.epilogueExample,
+      epilogueExample: this.epilogueExample ?? undefined,
       hint: this.hint ?? undefined,
       rarity: this.rarity,
     };
@@ -127,7 +127,7 @@ export class CrackEnding {
       MissingComponentError.ensureString("Crack Ending Deserialization", "imageUrl", data),
       CrackEndingCondition.from(data["condition"] ?? {}),
       MissingComponentError.ensureString("Crack Ending Deserialization", "conditionPrompt", data),
-      MissingComponentError.ensureString("Crack Ending Deserialization", "epilogueExample", data),
+      MissingComponentError.ensureString("Crack Ending Deserialization", "epilogueExample", data, false) ?? null,
       MissingComponentError.ensureString("Crack Ending Deserialization", "hint", data, false) ?? null,
       MissingComponentError.ensureString("Crack Ending Deserialization", "rarity", data),
     );
