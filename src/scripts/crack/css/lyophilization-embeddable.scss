@@ -1,0 +1,46 @@
+body {
+  background-color: hsl(0 0% 4%);
+}
+.header {
+  &-logo {
+    color: orangered;
+    font-weight: 800;
+  }
+}
+
+.messages {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.5rem;
+}
+
+.message-bubble {
+  color: #e1e4e8;
+  padding: 1.25rem 1rem;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+  max-width: 640px;
+
+  &.bot {
+    background-color: rgb(46, 45, 43);
+    border-radius: 4px 20px 20px 20px;
+  }
+
+  &.user {
+    background-color: #61605a;
+    border-radius: 20px 20px 4px 20px;
+  }
+
+  & img {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 12px;
+  }
+  & pre {
+    width: 100%;
+    max-width: 100%;
+
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+}
