@@ -1,0 +1,61 @@
+<head>
+  <title>$TEMPLATE_TITLE$</title>
+  <style>
+    /* $TEMPLATE_STYLE$ */
+  </style>
+
+  <script lang="text/javascript">
+    document.addEventListener("DOMContentLoaded", () => {
+        const observer = new IntersectionObserver(async (entries, obs) => {
+            for (const entry of entries) {
+                if (entry.isIntersecting) {
+                    const imgElement = entry.target;
+                    const targetId = imgElement.getAttribute('src');
+                    if (!targetId.startsWith("./temporary-index/")) continue
+                    const dataElement = document.getElementById(targetId.substring("./temporary-index/".length));
+                    if (dataElement) {
+                        try {
+                            const base64Data = dataElement.textContent.trim();
+                            const response = await fetch(base64Data);
+                            const blob = await response.blob();
+                            const objectUrl = URL.createObjectURL(blob);
+                            imgElement.src = objectUrl;
+                        } catch (error) {
+                            console.error("이미지 변환 실패:", error);
+                        }
+                    }
+                    obs.unobserve(imgElement);
+                }
+            }
+        }, {
+            rootMargin: "200px 0px"
+        });
+        document.querySelectorAll('img').forEach(img => {
+            observer.observe(img);
+        });
+    });
+  </script>
+</head>
+
+<body>
+  <div class="panel-container">
+    <div class="panel-header pc">
+      <div class="panel-header-navigation">
+        <span class="panel-header-navigation-logo">$TEMPLATE_LOGO_TEXT$</span>
+      </div>
+      <div class="panel-header-content">
+        <span class="panel-header-logo">$TEMPLATE_ARTICLE_NAME$</span>
+      </div>
+    </div>
+
+    <div class="panel-header mobile">
+      <div class="panel-header-placeholder"></div>
+      <span class="panel-header-navigation-logo">$TEMPLATE_LOGO_TEXT$</span>
+
+      <div class="panel-header-content">
+        <span class="panel-header-logo">$TEMPLATE_ARTICLE_NAME$</span>
+      </div>
+    </div>
+    <div class="messages">$CONTENT_SEPARATOR$</div>
+  </div>
+</body>

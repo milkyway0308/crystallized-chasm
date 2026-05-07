@@ -5,14 +5,26 @@ import { Runnable } from "../../utils/generic-types";
 import { BrowserInitUtil } from "../../utils/init-util";
 import { ObserveUtil } from "../../utils/observe-util";
 import { ScriptMetaUtil } from "../../utils/script-meta-util";
+import RAW_HTML from "./html/template.html?raw";
+import COMPILED_CSS from "./css/lyophilization-embeddable.scss?inline";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 
 export const scriptMeta = ScriptMetaUtil.construct("crack", "lyophilization.user.js", undefined, (meta) => {
   meta.name = "Chasm Crystallized Lyophilization (결정화 캐즘 동결건조)";
-  meta.version = "CRCK-LYOP-v2.0.0" satisfies CRACK_VERSION_RULE;
+  meta.version = "CRCK-LYOP-v2.1.0" satisfies CRACK_VERSION_RULE;
   meta.author = "milkyway0308";
   meta.description = "채팅방 백업 및 완전한 아카이브화 지원. 이 기능은 원본 채팅 백업 확장 스크립트의 유지보수 버전입니다.";
 });
 
+export class EncodedImage {
+  constructor(
+    public id: string,
+    public base64: string,
+  ) {}
+}
+
+const MARKDOWN_URL_REGEX = /!\[(?<alt>[^\]]*)\]\((?<url>.*?)(?=\"|\))(?<optional_title>\".*\")?\)/g;
 function createCopySVG() {
   return `<svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M19.5 16.5L19.5 4.5L18.75 3.75H9L8.25 4.5L8.25 7.5L5.25 7.5L4.5 8.25V20.25L5.25 21H15L15.75 20.25V17.25H18.75L19.5 16.5ZM15.75 15.75L15.75 8.25L15 7.5L9.75 7.5V5.25L18 5.25V15.75H15.75ZM6 9L14.25 9L14.25 19.5L6 19.5L6 9Z" fill="var(--icon_tertiary)"></path> </g></svg>`;
 }
@@ -26,8 +38,110 @@ function createHTMLSVG() {
 }
 
 // =================================================
-//                    HTML 추출 유틸리티
+//                 HTML 추출 유틸리티
 // =================================================
+
+async function extractHTML(fileName: string) {
+  const sessionId = CrackSdk.path().chatRoom();
+  if (!sessionId) return;
+  const sessionData = await CrackSdk.sessionFetcher().getSession(sessionId);
+  if (!sessionData.ok) return;
+
+  const urlMappings = new Map<string, string>();
+  const encoder = new TextEncoder();
+  const streamSaver = await import("streamsaver");
+  const stream = streamSaver.createWriteStream(fileName);
+  const writer = stream.getWriter();
+
+  const replaced = RAW_HTML.replace("$TEMPLATE_TITLE$", "C2 Lyophilization").replaceAll("$TEMPLATE_LOGO_TEXT$", "크랙").replace("$TEMPLATE_ARTICLE_NAME$", "").replace("/* $TEMPLATE_STYLE$ */", COMPILED_CSS);
+  const splitter = replaced.split("$CONTENT_SEPARATOR$");
+
+  try {
+    writer.write(encoder.encode(splitter[0]));
+
+    for await (const message of CrackSdk.sessionFetcher().iterateLogs(sessionId)) {
+      if (!message.ok) {
+        console.warn("Log fetch interrupted:", message);
+        break;
+      }
+      let rawContent = message.value.content.replaceAll(MARKDOWN_URL_REGEX, (match, alt, url, optional) => {
+        const expectedUid = urlMappings.getOrInsertComputed(url, () => crypto.randomUUID());
+        return `![${alt}](./temporary-index/${expectedUid})`;
+      });
+
+      if (message.value.situationImages.length > 0) {
+        let imageString = "";
+        for (const image of message.value.situationImages.toReversed()) {
+          const expectedUid = urlMappings.getOrInsertComputed(image, () => crypto.randomUUID());
+          imageString = imageString + `![상황 이미지](./temporary-index/${expectedUid})\n`;
+        }
+        rawContent = imageString + rawContent;
+      }
+      const parsedHTML = DOMPurify.sanitize(marked.parse(rawContent, { async: false, breaks: true }) as string);
+      if (message.value.role === "user") {
+        writer.write(
+          encoder.encode(`
+          <div class="message-bubble user">
+            <span class="content"> ${parsedHTML} </span>
+          </div>
+        `),
+        );
+      } else {
+        writer.write(
+          encoder.encode(`
+          <div class="message-bubble bot">
+            <span class="content"> ${parsedHTML} </span>
+          </div>
+        `),
+        );
+      }
+    }
+
+    writer.write(encoder.encode(splitter[1]));
+
+    for await (const { id, base64 } of iterateImageUrl(urlMappings)) {
+      writer.write(encoder.encode(`<script id="${id}" type="text/base64">${base64}</script>`));
+    }
+  } catch (err) {
+    console.error("Failed to generate backup HTML:", err);
+  } finally {
+    try {
+      writer.close();
+    } catch (closeErr) {
+      console.warn("Writer already closed or error on close:", closeErr);
+    }
+  }
+}
+
+async function* iterateImageUrl(map: Map<string, string>): AsyncGenerator<EncodedImage, void, void> {
+  for (const [k, v] of map) {
+    try {
+      yield new EncodedImage(v, await imageUrlToBase64Browser(k));
+    } catch (err) {}
+  }
+}
+
+async function imageUrlToBase64Browser(url: string): Promise<string> {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          resolve(reader.result);
+        } else {
+          reject(new Error("Base64 변환 실패"));
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error("이미지를 다운로드하고 변환하는 중 오류 발생:", error);
+    throw error;
+  }
+}
 
 // =================================================
 //                    초기화
@@ -117,14 +231,14 @@ function setup() {
         CrackSdk.toastify().doToastifyAlert("메시지를 가져오는데에 실패했어요.\n결정화 캐즘 프로젝트 지원 채널에 제보해주세요.");
       });
   });
-  // injectButton(
-  //   "chasm-lyop-extract-html",
-  //   createHTMLSVG(),
-  //   "HTML로 추출",
-  //   () => {
-
-  //   }
-  // );
+  injectButton("chasm-lyop-extract-html", createHTMLSVG(), "HTML로 추출", () => {
+    const currentId = CrackSdk.path().chatRoom();
+    if (!currentId) {
+      CrackSdk.toastify().doToastifyAlert("채팅방 ID를 가져오는데에 실패했어요.\n결정화 캐즘 프로젝트 지원 채널에 제보해주세요.", 3000);
+      return;
+    }
+    extractHTML(`${currentId}.html`);
+  });
 }
 
 function injectButton(id: string, svg: string, title: string, action: Runnable) {
